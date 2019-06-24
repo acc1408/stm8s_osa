@@ -1,0 +1,9 @@
+/Debug
+/Release
+*.dep
+*.stp
+*.stw
+*.wed
+TAGS.txt
+TAGS_Filelist.txt
+/stm8l15x_osa
