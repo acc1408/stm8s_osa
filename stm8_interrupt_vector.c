@@ -3,7 +3,7 @@
  */
 
 #include "stm8s_it.h"
-//#include "stm8s_it.c"
+
 typedef void @far (*interrupt_handler_t)(void);
 
 struct interrupt_vector {
