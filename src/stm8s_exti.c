@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_exti.h"
+#include "inc/stm8s_exti.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

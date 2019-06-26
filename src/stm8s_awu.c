@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_awu.h"
+#include "inc/stm8s_awu.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

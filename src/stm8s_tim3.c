@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_tim3.h"
+#include "inc/stm8s_tim3.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

@@ -43,73 +43,73 @@
 #include "src/stm8s_adc1.c"
 #endif
 #ifdef __STM8S_CLK_H
-// #include "inc/stm8s_clk.h" // драйвер тактирования
+#include "src/stm8s_clk.c" // драйвер тактирования
 #endif
 #ifdef __STM8S_EXTI_H
-// #include "inc/stm8s_exti.h" // драйвер внешних прерываний
+#include "src/stm8s_exti.c" // драйвер внешних прерываний
 #endif
 #ifdef __STM8S_FLASH_H
-// #include "inc/stm8s_flash.h" // драйвер записи во флеш
+#include "src/stm8s_flash.c" // драйвер записи во флеш
 #endif
 #ifdef __STM8S_GPIO_H
-// #include "inc/stm8s_gpio.h" // драйвер для GPIO
+#include "src/stm8s_gpio.c" // драйвер для GPIO
 #endif
 #ifdef __STM8S_I2C_H
-// #include "inc/stm8s_i2c.h" // драйвер для шины I2C
+#include "src/stm8s_i2c.c" // драйвер для шины I2C
 #endif
 #ifdef __STM8S_ITC_H
-// #include "inc/stm8s_itc.h"  //
+#include "src/stm8s_itc.c"  //
 #endif
 #ifdef __STM8S_IWDG_H
-// #include "inc/stm8s_iwdg.h"
+#include "src/stm8s_iwdg.c"
 #endif
 #ifdef __STM8S_RST_H
-// #include "inc/stm8s_rst.h"
+#include "src/stm8s_rst.c"
 #endif
 #ifdef __STM8S_SPI_H
-// #include "inc/stm8s_spi.h"  
+#include "src/stm8s_spi.c"  
 #endif
 #ifdef __STM8S_TIM1_H
-// #include "inc/stm8s_tim1.h"
+#include "src/stm8s_tim1.c"
 #endif
 #ifdef __STM8S_ADC2_H
-// #include "inc/stm8s_adc2.h" // драйвер для АЦП2
+#include "src/stm8s_adc2.c" // драйвер для АЦП2
 #endif
 #ifdef __STM8S_AWU_H
-// #include "inc/stm8s_awu.h"
+#include "src/stm8s_awu.c"
 #endif
 #ifdef __STM8S_BEEP_H
-// #include "inc/stm8s_beep.h"
+#include "src/stm8s_beep.c"
 #endif
 #ifdef __STM8S_CAN_H
-// #include "inc/stm8s_can.h"
+#include "src/stm8s_can.c"
 #endif
 #ifdef __STM8S_TIM2_H
-// #include "inc/stm8s_tim2.h"
+#include "src/stm8s_tim2.c"
 #endif
 #ifdef __STM8S_TIM3_H
-// #include "inc/stm8s_tim3.h"
+#include "src/stm8s_tim3.c"
 #endif
 #ifdef __STM8S_TIM4_H
-// #include "inc/stm8s_tim4.h"
+#include "src/stm8s_tim4.c"
 #endif
 #ifdef __STM8S_TIM5_H
-// #include "inc/stm8s_tim5.h"
+#include "src/stm8s_tim5.c"
 #endif
 #ifdef __STM8S_TIM6_H
-// #include "inc/stm8s_tim6.h"
+#include "src/stm8s_tim6.c"
 #endif
 #ifdef __STM8S_UART1_H
-// #include "inc/stm8s_uart1.h"
+#include "src/stm8s_uart1.c"
 #endif
 #ifdef __STM8S_UART2_H
-// #include "inc/stm8s_uart2.h"
+#include "src/stm8s_uart2.c"
 #endif
 #ifdef __STM8S_UART3_H
-// #include "inc/stm8s_uart3.h"
+#include "src/stm8s_uart3.c"
 #endif
 #ifdef __STM8S_WWDG_H
-// #include "inc/stm8s_wwdg.h"
+#include "src/stm8s_wwdg.c"
 #endif
 
 /* Private macro -------------------------------------------------------------*/

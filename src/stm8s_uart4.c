@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_uart4.h"
+#include "inc/stm8s_uart4.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

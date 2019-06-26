@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_beep.h"
+#include "inc/stm8s_beep.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

@@ -27,7 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include "stm8s_clk.h"
+#include "inc/stm8s_clk.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{

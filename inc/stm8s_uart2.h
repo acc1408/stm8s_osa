@@ -30,6 +30,7 @@
 #define __STM8S_UART2_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "inc/stm8s_clk.h"
 #include "stm8s.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver

@@ -33,7 +33,7 @@
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
-//#include "osa.h"
+// #include "osa.h"
 // #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
@@ -60,7 +60,7 @@
 #endif /* STM8S208 || STM8AF52Ax */
 
 #ifndef STM8S903
- #include "inc/stm8s_tim2.h"
+// #include "inc/stm8s_tim2.h" // драйвер для Timer1
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
@@ -78,13 +78,16 @@
 // #include "inc/stm8s_uart1.h"
 #endif /* STM8S208 || STM8S207 || STM8S103 || STM8S001 ||STM8S903 || STM8AF52Ax || STM8AF62Ax */
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)
- #include "inc/stm8s_uart2.h"
+// #include "inc/stm8s_uart2.h" // driver for UART2
 #endif /* STM8S105 || STM8AF626x */
 #if defined(STM8S208) ||defined(STM8S207) || defined(STM8S007) || defined (STM8AF52Ax) ||\
     defined (STM8AF62Ax)
 // #include "inc/stm8s_uart3.h"
 #endif /* STM8S208 || STM8S207 || STM8AF52Ax || STM8AF62Ax */ 
 //#include "inc/stm8s_wwdg.h"
+
+
+
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

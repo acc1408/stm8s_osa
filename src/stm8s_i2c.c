@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8s_i2c.h"
+#include "inc/stm8s_i2c.h"
 
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{
