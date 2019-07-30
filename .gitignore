@@ -4,6 +4,8 @@
 *.stp
 *.stw
 *.wed
+*.pdb
+*.wdb
 TAGS.txt
 TAGS_Filelist.txt
 /stm8l15x_osa

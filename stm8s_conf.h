@@ -37,7 +37,7 @@
  #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
-// #include "inc/stm8s_gpio.h" // драйвер для GPIO
+ #include "inc/stm8s_gpio.h" // драйвер для GPIO
 // #include "inc/stm8s_i2c.h" // драйвер для шины I2C
 // #include "inc/stm8s_itc.h"  //
 // #include "inc/stm8s_iwdg.h"

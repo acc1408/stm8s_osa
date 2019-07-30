@@ -32,6 +32,12 @@
 /* Private defines -----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+void init(void)
+{
+GPIO_Init(GPIOC, GPIO_PIN_ALL, GPIO_MODE_OUT_PP_HIGH_FAST);
+
+}
+
 
 void main(void)
 {
@@ -42,9 +48,11 @@ void main(void)
 	OS_Run(); // Запуск ядра RTOS OSA
 #else
 	/* Infinite loop */
-  while (1)
+  init();
+	while (1)
   {
-  
+  GPIO_WriteReverse(GPIOC, GPIO_PIN_1);
+	nop();
 	}
 #endif
 }

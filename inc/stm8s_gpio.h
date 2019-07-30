@@ -137,15 +137,15 @@ typedef enum
   */
 
 void GPIO_DeInit(GPIO_TypeDef* GPIOx);
-void GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_Pin, GPIO_Mode_TypeDef GPIO_Mode);
+void GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN, GPIO_Mode_TypeDef GPIO_Mode);
 void GPIO_Write(GPIO_TypeDef* GPIOx, uint8_t PortVal);
-void GPIO_WriteHigh(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef PortPins);
-void GPIO_WriteLow(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef PortPins);
-void GPIO_WriteReverse(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef PortPins);
+void GPIO_WriteHigh(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN);
+void GPIO_WriteLow(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN);
+void GPIO_WriteReverse(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN);
 uint8_t GPIO_ReadInputData(GPIO_TypeDef* GPIOx);
 uint8_t GPIO_ReadOutputData(GPIO_TypeDef* GPIOx);
-BitStatus GPIO_ReadInputPin(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_Pin);
-void GPIO_ExternalPullUpConfig(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_Pin, FunctionalState NewState);
+BitStatus GPIO_ReadInputPin(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN);
+void GPIO_ExternalPullUpConfig(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN, FunctionalState NewState);
 /**
   * @}
   */
