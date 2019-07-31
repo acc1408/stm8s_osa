@@ -32,6 +32,7 @@
 /* Private defines -----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+
 void init(void)
 {
 GPIO_Init(GPIOC, GPIO_PIN_ALL, GPIO_MODE_OUT_PP_HIGH_FAST);
@@ -48,11 +49,21 @@ void main(void)
 	OS_Run(); // Запуск ядра RTOS OSA
 #else
 	/* Infinite loop */
-  init();
+  
+	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
+	Init_Delay();
+		init();
 	while (1)
   {
   GPIO_WriteReverse(GPIOC, GPIO_PIN_1);
-	nop();
+	delay_ms(10);
+	//nop();
+	//delay_ms(2000000,1000);
+	
+	//delay_us(16000000UL,1000);
+	
+	//for(uint8_t i=0;i<1000;i++); 
+	//{ delay_us(2000000,1000); }
 	}
 #endif
 }

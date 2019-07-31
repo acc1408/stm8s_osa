@@ -593,6 +593,13 @@ uint32_t CLK_GetClockFreq(void)
   
   return((uint32_t)clockfrequency);
 }
+//---------------
+uint32_t CLK_GetCPUClk(void)
+{
+	uint8_t tmp;
+	tmp=CLK->CKDIVR;
+	return CLK_GetClockFreq()>>(tmp&0x7);
+}
 
 /**
   * @brief  Adjusts the Internal High Speed oscillator (HSI) calibration value.

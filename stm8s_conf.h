@@ -34,6 +34,7 @@
 
 /* Uncomment the line below to enable peripheral header file inclusion */
 // #include "osa.h"
+#include "inc/stm8s_delay.h" // драйвер тактирования
  #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш

@@ -368,6 +368,7 @@ void CLK_ClockSecuritySystemEnable(void);
 void CLK_SYSCLKEmergencyClear(void);
 void CLK_AdjustHSICalibrationValue(CLK_HSITrimValue_TypeDef CLK_HSICalibrationValue);
 uint32_t CLK_GetClockFreq(void);
+uint32_t CLK_GetCPUClk(void);
 CLK_Source_TypeDef CLK_GetSYSCLKSource(void);
 FlagStatus CLK_GetFlagStatus(CLK_Flag_TypeDef CLK_FLAG);
 ITStatus CLK_GetITStatus(CLK_IT_TypeDef CLK_IT);

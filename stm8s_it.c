@@ -111,6 +111,9 @@
 #ifdef __STM8S_WWDG_H
 #include "src/stm8s_wwdg.c"
 #endif
+#ifdef __STM8S_DELAY_H
+#include "src/stm8s_delay.c"
+#endif
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
