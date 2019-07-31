@@ -52,18 +52,12 @@ void main(void)
   
 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
 	Init_Delay();
-		init();
+	init();
 	while (1)
   {
   GPIO_WriteReverse(GPIOC, GPIO_PIN_1);
-	delay_ms(10);
-	//nop();
-	//delay_ms(2000000,1000);
+	delay_ms(1000);
 	
-	//delay_us(16000000UL,1000);
-	
-	//for(uint8_t i=0;i<1000;i++); 
-	//{ delay_us(2000000,1000); }
 	}
 #endif
 }
