@@ -114,7 +114,9 @@
 #ifdef __STM8S_DELAY_H
 #include "src/stm8s_delay.c"
 #endif
-
+#ifdef __STM8S_ENCODER_H
+#include "src/stm8s_encoder.c"
+#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -568,6 +570,11 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	#ifdef __OSA__ 
+	OS_Timer();
+	TIM4_ClearFlag(TIM4_FLAG_UPDATE);
+	#endif
+	
  }
 #endif /* (STM8S903) || (STM8AF622x)*/
 

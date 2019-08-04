@@ -210,9 +210,9 @@ uint8_t GPIO_ReadInputData(GPIO_TypeDef* GPIOx)
   * @param  GPIO_PIN : Specifies the pin number.
   * @retval BitStatus : GPIO input pin status.
   */
-BitStatus GPIO_ReadInputPin(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
+uint8_t GPIO_ReadInputPin(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
 {
-  return ((BitStatus)(GPIOx->IDR & (uint8_t)GPIO_PIN));
+  return ((uint8_t)(GPIOx->IDR & (uint8_t)GPIO_PIN)/(uint8_t)GPIO_PIN);
 }
 
 /**

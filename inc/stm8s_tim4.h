@@ -153,7 +153,10 @@ FlagStatus TIM4_GetFlagStatus(TIM4_FLAG_TypeDef TIM4_FLAG);
 void TIM4_ClearFlag(TIM4_FLAG_TypeDef TIM4_FLAG);
 ITStatus TIM4_GetITStatus(TIM4_IT_TypeDef TIM4_IT);
 void TIM4_ClearITPendingBit(TIM4_IT_TypeDef TIM4_IT);
+#ifdef __OSA__ 
+void TIM4_TimerOSA(uint16_t us);
 
+#endif
 
 /**
   * @}

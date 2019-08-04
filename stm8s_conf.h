@@ -33,8 +33,10 @@
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
-// #include "osa.h"
-//#include "inc/stm8s_delay.h" // программная задержка
+ #include "osa.h"
+// #include "inc/stm8s_delay.h" // программная задержка
+ #include "inc/stm8s_encoder.h"
+ 
  #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
@@ -61,14 +63,14 @@
 #endif /* STM8S208 || STM8AF52Ax */
 
 #ifndef STM8S903
-// #include "inc/stm8s_tim2.h" // драйвер для Timer1
+ #include "inc/stm8s_tim2.h" // драйвер для Timer1
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
 // #include "inc/stm8s_tim3.h"
 #endif /* (STM8S208) ||defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) */ 
 #ifndef STM8S903
-// #include "inc/stm8s_tim4.h"
+ #include "inc/stm8s_tim4.h"
 #endif /* STM8S903 */
 #ifdef STM8S903
 // #include "inc/stm8s_tim5.h"

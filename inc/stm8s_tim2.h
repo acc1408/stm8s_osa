@@ -328,6 +328,8 @@ void TIM2_ClearFlag(TIM2_FLAG_TypeDef TIM2_FLAG);
 ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
 void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
 
+
+
 /**
   * @}
   */
