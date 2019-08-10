@@ -36,8 +36,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-static void TI1_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
-static void TI2_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
+static void TIM3_TI1_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
+static void TIM3_TI2_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
 /**
   * @addtogroup TIM3_Public_Functions
   * @{
@@ -179,7 +179,7 @@ void TIM3_ICInit(TIM3_Channel_TypeDef TIM3_Channel,
   if (TIM3_Channel != TIM3_CHANNEL_2)
   {
     /* TI1 Configuration */
-    TI1_Config((uint8_t)TIM3_ICPolarity,
+    TIM3_TI1_Config((uint8_t)TIM3_ICPolarity,
                (uint8_t)TIM3_ICSelection,
                (uint8_t)TIM3_ICFilter);
     
@@ -189,7 +189,7 @@ void TIM3_ICInit(TIM3_Channel_TypeDef TIM3_Channel,
   else
   {
     /* TI2 Configuration */
-    TI2_Config((uint8_t)TIM3_ICPolarity,
+    TIM3_TI2_Config((uint8_t)TIM3_ICPolarity,
                (uint8_t)TIM3_ICSelection,
                (uint8_t)TIM3_ICFilter);
     
@@ -245,14 +245,14 @@ void TIM3_PWMIConfig(TIM3_Channel_TypeDef TIM3_Channel,
   if (TIM3_Channel != TIM3_CHANNEL_2)
   {
     /* TI1 Configuration */
-    TI1_Config((uint8_t)TIM3_ICPolarity, (uint8_t)TIM3_ICSelection,
+    TIM3_TI1_Config((uint8_t)TIM3_ICPolarity, (uint8_t)TIM3_ICSelection,
                (uint8_t)TIM3_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM3_SetIC1Prescaler(TIM3_ICPrescaler);
     
     /* TI2 Configuration */
-    TI2_Config(icpolarity, icselection, TIM3_ICFilter);
+    TIM3_TI2_Config(icpolarity, icselection, TIM3_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM3_SetIC2Prescaler(TIM3_ICPrescaler);
@@ -260,14 +260,14 @@ void TIM3_PWMIConfig(TIM3_Channel_TypeDef TIM3_Channel,
   else
   {
     /* TI2 Configuration */
-    TI2_Config((uint8_t)TIM3_ICPolarity, (uint8_t)TIM3_ICSelection,
+    TIM3_TI2_Config((uint8_t)TIM3_ICPolarity, (uint8_t)TIM3_ICSelection,
                (uint8_t)TIM3_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM3_SetIC2Prescaler(TIM3_ICPrescaler);
     
     /* TI1 Configuration */
-    TI1_Config(icpolarity, icselection, TIM3_ICFilter);
+    TIM3_TI1_Config(icpolarity, icselection, TIM3_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM3_SetIC1Prescaler(TIM3_ICPrescaler);
@@ -967,7 +967,7 @@ void TIM3_ClearITPendingBit(TIM3_IT_TypeDef TIM3_IT)
   * This parameter must be a value between 0x00 and 0x0F.
   * @retval None
   */
-static void TI1_Config(uint8_t TIM3_ICPolarity,
+static void TIM3_TI1_Config(uint8_t TIM3_ICPolarity,
                        uint8_t TIM3_ICSelection,
                        uint8_t TIM3_ICFilter)
 {
@@ -1006,7 +1006,7 @@ static void TI1_Config(uint8_t TIM3_ICPolarity,
   * This parameter must be a value between 0x00 and 0x0F.
   * @retval None
   */
-static void TI2_Config(uint8_t TIM3_ICPolarity,
+static void TIM3_TI2_Config(uint8_t TIM3_ICPolarity,
                        uint8_t TIM3_ICSelection,
                        uint8_t TIM3_ICFilter)
 {

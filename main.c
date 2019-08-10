@@ -62,16 +62,24 @@ encoder_t ecd;
 uint32_t Clk;
 uint16_t t2;
 
-void encod_1(void)
+void init_timer(void)
 {
-	int8_t dir;
-	Clk=CLK_GetClockFreq();
+	// Инициализация Таймера 2
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER2, ENABLE);
 	TIM2_TimeBaseInit(TIM2_PRESCALER_1, 800);
 	TIM2_ARRPreloadConfig(ENABLE);
 	TIM2_OC1Init(TIM2_OCMODE_TOGGLE, 
 								TIM2_OUTPUTSTATE_ENABLE, 
 								0, TIM2_OCPOLARITY_HIGH);
+	// Инициализация Таймера 3
+	//CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
+	
+}
+
+void encod_1(void)
+{
+	int8_t dir;
+	Clk=CLK_GetClockFreq();
 	GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);							
 	EncoderInit(&ecd, GPIOD,GPIO_PIN_6,
 										GPIOD,GPIO_PIN_7,
@@ -81,6 +89,8 @@ void encod_1(void)
 		c=EncoderRead(&ecd);
 		if (c!=c_last)
 	{
+		
+		
 		if ((c>-123) &&(c<123) )
 		{
 			TIM2_Cmd(DISABLE);
@@ -116,6 +126,7 @@ void encod_1(void)
 void main(void)
 {
  #ifdef  __OSA__
+ // Увеличиваем частоты тактирования до 16МГц
 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
  	//-------------------------
 	OS_Init();  // Инициализация RTOS OSA

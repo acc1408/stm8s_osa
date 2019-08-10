@@ -36,9 +36,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-static void TI1_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
-static void TI2_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
-static void TI3_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
+static void TIM2_TI1_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
+static void TIM2_TI2_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
+static void TIM2_TI3_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection, uint8_t TIM2_ICFilter);
 /**
   * @addtogroup TIM2_Public_Functions
   * @{
@@ -225,7 +225,7 @@ void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel,
   if (TIM2_Channel == TIM2_CHANNEL_1)
   {
     /* TI1 Configuration */
-    TI1_Config((uint8_t)TIM2_ICPolarity,
+    TIM2_TI1_Config((uint8_t)TIM2_ICPolarity,
                (uint8_t)TIM2_ICSelection,
                (uint8_t)TIM2_ICFilter);
     
@@ -235,7 +235,7 @@ void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel,
   else if (TIM2_Channel == TIM2_CHANNEL_2)
   {
     /* TI2 Configuration */
-    TI2_Config((uint8_t)TIM2_ICPolarity,
+    TIM2_TI2_Config((uint8_t)TIM2_ICPolarity,
                (uint8_t)TIM2_ICSelection,
                (uint8_t)TIM2_ICFilter);
     
@@ -245,7 +245,7 @@ void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel,
   else
   {
     /* TI3 Configuration */
-    TI3_Config((uint8_t)TIM2_ICPolarity,
+    TIM2_TI3_Config((uint8_t)TIM2_ICPolarity,
                (uint8_t)TIM2_ICSelection,
                (uint8_t)TIM2_ICFilter);
     
@@ -301,14 +301,14 @@ void TIM2_PWMIConfig(TIM2_Channel_TypeDef TIM2_Channel,
   if (TIM2_Channel == TIM2_CHANNEL_1)
   {
     /* TI1 Configuration */
-    TI1_Config((uint8_t)TIM2_ICPolarity, (uint8_t)TIM2_ICSelection,
+    TIM2_TI1_Config((uint8_t)TIM2_ICPolarity, (uint8_t)TIM2_ICSelection,
                (uint8_t)TIM2_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM2_SetIC1Prescaler(TIM2_ICPrescaler);
     
     /* TI2 Configuration */
-    TI2_Config(icpolarity, icselection, TIM2_ICFilter);
+    TIM2_TI2_Config(icpolarity, icselection, TIM2_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM2_SetIC2Prescaler(TIM2_ICPrescaler);
@@ -316,14 +316,14 @@ void TIM2_PWMIConfig(TIM2_Channel_TypeDef TIM2_Channel,
   else
   {
     /* TI2 Configuration */
-    TI2_Config((uint8_t)TIM2_ICPolarity, (uint8_t)TIM2_ICSelection,
+    TIM2_TI2_Config((uint8_t)TIM2_ICPolarity, (uint8_t)TIM2_ICSelection,
                (uint8_t)TIM2_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM2_SetIC2Prescaler(TIM2_ICPrescaler);
     
     /* TI1 Configuration */
-    TI1_Config((uint8_t)icpolarity, icselection, (uint8_t)TIM2_ICFilter);
+    TIM2_TI1_Config((uint8_t)icpolarity, icselection, (uint8_t)TIM2_ICFilter);
     
     /* Set the Input Capture Prescaler value */
     TIM2_SetIC1Prescaler(TIM2_ICPrescaler);
@@ -1178,7 +1178,7 @@ void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT)
   * This parameter must be a value between 0x00 and 0x0F.
   * @retval None
   */
-static void TI1_Config(uint8_t TIM2_ICPolarity,
+static void TIM2_TI1_Config(uint8_t TIM2_ICPolarity,
                        uint8_t TIM2_ICSelection,
                        uint8_t TIM2_ICFilter)
 {
@@ -1218,7 +1218,7 @@ static void TI1_Config(uint8_t TIM2_ICPolarity,
   * This parameter must be a value between 0x00 and 0x0F.
   * @retval None
   */
-static void TI2_Config(uint8_t TIM2_ICPolarity,
+static void TIM2_TI2_Config(uint8_t TIM2_ICPolarity,
                        uint8_t TIM2_ICSelection,
                        uint8_t TIM2_ICFilter)
 {
@@ -1258,7 +1258,7 @@ static void TI2_Config(uint8_t TIM2_ICPolarity,
   * This parameter must be a value between 0x00 and 0x0F.
   * @retval None
   */
-static void TI3_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection,
+static void TIM2_TI3_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection,
                        uint8_t TIM2_ICFilter)
 {
   /* Disable the Channel 3: Reset the CCE Bit */
