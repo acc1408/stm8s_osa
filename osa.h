@@ -1234,6 +1234,7 @@ typedef struct
 
 typedef          struct
 {
+	
 	/*0..2*/OST_UINT   cPriority   : 3;     // Task priority (0..7)
 	/*3*/   OST_UINT   bReady      : 1;     // Ready to execute
 	/*4*/   OST_UINT   bDelay      : 1;     // Timer active: OS_Delay (bCanContinue=0)
@@ -1243,7 +1244,7 @@ typedef          struct
 	/*6*/   OST_UINT   bEnable     : 1;     // Descriptor is busy by task
 	/*7*/   OST_UINT   bPaused     : 1;     // Task paused (it is still active, but can
 	// became ready only from extenal task)
-
+	
 	OSA_TASK_STATE_PROC_SPEC()      // see definition in h-files for
 	// each processor type in "port" folder
 
@@ -1269,7 +1270,10 @@ typedef          struct
 
 typedef struct
 {
+	union{
 	OST_TASK_STATE      State;              // Current task state
+	OST_UINT8 					bStateByte;					// Access to struct OST_TASK_STATE
+	};
 	OST_CODE_POINTER    pTaskPointer;       // ROM pointer
 
 	//------------------------------------------------------------------------------

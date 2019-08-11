@@ -194,7 +194,7 @@ void _OS_Task_Create(OST_UINT priority, OST_CODE_POINTER TaskAddr);
 //------------------------------------------------------------------------------
     #define OS_Task_Pause(pTask)                                            \
         {                                                                   \
-            _OS_TASK_ATOMIC_WRITE_A((pTask)->State.bPaused != 1);           \
+            _OS_TASK_ATOMIC_WRITE_A((pTask)->State.bPaused = 1);           \
             if ((pTask) == (_OS_CurTask))                                   \
             {                                                               \
                 __OS_SET_STATE_PAUSE();                                     \

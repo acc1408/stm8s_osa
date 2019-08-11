@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------------
 
 #define OS_ENABLE_TTIMERS           // Enable task timers (OS_Delay and OS_xxx_Wait_TO)
-
+#define OS_ENABLE_INT
 
 
 
