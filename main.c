@@ -72,45 +72,51 @@ typedef enum
 {
 	idle=0, // ожидаение нажатия
 	pressdown=1, // кнопка нажата
-	presslong=2, // кнопка долго нажата
-	pressup=3, // кнопка отпущена
-	pressdouble=4 // кнопка нажата 2 раза
+	pressup=2 // кнопка отпущена
+	//presslong=3, // кнопка долго нажата
 } buttoncode_t;
 
 typedef struct
 {
-	uint8_t Level:1;				// состояние линии
-	uint8_t LevelLast:1;  // прошлое состояние линии
+	union
+	{
+		struct
+		{
+			uint8_t Level:1;				// состояние линии
+			uint8_t LevelLast:1;  // прошлое состояние линии
+		};
+		uint8_t LevelCode:2; // код состояние
+	};
+	buttoncode_t LevelReturn:2;
 	//buttoncode_t CodeLast:3;   // прошлое состояние линии
-	uint16_t PressLongCycleMin; // минимальная задержка для кода удеражания клавиши
-	uint16_t PressDoubleCycleMax; // Максимальная задержка между двумя нажатиями
-	uint16_t Cycle; // кол-во циклов с последнего события
+	//uint16_t PressLongCycleMin; // минимальная задержка для кода удеражания клавиши
+	//uint16_t Cycle; // кол-во циклов с последнего события
 } button_t;
 
 OST_TASK_POINTER task_led=0;
 //OST_TCB task_led;
 
-void ButtonInit(button_t* button,uint16_t PressLongCycleMin, 
-								uint16_t PressDoubleCycleMax,
-								GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
+void ButtonInit(button_t* button,GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
 {
 	GPIO_Init(GPIOx, GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
-	button->PressLongCycleMin=PressLongCycleMin;
-	button->PressDoubleCycleMax=PressDoubleCycleMax;
+	//button->PressLongCycleMin=PressLongCycleMin;
+	//button->PressDoubleCycleMax=PressDoubleCycleMax;
 	button->LevelLast=1;
-	button->Cycle=0xFFFF;
+	//button->Cycle=0xFFFF;
 }
 
 buttoncode_t ButtonRead(button_t* button, GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
 {
-	button-> Level=GPIO_ReadInputPin(GPIOx,GPIO_PIN);
-	// Если линия находится в покое, то код ожидания 
-	// и увеличиваем таймер последних событий
-	if ((button->Level==1) &&(button->LevelLast==1))
+	//uint8_t Level;
+	button->Level=GPIO_ReadInputPin(GPIOx,GPIO_PIN);
+	
+	// кнопка нажата первый раз
+	if ((button->Level==0)&&(button->LevelLast==1))
 		{
-			if (button->Cycle<0xFFFF) button->Cycle++;
-			return idle;
+			button->LevelLast=button->Level;
+			return pressdown;
 		}
+	/*
 	// Если кнопка нажата начинаем отсчет 
   // Если задержка максимальная, то двойное нажатие отключено	
 	if ((button->Level==0) &&(button->LevelLast==0))
@@ -127,27 +133,10 @@ buttoncode_t ButtonRead(button_t* button, GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef 
 			}
 		
 		}
-	// кнопка нажата первый раз
-	if ((button->Level==0)&&(button->LevelLast==1))
-		{
-			if (button->Cycle>button->PressDoubleCycleMax)
-			{
-				button->LevelLast=button->Level;
-				button->Cycle=0;
-				return pressdown;
-			}
-			else
-			{
-				button->LevelLast=button->Level;
-				button->Cycle=0;
-				return pressdouble;
-			}
-			
-		}
+	*/
 	// кнопка отжата
 	if ((button->Level==1)&&(button->LevelLast==0))
 	{
-		button->Cycle=1;
 		button->LevelLast=button->Level;
 		return pressup;
 	}
@@ -158,9 +147,7 @@ buttoncode_t ret;
 uint8_t k=0;
 void Button(void)
 {
-	ButtonInit(&btn,1000, 
-								0,
-								GPIOB, GPIO_PIN_0);
+	ButtonInit(&btn,	GPIOB, GPIO_PIN_0);
 	
 	while(1)
 	{
