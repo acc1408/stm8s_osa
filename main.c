@@ -30,27 +30,49 @@
 #include "stm8s.h"
 #include "stm8s_it.c"
 /* Private defines -----------------------------------------------------------*/
+#define RotEn 	GPIOD, GPIO_PIN_7
+#define RotDir	GPIOD, GPIO_PIN_6
+#define LeftEn	GPIOD, GPIO_PIN_5
+#define LeftDir	GPIOD, GPIO_PIN_4
+
+#define ButWhiteGpio			GPIOB, GPIO_PIN_0
+#define ButWhiteStopGpio 	GPIOB, GPIO_PIN_1
+#define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
+#define ButGreenGpio 			GPIOB, GPIO_PIN_3
+#define ButEncoderGpio 		GPIOF, GPIO_PIN_4
+
+#define LedGreen    GPIOB, GPIO_PIN_5
+#define LedYellow   GPIOB, GPIO_PIN_4
+#define EncoderGpio GPIOC,GPIO_PIN_1,GPIOC,GPIO_PIN_2
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
 // частота тактирования таймера
-//uint32_t Clk; 
-/*
-encoder_t ecd;
-void init_encoder(void)
-{
-	Clk=CLK_GetClockFreq(); 
-	// инициал
-	GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);							
-	EncoderInit(&ecd, GPIOD,GPIO_PIN_6,
-										GPIOD,GPIO_PIN_7,
-										0,12500,800);
-	
-}
-*/
 
+uint32_t Clk;
+
+// 
+struct 
+{
+	uint8_t MotorEnRot:1;		// 0 - dis, 1 - en
+	uint8_t MotorEnLeft:1; // 0 - dis, 1 - en
+	uint8_t MotorChoice:1; // 0 -rot, 1 - left
+} rtn; 
+//-----------
+button_t BtnWhite, BtnWhiteStop,BtnGreen, BtnGreenStop,ButEncoder;
+//------------------------
+encoder_t ecd_rot, ecd_left;
+//-------------------------
 void init_timer(void)
 {
+	GPIO_Init(LedYellow, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LedGreen, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(RotEn, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(RotDir, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LeftEn, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LeftDir, GPIO_MODE_OUT_PP_HIGH_FAST);
+	// частота тактирования таймера
+	Clk=CLK_GetClockFreq(); 
 	// Инициализация Таймера 2
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER2, ENABLE);
 	TIM2_TimeBaseInit(TIM2_PRESCALER_1, 800);
@@ -59,28 +81,10 @@ void init_timer(void)
 								TIM2_OUTPUTSTATE_ENABLE, 
 								0, TIM2_OCPOLARITY_HIGH);
 	// Инициализация Таймера 3
-	//CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
+	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
 	
 }
 
-struct 
-{
-	uint8_t MotorEnRot:1;		// 0 - dis, 1 - en
-	uint8_t MotorEnLeft:1; // 0 - dis, 1 - en
-	uint8_t MotorChoice:1; // 0 -rot, 1 - left
-	
-} rtn;
-
-OST_TASK_POINTER task_led=0;
-#define ButWhiteGpio			GPIOB, GPIO_PIN_0
-#define ButWhiteStopGpio 	GPIOB, GPIO_PIN_1
-#define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
-#define ButGreenGpio 			GPIOB, GPIO_PIN_3
-#define ButEncoderGpio 		GPIOF, GPIO_PIN_4
-
-button_t BtnWhite, BtnWhiteStop,BtnGreen, BtnGreenStop,ButEncoder;
-
-//uint8_t k=0;
 void Button(void)
 {
 	ButtonInit(&BtnWhite,			0,	ButWhiteGpio);
@@ -101,39 +105,40 @@ void Button(void)
 		{
 			rtn.MotorEnRot=1;
 			rtn.MotorChoice=0;
+			GPIO_WriteLow(RotEn);
 		}
 		// Отключение вращения
 		ret=ButtonRead(&BtnWhiteStop ,ButWhiteStopGpio);
-		if (ret==pressdown) rtn.MotorEnRot=0;
+		if (ret==pressdown) 
+		{
+			rtn.MotorEnRot=0;
+			GPIO_WriteHigh(RotEn);
+			EncoderSetCount(&ecd_rot,0);
+		}
 		// Выбор подъема
 		ret=ButtonRead(&BtnGreen ,ButGreenGpio);
 		if (ret==pressdown) 
 		{
 			rtn.MotorEnLeft=1;
 			rtn.MotorChoice=1;
+			GPIO_WriteLow(LeftEn);
 		}
 		// Отключение подъема
 		ret=ButtonRead(&BtnGreenStop ,ButGreenStopGpio);
-		if (ret==pressdown) rtn.MotorEnLeft=0;
-		
+		if (ret==pressdown) 
+		{
+			rtn.MotorEnLeft=0;
+			GPIO_WriteHigh(LeftEn);
+			EncoderSetCount(&ecd_left,0);
+		}
 		OS_Delay (20); // 10 ms
 	}
 }
 
-#define LedGreen    GPIOB, GPIO_PIN_5
-#define LedYellow   GPIOB, GPIO_PIN_4
-
-void init_led(void)
-{
-	GPIO_Init(LedYellow, GPIO_MODE_OUT_PP_HIGH_FAST);
-	GPIO_Init(LedGreen, GPIO_MODE_OUT_PP_HIGH_FAST);
-}
-
+//------------------------
 void Led(void)
 {
-	task_led=OS_Task_GetCur();
-	init_led();
-	
+	//task_led=OS_Task_GetCur();
 	while(1)
 	{
 		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
@@ -167,39 +172,73 @@ void Led(void)
 				GPIO_WriteHigh(LedYellow);
 			}
 		}
-		//GPIO_WriteReverse(LedGreen);
-		//GPIO_WriteReverse(LedYellow);
 		OS_Delay (1000);
 	}
 }
-encoder_t ecd_rot, ecd_left;
-#define EncoderGpio GPIOD,GPIO_PIN_6,GPIOD,GPIO_PIN_7
+
+
 void init_encoder(void)
 {
-	//Clk=CLK_GetClockFreq(); 
-	// инициал
 	EncoderInit(&ecd_rot, EncoderGpio,
 										0,12500,800);
 	EncoderInit(&ecd_left, EncoderGpio,
 										0,84000,1000);
-
 }
-int32_t c;
+
+//-----------------------------------
+int32_t RotCnt=0,RotCntLast=0,LeftCnt=0,LeftCntLast=0;
+//-----------------------------------------------
 void rotation(void)
 {
 	// направление вращения двигателя
 	int8_t dir; 
+	uint16_t t2;
 	// получить частоту тактирования таймера
 	init_encoder();
 	while(1)
 	{
 		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
 		{
-			c=EncoderRead(&ecd_rot,EncoderGpio);
+			RotCnt=EncoderRead(&ecd_rot,EncoderGpio);
+			if (RotCnt>280000) 
+			{
+				RotCnt=280000;
+				EncoderSetCount(&ecd_rot,280000);
+			}
+			if (RotCnt<-280000) 
+			{
+				RotCnt=-280000;
+				EncoderSetCount(&ecd_rot,-280000);
+			}
+			
+			if (RotCnt!=RotCntLast)
+			{
+				if ((RotCnt>-123) &&(RotCnt<123) )
+				{
+					TIM2_Cmd(DISABLE);
+				}
+				else
+				{
+					if (RotCnt>=123)
+					{
+						GPIO_WriteHigh(RotDir);
+						dir=1;
+					}
+					else
+					{
+						GPIO_WriteLow(RotDir);
+						dir=-1;
+					}
+					t2=Clk/(2*(dir*RotCnt));
+					TIM2_SetAutoreload(t2);
+					TIM2_Cmd(ENABLE);
+				}
+			}
+			RotCntLast=RotCnt;
 		}
 		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
 		{
-			c=EncoderRead(&ecd_left,EncoderGpio);
+			LeftCnt=EncoderRead(&ecd_left,EncoderGpio);
 		}
 	
 		OS_Delay (1);
