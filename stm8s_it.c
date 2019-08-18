@@ -117,6 +117,9 @@
 #ifdef __STM8S_ENCODER_H
 #include "src/stm8s_encoder.c"
 #endif
+#ifdef __STM8S_BUTTON_H
+#include "src/stm8s_button.c"
+#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/

@@ -284,12 +284,15 @@ typedef enum
 
 void TIM2_DeInit(void);
 void TIM2_TimeBaseInit(TIM2_Prescaler_TypeDef TIM2_Prescaler, uint16_t TIM2_Period);
+void TIM2_Cmd(FunctionalState NewState);
+#define TIM2_OC1Init_DEF
+#ifdef TIM2_OC1Init_DEF
 void TIM2_OC1Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
 void TIM2_OC2Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
 void TIM2_OC3Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
 void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
 void TIM2_PWMIConfig(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
-void TIM2_Cmd(FunctionalState NewState);
 void TIM2_ITConfig(TIM2_IT_TypeDef TIM2_IT, FunctionalState NewState);
 void TIM2_InternalClockConfig(void);
 void TIM2_UpdateDisableConfig(FunctionalState NewState);

@@ -36,6 +36,7 @@
  #include "osa.h"
 // #include "inc/stm8s_delay.h" // программная задержка
  #include "inc/stm8s_encoder.h"
+ #include "inc/stm8s_button.h"
  
  #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний

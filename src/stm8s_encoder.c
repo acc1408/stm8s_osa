@@ -3,14 +3,16 @@
 #include "inc/stm8s_encoder.h"
 
 void EncoderInit(encoder_t* encod, 
-										GPIO_TypeDef* p1_Gpio, GPIO_Pin_TypeDef p1_Pin,
-										GPIO_TypeDef* p2_Gpio, GPIO_Pin_TypeDef p2_Pin,
+										GPIO_TypeDef* GPIOx_A, GPIO_Pin_TypeDef GPIO_PIN_A,
+										GPIO_TypeDef* GPIOx_B, GPIO_Pin_TypeDef GPIO_PIN_B,
 										int32_t cnt,int32_t boost_max,uint16_t period_max )
 {
+	/*
 	encod->p1_gpio=p1_Gpio;
 	encod->p1_pin=p1_Pin;
 	encod->p2_gpio=p2_Gpio;
 	encod->p2_pin=p2_Pin;
+	*/
 	encod->cnt=cnt;
 	encod->boost_max=boost_max;
 	encod->period=1;
@@ -23,14 +25,16 @@ void EncoderInit(encoder_t* encod,
 	{
 		encod->period_max=1;
 	}
-	GPIO_Init(encod->p1_gpio, encod->p1_pin, GPIO_MODE_IN_FL_NO_IT);
-	GPIO_Init(encod->p2_gpio, encod->p2_pin, GPIO_MODE_IN_FL_NO_IT);
-  encod->p1_last=GPIO_ReadInputPin(encod->p1_gpio, encod->p1_pin);
-	encod->p2_last=GPIO_ReadInputPin(encod->p2_gpio, encod->p2_pin);
+	GPIO_Init(GPIOx_A, GPIO_PIN_A, GPIO_MODE_IN_FL_NO_IT);
+	GPIO_Init(GPIOx_B, GPIO_PIN_B, GPIO_MODE_IN_FL_NO_IT);
+  encod->p1_last=GPIO_ReadInputPin(GPIOx_A, GPIO_PIN_B);
+	encod->p2_last=GPIO_ReadInputPin(GPIOx_B, GPIO_PIN_B);
 }
 
 
-int32_t EncoderRead(encoder_t* encod)
+int32_t EncoderRead(encoder_t* encod,
+										GPIO_TypeDef* GPIOx_A, GPIO_Pin_TypeDef GPIO_PIN_A,
+										GPIO_TypeDef* GPIOx_B, GPIO_Pin_TypeDef GPIO_PIN_B)
 {
 	int8_t dir; // направление изменения
 	int32_t dc; //изменение счетчика
@@ -39,8 +43,8 @@ int32_t EncoderRead(encoder_t* encod)
 		encod->period++;
 	}
 	// Считываем значения с пинов
-	encod->p1_now=GPIO_ReadInputPin(encod->p1_gpio, encod->p1_pin);
-	encod->p2_now=GPIO_ReadInputPin(encod->p2_gpio, encod->p2_pin);
+	encod->p1_now=GPIO_ReadInputPin(GPIOx_A, GPIO_PIN_A);
+	encod->p2_now=GPIO_ReadInputPin(GPIOx_B, GPIO_PIN_B);
 	
 	// Вычисляем фронт для 1 канала
 	if (encod->p1_last!=encod->p1_now) 
@@ -85,6 +89,10 @@ int32_t EncoderRead(encoder_t* encod)
 		}
 	encod->cnt+=dc;	
 	return encod->cnt;
+}
+void EncoderSetCount(encoder_t* encod,int32_t cnt)
+{
+	encod->cnt=cnt;
 }
 
 #endif

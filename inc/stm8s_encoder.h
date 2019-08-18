@@ -12,10 +12,12 @@ typedef struct
 	uint8_t p2_now:1;  // уровень текущий для линии 1
 	uint8_t p2_last:1;// уровень линии предыдуший для линии 1 
 	uint8_t p2_front:1;// уровень текущий для линии 1
+	/*
 	GPIO_TypeDef* p1_gpio;
 	GPIO_Pin_TypeDef p1_pin;
 	GPIO_TypeDef* p2_gpio;
 	GPIO_Pin_TypeDef p2_pin;
+	*/
 	int32_t cnt; // значение энкодера
 	int32_t boost_max; // максимальное увеличение счетчика при периоде 1
 	uint16_t period_max; // максимальный период уменьшения значения 
@@ -31,9 +33,11 @@ typedef struct
   * @retval None
   */
 void EncoderInit(encoder_t* encod, 
-										GPIO_TypeDef* p1_Gpio, GPIO_Pin_TypeDef p1_Pin,
-										GPIO_TypeDef* p2_Gpio, GPIO_Pin_TypeDef p2_Pin,
+										GPIO_TypeDef* GPIOx_A, GPIO_Pin_TypeDef GPIO_PIN_A,
+										GPIO_TypeDef* GPIOx_B, GPIO_Pin_TypeDef GPIO_PIN_B,
 										int32_t cnt,int32_t boost_max,uint16_t period_max );
-int32_t EncoderRead(encoder_t* encod);										
-
+int32_t EncoderRead(encoder_t* encod,
+										GPIO_TypeDef* GPIOx_A, GPIO_Pin_TypeDef GPIO_PIN_A,
+										GPIO_TypeDef* GPIOx_B, GPIO_Pin_TypeDef GPIO_PIN_B);										
+void EncoderSetCount(encoder_t* encod,int32_t cnt);
 #endif

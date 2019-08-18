@@ -34,7 +34,7 @@
 /* Private functions ---------------------------------------------------------*/
 
 // частота тактирования таймера
-//uint32_t* Clk; 
+//uint32_t Clk; 
 /*
 encoder_t ecd;
 void init_encoder(void)
@@ -48,7 +48,7 @@ void init_encoder(void)
 	
 }
 */
-/*
+
 void init_timer(void)
 {
 	// Инициализация Таймера 2
@@ -62,168 +62,150 @@ void init_timer(void)
 	//CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
 	
 }
-*/
 
-
-#define ButWhite GPIOB, GPIO_PIN_0
-#define ButGreen GPIOB, GPIO_PIN_3
-
-typedef enum
+struct 
 {
-	idle=0, // ожидаение нажатия
-	pressdown=1, // кнопка нажата
-	pressup=2 // кнопка отпущена
-	//presslong=3, // кнопка долго нажата
-} buttoncode_t;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-			uint8_t Level:1;				// состояние линии
-			uint8_t LevelLast:1;  // прошлое состояние линии
-		};
-		uint8_t LevelCode:2; // код состояние
-	};
-	buttoncode_t LevelReturn:2;
-	//buttoncode_t CodeLast:3;   // прошлое состояние линии
-	//uint16_t PressLongCycleMin; // минимальная задержка для кода удеражания клавиши
-	//uint16_t Cycle; // кол-во циклов с последнего события
-} button_t;
+	uint8_t MotorEnRot:1;		// 0 - dis, 1 - en
+	uint8_t MotorEnLeft:1; // 0 - dis, 1 - en
+	uint8_t MotorChoice:1; // 0 -rot, 1 - left
+	
+} rtn;
 
 OST_TASK_POINTER task_led=0;
-//OST_TCB task_led;
+#define ButWhiteGpio			GPIOB, GPIO_PIN_0
+#define ButWhiteStopGpio 	GPIOB, GPIO_PIN_1
+#define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
+#define ButGreenGpio 			GPIOB, GPIO_PIN_3
+#define ButEncoderGpio 		GPIOF, GPIO_PIN_4
 
-void ButtonInit(button_t* button,GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
-{
-	GPIO_Init(GPIOx, GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
-	//button->PressLongCycleMin=PressLongCycleMin;
-	//button->PressDoubleCycleMax=PressDoubleCycleMax;
-	button->LevelLast=1;
-	//button->Cycle=0xFFFF;
-}
+button_t BtnWhite, BtnWhiteStop,BtnGreen, BtnGreenStop,ButEncoder;
 
-buttoncode_t ButtonRead(button_t* button, GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_PIN)
-{
-	//uint8_t Level;
-	button->Level=GPIO_ReadInputPin(GPIOx,GPIO_PIN);
-	
-	// кнопка нажата первый раз
-	if ((button->Level==0)&&(button->LevelLast==1))
-		{
-			button->LevelLast=button->Level;
-			return pressdown;
-		}
-	/*
-	// Если кнопка нажата начинаем отсчет 
-  // Если задержка максимальная, то двойное нажатие отключено	
-	if ((button->Level==0) &&(button->LevelLast==0))
-		{
-			if (button->Cycle<0xFFFF) button->Cycle++;
-			if (button->Cycle>button->PressDoubleCycleMax)
-			{
-				button->Cycle--;
-				return presslong;
-			}
-		  else 
-			{ 
-			return idle; 
-			}
-		
-		}
-	*/
-	// кнопка отжата
-	if ((button->Level==1)&&(button->LevelLast==0))
-	{
-		button->LevelLast=button->Level;
-		return pressup;
-	}
-}
-
-button_t btn;
-buttoncode_t ret;
-uint8_t k=0;
+//uint8_t k=0;
 void Button(void)
 {
-	ButtonInit(&btn,	GPIOB, GPIO_PIN_0);
+	ButtonInit(&BtnWhite,			0,	ButWhiteGpio);
+	ButtonInit(&BtnWhiteStop,	0,	ButWhiteStopGpio);
+	ButtonInit(&BtnGreenStop,	0,	ButGreenStopGpio);
+	ButtonInit(&BtnGreen,			0,	ButGreenGpio);
+	ButtonInit(&ButEncoder,		0,	ButEncoderGpio);
+	// Init struct
+	rtn.MotorEnRot=0;
+	rtn.MotorEnLeft=0;
 	
 	while(1)
 	{
-		ret=ButtonRead(&btn,GPIOB, GPIO_PIN_0);
-		/*
-		switch (ret)
-		{
-		//case presslong: OS_Task_Continue(task_led);
-		//								break;
-		//case idle:			OS_Task_Pause(task_led);
-		//								break;
-		case idle:
-		}
-		*/
-		//if (ret==idle) k=0; 
+		buttoncode_t ret;
+		// Включение вращения
+		ret=ButtonRead(&BtnWhite ,ButWhiteGpio);
 		if (ret==pressdown) 
 		{
-			k=~k;
+			rtn.MotorEnRot=1;
+			rtn.MotorChoice=0;
 		}
-		if (k==0)    
-		OS_Task_Pause(task_led);
-		if (k==0xFF) 
-		OS_Task_Continue(task_led);
-						
+		// Отключение вращения
+		ret=ButtonRead(&BtnWhiteStop ,ButWhiteStopGpio);
+		if (ret==pressdown) rtn.MotorEnRot=0;
+		// Выбор подъема
+		ret=ButtonRead(&BtnGreen ,ButGreenGpio);
+		if (ret==pressdown) 
+		{
+			rtn.MotorEnLeft=1;
+			rtn.MotorChoice=1;
+		}
+		// Отключение подъема
+		ret=ButtonRead(&BtnGreenStop ,ButGreenStopGpio);
+		if (ret==pressdown) rtn.MotorEnLeft=0;
+		
 		OS_Delay (20); // 10 ms
 	}
 }
 
-#define LedGreen    GPIOB, GPIO_PIN_4
-#define LedYellow   GPIOB, GPIO_PIN_5
+#define LedGreen    GPIOB, GPIO_PIN_5
+#define LedYellow   GPIOB, GPIO_PIN_4
 
 void init_led(void)
 {
-	GPIO_Init(GPIOB, GPIO_PIN_4, GPIO_MODE_OUT_PP_HIGH_FAST);
-	GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LedYellow, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LedGreen, GPIO_MODE_OUT_PP_HIGH_FAST);
 }
 
 void Led(void)
 {
 	task_led=OS_Task_GetCur();
 	init_led();
-	GPIO_WriteReverse(LedGreen);
+	
 	while(1)
 	{
-		GPIO_WriteReverse(LedGreen);
-		GPIO_WriteReverse(LedYellow);
+		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
+		{
+			GPIO_WriteReverse(LedGreen);
+		}
+		else
+		{
+			if (rtn.MotorEnRot==1)
+			{
+				GPIO_WriteLow(LedGreen);
+			}
+			else
+			{
+				GPIO_WriteHigh(LedGreen);
+			}
+		}
+		//---------------
+		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
+		{
+			GPIO_WriteReverse(LedYellow);
+		}
+		else
+		{
+			if (rtn.MotorEnLeft==1)
+			{
+				GPIO_WriteLow(LedYellow);
+			}
+			else
+			{
+				GPIO_WriteHigh(LedYellow);
+			}
+		}
+		//GPIO_WriteReverse(LedGreen);
+		//GPIO_WriteReverse(LedYellow);
 		OS_Delay (1000);
 	}
 }
-
-
-/*
-void lifting(void)
+encoder_t ecd_rot, ecd_left;
+#define EncoderGpio GPIOD,GPIO_PIN_6,GPIOD,GPIO_PIN_7
+void init_encoder(void)
 {
-	while(1)
-	{
-		
-	}
-}
+	//Clk=CLK_GetClockFreq(); 
+	// инициал
+	EncoderInit(&ecd_rot, EncoderGpio,
+										0,12500,800);
+	EncoderInit(&ecd_left, EncoderGpio,
+										0,84000,1000);
 
+}
+int32_t c;
 void rotation(void)
 {
 	// направление вращения двигателя
 	int8_t dir; 
 	// получить частоту тактирования таймера
-	
+	init_encoder();
 	while(1)
 	{
-		c=EncoderRead(&ecd);
-		
-	
+		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
+		{
+			c=EncoderRead(&ecd_rot,EncoderGpio);
+		}
+		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
+		{
+			c=EncoderRead(&ecd_left,EncoderGpio);
+		}
 	
 		OS_Delay (1);
 	}
 }
-*/
+
 
 void main(void)
 {
@@ -231,12 +213,13 @@ void main(void)
  // Увеличиваем частоты тактирования до 16МГц
 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
  	//-------------------------
-	k=0;
+	init_timer();
 	OS_Init();  // Инициализация RTOS OSA
 	TIM4_TimerOSA(500); //Настраиваем прерывание 500мкс
 	OS_Task_Create(7, Button); // создаем задачу
 	OS_Task_Create(7, Led); // создаем задачу
-	task_led=OS_Task_GetCreated();
+	OS_Task_Create(7, rotation); // создаем задачу
+	//task_led=OS_Task_GetCreated();
 	//OS_Task_Create(7, encod_1); // создаем задачу
 	//OS_Task_Create(7, encode2); // создаем задачу
 	OS_EI();   // Разрешить все прерывания
