@@ -34,12 +34,14 @@
 #define RotDir	GPIOD, GPIO_PIN_6
 #define LeftEn	GPIOD, GPIO_PIN_5
 #define LeftDir	GPIOD, GPIO_PIN_4
+#define LeftPulse 		GPIOD, GPIO_PIN_2
 
 #define ButWhiteGpio			GPIOB, GPIO_PIN_0
 #define ButWhiteStopGpio 	GPIOB, GPIO_PIN_1
 #define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
 #define ButGreenGpio 			GPIOB, GPIO_PIN_3
 #define ButEncoderGpio 		GPIOF, GPIO_PIN_4
+
 
 #define LedGreen    GPIOB, GPIO_PIN_5
 #define LedYellow   GPIOB, GPIO_PIN_4
@@ -71,6 +73,8 @@ void init_timer(void)
 	GPIO_Init(RotDir, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(LeftEn, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(LeftDir, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LeftPulse, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_FAST);
 	// частота тактирования таймера
 	Clk=CLK_GetClockFreq(); 
 	// Инициализация Таймера 2
@@ -82,6 +86,15 @@ void init_timer(void)
 								0, TIM2_OCPOLARITY_HIGH);
 	// Инициализация Таймера 3
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
+	TIM3_TimeBaseInit(TIM3_PRESCALER_1, 80);
+	TIM3_ARRPreloadConfig(ENABLE);
+	/*
+	TIM3_OC1Init(TIM3_OCMODE_TOGGLE, 
+										TIM3_OUTPUTSTATE_ENABLE, 
+										0, 
+										TIM3_OCPOLARITY_HIGH);
+	*/
+	TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
 	
 }
 
@@ -114,6 +127,7 @@ void Button(void)
 			rtn.MotorEnRot=0;
 			GPIO_WriteHigh(RotEn);
 			EncoderSetCount(&ecd_rot,0);
+			TIM2_Cmd(DISABLE);
 		}
 		// Выбор подъема
 		ret=ButtonRead(&BtnGreen ,ButGreenGpio);
@@ -122,6 +136,7 @@ void Button(void)
 			rtn.MotorEnLeft=1;
 			rtn.MotorChoice=1;
 			GPIO_WriteLow(LeftEn);
+			
 		}
 		// Отключение подъема
 		ret=ButtonRead(&BtnGreenStop ,ButGreenStopGpio);
@@ -130,6 +145,7 @@ void Button(void)
 			rtn.MotorEnLeft=0;
 			GPIO_WriteHigh(LeftEn);
 			EncoderSetCount(&ecd_left,0);
+			TIM3_Cmd(DISABLE);
 		}
 		OS_Delay (20); // 10 ms
 	}
@@ -238,7 +254,21 @@ void rotation(void)
 		}
 		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
 		{
+			OS_DI(); 
+			EncoderSetCount(&ecd_left,LeftCnt);
 			LeftCnt=EncoderRead(&ecd_left,EncoderGpio);
+			OS_EI(); 
+			if (LeftCnt>0)
+			{
+				GPIO_WriteHigh(LeftDir);
+				TIM3_Cmd(ENABLE);
+			}
+			if (LeftCnt<0)
+			{
+				GPIO_WriteLow(LeftDir);
+				TIM3_Cmd(ENABLE);
+			}
+			
 		}
 	
 		OS_Delay (1);
