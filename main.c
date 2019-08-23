@@ -41,7 +41,7 @@
 #define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
 #define ButGreenGpio 			GPIOB, GPIO_PIN_3
 #define ButEncoderGpio 		GPIOF, GPIO_PIN_4
-
+//#define ButEncoderStop 		GPIOF, GPIO_PIN_4
 
 #define LedGreen    GPIOB, GPIO_PIN_5
 #define LedYellow   GPIOB, GPIO_PIN_4
@@ -86,7 +86,7 @@ void init_timer(void)
 								0, TIM2_OCPOLARITY_HIGH);
 	// Инициализация Таймера 3
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER3, ENABLE);
-	TIM3_TimeBaseInit(TIM3_PRESCALER_1, 80);
+	TIM3_TimeBaseInit(TIM3_PRESCALER_1, 1280);
 	TIM3_ARRPreloadConfig(ENABLE);
 	/*
 	TIM3_OC1Init(TIM3_OCMODE_TOGGLE, 
@@ -105,6 +105,7 @@ void Button(void)
 	ButtonInit(&BtnGreenStop,	0,	ButGreenStopGpio);
 	ButtonInit(&BtnGreen,			0,	ButGreenGpio);
 	ButtonInit(&ButEncoder,		0,	ButEncoderGpio);
+
 	// Init struct
 	rtn.MotorEnRot=0;
 	rtn.MotorEnLeft=0;
@@ -146,6 +147,11 @@ void Button(void)
 			GPIO_WriteHigh(LeftEn);
 			EncoderSetCount(&ecd_left,0);
 			TIM3_Cmd(DISABLE);
+		}
+		ret=ButtonRead(&ButEncoder ,ButEncoderGpio);
+		if (ret==pressdown) 
+		{
+			TIM2_Cmd(DISABLE);
 		}
 		OS_Delay (20); // 10 ms
 	}
@@ -198,11 +204,11 @@ void init_encoder(void)
 	EncoderInit(&ecd_rot, EncoderGpio,
 										0,12500,800);
 	EncoderInit(&ecd_left, EncoderGpio,
-										0,84000,1000);
+										0,5250,1000);
 }
 
 //-----------------------------------
-int32_t RotCnt=0,RotCntLast=0,LeftCnt=0,LeftCntLast=0;
+int32_t RotCnt=0,RotCntLast=0,LeftCnt=0,LeftCntLast=0,temp;
 //-----------------------------------------------
 void rotation(void)
 {
@@ -216,15 +222,15 @@ void rotation(void)
 		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
 		{
 			RotCnt=EncoderRead(&ecd_rot,EncoderGpio);
-			if (RotCnt>280000) 
+			if (RotCnt>100000) 
 			{
-				RotCnt=280000;
-				EncoderSetCount(&ecd_rot,280000);
+				RotCnt=100000;
+				EncoderSetCount(&ecd_rot,RotCnt);
 			}
-			if (RotCnt<-280000) 
+			if (RotCnt<-100000) 
 			{
-				RotCnt=-280000;
-				EncoderSetCount(&ecd_rot,-280000);
+				RotCnt=-100000;
+				EncoderSetCount(&ecd_rot,RotCnt);
 			}
 			
 			if (RotCnt!=RotCntLast)
@@ -254,10 +260,15 @@ void rotation(void)
 		}
 		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
 		{
-			OS_DI(); 
+			//TIM3_ITConfig(TIM3_IT_UPDATE, DISABLE); 
+			TIM3_Cmd(DISABLE);
 			EncoderSetCount(&ecd_left,LeftCnt);
 			LeftCnt=EncoderRead(&ecd_left,EncoderGpio);
-			OS_EI(); 
+			//OS_DI(); 
+		
+			//LeftCnt+=temp;
+			//TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
+			//OS_EI(); 
 			if (LeftCnt>0)
 			{
 				GPIO_WriteHigh(LeftDir);
