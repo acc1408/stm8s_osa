@@ -36,15 +36,16 @@
 #define LeftDir	GPIOD, GPIO_PIN_4
 #define LeftPulse 		GPIOD, GPIO_PIN_2
 
-#define ButWhiteGpio			GPIOB, GPIO_PIN_0
-#define ButWhiteStopGpio 	GPIOB, GPIO_PIN_1
-#define ButGreenStopGpio 	GPIOB, GPIO_PIN_2
-#define ButGreenGpio 			GPIOB, GPIO_PIN_3
+#define StartRot			GPIOB, GPIO_PIN_0
+#define StopRotGpio 	GPIOB, GPIO_PIN_1
+#define StopLiftGpio 	GPIOB, GPIO_PIN_2
+#define StartLift 			GPIOB, GPIO_PIN_3
 #define ButEncoderGpio 		GPIOF, GPIO_PIN_4
+
 //#define ButEncoderStop 		GPIOF, GPIO_PIN_4
 
-#define LedGreen    GPIOB, GPIO_PIN_5
-#define LedYellow   GPIOB, GPIO_PIN_4
+#define LedRot    GPIOB, GPIO_PIN_5
+#define LedLeft   GPIOB, GPIO_PIN_4
 #define EncoderGpio GPIOC,GPIO_PIN_1,GPIOC,GPIO_PIN_2
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -61,14 +62,15 @@ struct
 	uint8_t MotorChoice:1; // 0 -rot, 1 - left
 } rtn; 
 //-----------
-button_t BtnWhite, BtnWhiteStop,BtnGreen, BtnGreenStop,ButEncoder;
+button_t StartButton, BtnWhiteStop,BtnGreen, BtnGreenStop,ButEncoder;
+//StartButton
 //------------------------
 encoder_t ecd_rot, ecd_left;
 //-------------------------
 void init_timer(void)
 {
-	GPIO_Init(LedYellow, GPIO_MODE_OUT_PP_HIGH_FAST);
-	GPIO_Init(LedGreen, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LedRot, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(LedLeft, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(RotEn, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(RotDir, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(LeftEn, GPIO_MODE_OUT_PP_HIGH_FAST);
@@ -100,10 +102,10 @@ void init_timer(void)
 
 void Button(void)
 {
-	ButtonInit(&BtnWhite,			0,	ButWhiteGpio);
-	ButtonInit(&BtnWhiteStop,	0,	ButWhiteStopGpio);
-	ButtonInit(&BtnGreenStop,	0,	ButGreenStopGpio);
-	ButtonInit(&BtnGreen,			0,	ButGreenGpio);
+	ButtonInit(&StartButton,			0,	StartRot);
+	ButtonInit(&BtnWhiteStop,	0,	StopRotGpio);
+	ButtonInit(&BtnGreenStop,	0,	StopLiftGpio);
+	ButtonInit(&BtnGreen,			0,	StartLift);
 	ButtonInit(&ButEncoder,		0,	ButEncoderGpio);
 
 	// Init struct
@@ -114,7 +116,7 @@ void Button(void)
 	{
 		buttoncode_t ret;
 		// Включение вращения
-		ret=ButtonRead(&BtnWhite ,ButWhiteGpio);
+		ret=ButtonRead(&StartButton ,StartRot);
 		if (ret==pressdown) 
 		{
 			rtn.MotorEnRot=1;
@@ -122,7 +124,7 @@ void Button(void)
 			GPIO_WriteLow(RotEn);
 		}
 		// Отключение вращения
-		ret=ButtonRead(&BtnWhiteStop ,ButWhiteStopGpio);
+		ret=ButtonRead(&BtnWhiteStop ,StopRotGpio);
 		if (ret==pressdown) 
 		{
 			rtn.MotorEnRot=0;
@@ -131,7 +133,7 @@ void Button(void)
 			TIM2_Cmd(DISABLE);
 		}
 		// Выбор подъема
-		ret=ButtonRead(&BtnGreen ,ButGreenGpio);
+		ret=ButtonRead(&BtnGreen ,StartLift);
 		if (ret==pressdown) 
 		{
 			rtn.MotorEnLeft=1;
@@ -140,7 +142,7 @@ void Button(void)
 			
 		}
 		// Отключение подъема
-		ret=ButtonRead(&BtnGreenStop ,ButGreenStopGpio);
+		ret=ButtonRead(&BtnGreenStop ,StopLiftGpio);
 		if (ret==pressdown) 
 		{
 			rtn.MotorEnLeft=0;
@@ -161,37 +163,39 @@ void Button(void)
 void Led(void)
 {
 	//task_led=OS_Task_GetCur();
+	
 	while(1)
 	{
+		GPIO_WriteReverse(GPIOE, GPIO_PIN_5); // Blink work cpu
 		if ((rtn.MotorEnRot==1)&&(rtn.MotorChoice==0))
 		{
-			GPIO_WriteReverse(LedGreen);
+			GPIO_WriteReverse(LedRot);
 		}
 		else
 		{
 			if (rtn.MotorEnRot==1)
 			{
-				GPIO_WriteLow(LedGreen);
+				GPIO_WriteLow(LedRot);
 			}
 			else
 			{
-				GPIO_WriteHigh(LedGreen);
+				GPIO_WriteHigh(LedRot);
 			}
 		}
 		//---------------
 		if ((rtn.MotorEnLeft==1)&&(rtn.MotorChoice==1))
 		{
-			GPIO_WriteReverse(LedYellow);
+			GPIO_WriteReverse(LedLeft);
 		}
 		else
 		{
 			if (rtn.MotorEnLeft==1)
 			{
-				GPIO_WriteLow(LedYellow);
+				GPIO_WriteLow(LedLeft);
 			}
 			else
 			{
-				GPIO_WriteHigh(LedYellow);
+				GPIO_WriteHigh(LedLeft);
 			}
 		}
 		OS_Delay (1000);
