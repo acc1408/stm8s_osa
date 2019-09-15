@@ -273,46 +273,197 @@ typedef enum
 /** @addtogroup TIM3_Exported_Functions
   * @{
   */
-
+//#define TIM3_DeInit_Def
+#ifdef TIM3_DeInit_Def
 void TIM3_DeInit(void);
-void TIM3_TimeBaseInit(TIM3_Prescaler_TypeDef TIM3_Prescaler, uint16_t TIM3_Period);
-void TIM3_OC1Init(TIM3_OCMode_TypeDef TIM3_OCMode, TIM3_OutputState_TypeDef TIM3_OutputState, uint16_t TIM3_Pulse, TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
-void TIM3_OC2Init(TIM3_OCMode_TypeDef TIM3_OCMode, TIM3_OutputState_TypeDef TIM3_OutputState, uint16_t TIM3_Pulse, TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
-void TIM3_ICInit(TIM3_Channel_TypeDef TIM3_Channel, TIM3_ICPolarity_TypeDef TIM3_ICPolarity, TIM3_ICSelection_TypeDef TIM3_ICSelection,  TIM3_ICPSC_TypeDef TIM3_ICPrescaler, uint8_t TIM3_ICFilter);
-void TIM3_PWMIConfig(TIM3_Channel_TypeDef TIM3_Channel, TIM3_ICPolarity_TypeDef TIM3_ICPolarity, TIM3_ICSelection_TypeDef TIM3_ICSelection,  TIM3_ICPSC_TypeDef TIM3_ICPrescaler, uint8_t TIM3_ICFilter);
-void TIM3_Cmd(FunctionalState NewState);
-void TIM3_ITConfig(TIM3_IT_TypeDef TIM3_IT, FunctionalState NewState);
-void TIM3_InternalClockConfig(void);
-void TIM3_UpdateDisableConfig(FunctionalState NewState);
-void TIM3_UpdateRequestConfig(TIM3_UpdateSource_TypeDef TIM3_UpdateSource);
-void TIM3_SelectOnePulseMode(TIM3_OPMode_TypeDef TIM3_OPMode);
-void TIM3_PrescalerConfig(TIM3_Prescaler_TypeDef Prescaler, TIM3_PSCReloadMode_TypeDef TIM3_PSCReloadMode);
-void TIM3_ForcedOC1Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction);
-void TIM3_ForcedOC2Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction);
-void TIM3_ARRPreloadConfig(FunctionalState NewState);
-void TIM3_CCPreloadControl(FunctionalState NewState);
-void TIM3_OC1PreloadConfig(FunctionalState NewState);
-void TIM3_OC2PreloadConfig(FunctionalState NewState);
-void TIM3_GenerateEvent(TIM3_EventSource_TypeDef TIM3_EventSource);
-void TIM3_OC1PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
-void TIM3_OC2PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
-void TIM3_CCxCmd(TIM3_Channel_TypeDef TIM3_Channel, FunctionalState NewState);
-void TIM3_SelectOCxM(TIM3_Channel_TypeDef TIM3_Channel, TIM3_OCMode_TypeDef TIM3_OCMode);
-void TIM3_SetCounter(uint16_t Counter);
-void TIM3_SetAutoreload(uint16_t Autoreload);
-void TIM3_SetCompare1(uint16_t Compare1);
-void TIM3_SetCompare2(uint16_t Compare2);
-void TIM3_SetIC1Prescaler(TIM3_ICPSC_TypeDef TIM3_IC1Prescaler);
-void TIM3_SetIC2Prescaler(TIM3_ICPSC_TypeDef TIM3_IC2Prescaler);
-uint16_t TIM3_GetCapture1(void);
-uint16_t TIM3_GetCapture2(void);
-uint16_t TIM3_GetCounter(void);
-TIM3_Prescaler_TypeDef TIM3_GetPrescaler(void);
-FlagStatus TIM3_GetFlagStatus(TIM3_FLAG_TypeDef TIM3_FLAG);
-void TIM3_ClearFlag(TIM3_FLAG_TypeDef TIM3_FLAG);
-ITStatus TIM3_GetITStatus(TIM3_IT_TypeDef TIM3_IT);
-void TIM3_ClearITPendingBit(TIM3_IT_TypeDef TIM3_IT);
+#endif
 
+#define TIM3_TimeBaseInit_Def
+#ifdef TIM3_TimeBaseInit_Def
+void TIM3_TimeBaseInit(TIM3_Prescaler_TypeDef TIM3_Prescaler, uint16_t TIM3_Period);
+#endif
+
+#define TIM3_OC1Init_Def
+#ifdef TIM3_OC1Init_Def
+void TIM3_OC1Init(TIM3_OCMode_TypeDef TIM3_OCMode, TIM3_OutputState_TypeDef TIM3_OutputState, uint16_t TIM3_Pulse, TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
+#endif
+
+
+#define TIM3_OC2Init_Def
+#ifdef TIM3_OC2Init_Def
+void TIM3_OC2Init(TIM3_OCMode_TypeDef TIM3_OCMode, TIM3_OutputState_TypeDef TIM3_OutputState, uint16_t TIM3_Pulse, TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
+#endif
+
+#define TIM3_ICInit_Def
+#ifdef TIM3_ICInit_Def
+void TIM3_ICInit(TIM3_Channel_TypeDef TIM3_Channel, TIM3_ICPolarity_TypeDef TIM3_ICPolarity, TIM3_ICSelection_TypeDef TIM3_ICSelection,  TIM3_ICPSC_TypeDef TIM3_ICPrescaler, uint8_t TIM3_ICFilter);
+#endif
+
+
+#define TIM3_PWMIConfig_Def
+#ifdef TIM3_PWMIConfig_Def
+void TIM3_PWMIConfig(TIM3_Channel_TypeDef TIM3_Channel, TIM3_ICPolarity_TypeDef TIM3_ICPolarity, TIM3_ICSelection_TypeDef TIM3_ICSelection,  TIM3_ICPSC_TypeDef TIM3_ICPrescaler, uint8_t TIM3_ICFilter);
+#endif
+
+#define TIM3_Cmd_Def
+#ifdef TIM3_Cmd_Def
+void TIM3_Cmd(FunctionalState NewState);
+#endif
+
+#define TIM3_ITConfig_Def
+#ifdef TIM3_ITConfig_Def
+void TIM3_ITConfig(TIM3_IT_TypeDef TIM3_IT, FunctionalState NewState);
+#endif
+
+#define TIM3_InternalClockConfig_Def
+#ifdef TIM3_InternalClockConfig_Def
+void TIM3_InternalClockConfig(void);
+#endif
+
+#define TIM3_UpdateDisableConfig_Def
+#ifdef TIM3_UpdateDisableConfig_Def
+void TIM3_UpdateDisableConfig(FunctionalState NewState);
+#endif
+
+#define TIM3_UpdateRequestConfig_Def
+#ifdef TIM3_UpdateRequestConfig_Def
+void TIM3_UpdateRequestConfig(TIM3_UpdateSource_TypeDef TIM3_UpdateSource);
+#endif
+
+#define TIM3_SelectOnePulseMode_Def
+#ifdef TIM3_SelectOnePulseMode_Def
+void TIM3_SelectOnePulseMode(TIM3_OPMode_TypeDef TIM3_OPMode);
+#endif
+
+#define TIM3_PrescalerConfig_Def
+#ifdef TIM3_PrescalerConfig_Def
+void TIM3_PrescalerConfig(TIM3_Prescaler_TypeDef Prescaler, TIM3_PSCReloadMode_TypeDef TIM3_PSCReloadMode);
+#endif
+
+#define TIM3_ForcedOC1Config_Def
+#ifdef TIM3_ForcedOC1Config_Def
+void TIM3_ForcedOC1Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction);
+#endif
+
+#define TIM3_ForcedOC2Config_Def
+#ifdef TIM3_ForcedOC2Config_Def
+void TIM3_ForcedOC2Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction);
+#endif
+
+#define TIM3_ARRPreloadConfig_Def
+#ifdef TIM3_ARRPreloadConfig_Def
+void TIM3_ARRPreloadConfig(FunctionalState NewState);
+#endif
+
+#define TIM3_CCPreloadControl_Def
+#ifdef TIM3_CCPreloadControl_Def
+void TIM3_CCPreloadControl(FunctionalState NewState);
+#endif
+
+//#define TIM3_OC1PreloadConfig_Def
+#ifdef TIM3_OC1PreloadConfig_Def
+void TIM3_OC1PreloadConfig(FunctionalState NewState);
+#endif
+
+#define TIM3_OC2PreloadConfig_Def
+#ifdef TIM3_OC2PreloadConfig_Def
+void TIM3_OC2PreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM3_GenerateEvent_Def
+#ifdef TIM3_GenerateEvent_Def
+void TIM3_GenerateEvent(TIM3_EventSource_TypeDef TIM3_EventSource);
+#endif
+
+//#define TIM3_OC1PolarityConfig_Def
+#ifdef TIM3_OC1PolarityConfig_Def
+void TIM3_OC1PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
+#endif
+
+//#define TIM3_OC2PolarityConfig_Def
+#ifdef TIM3_OC2PolarityConfig_Def
+void TIM3_OC2PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity);
+#endif
+
+//#define TIM3_CCxCmd_Def
+#ifdef TIM3_CCxCmd_Def
+void TIM3_CCxCmd(TIM3_Channel_TypeDef TIM3_Channel, FunctionalState NewState);
+#endif
+
+//#define TIM3_SelectOCxM_Def
+#ifdef TIM3_SelectOCxM_Def
+void TIM3_SelectOCxM(TIM3_Channel_TypeDef TIM3_Channel, TIM3_OCMode_TypeDef TIM3_OCMode);
+#endif
+
+#define TIM3_SetCounter_Def
+#ifdef TIM3_SetCounter_Def
+void TIM3_SetCounter(uint16_t Counter);
+#endif
+
+#define TIM3_SetAutoreload_Def
+#ifdef TIM3_SetAutoreload_Def
+void TIM3_SetAutoreload(uint16_t Autoreload);
+#endif
+
+//#define TIM3_SetCompare1_Def
+#ifdef TIM3_SetCompare1_Def
+void TIM3_SetCompare1(uint16_t Compare1);
+#endif
+
+//#define TIM3_SetCompare2_Def
+#ifdef TIM3_SetCompare2_Def
+void TIM3_SetCompare2(uint16_t Compare2);
+#endif
+
+//#define TIM3_SetIC1Prescaler_Def
+#if defined(TIM3_SetIC1Prescaler_Def) ||defined(TIM3_ICInit_Def)
+void TIM3_SetIC1Prescaler(TIM3_ICPSC_TypeDef TIM3_IC1Prescaler);
+#endif
+
+//#define TIM3_SetIC2Prescaler_Def
+#if defined(TIM3_SetIC2Prescaler_Def) ||defined(TIM3_ICInit_Def)
+void TIM3_SetIC2Prescaler(TIM3_ICPSC_TypeDef TIM3_IC2Prescaler);
+#endif
+
+//#define TIM3_GetCapture1_Def
+#ifdef TIM3_GetCapture1_Def
+uint16_t TIM3_GetCapture1(void);
+#endif
+
+//#define TIM3_GetCapture2_Def
+#ifdef TIM3_GetCapture2_Def
+uint16_t TIM3_GetCapture2(void);
+#endif
+
+//#define TIM3_GetCounter_Def
+#ifdef TIM3_GetCounter_Def
+uint16_t TIM3_GetCounter(void);
+#endif
+
+//#define TIM3_GetPrescaler_Def
+#ifdef TIM3_GetPrescaler_Def
+TIM3_Prescaler_TypeDef TIM3_GetPrescaler(void);
+#endif
+
+#define TIM3_GetFlagStatus_Def
+#ifdef TIM3_GetFlagStatus_Def
+FlagStatus TIM3_GetFlagStatus(TIM3_FLAG_TypeDef TIM3_FLAG);
+#endif
+
+#define TIM3_ClearFlag_Def
+#ifdef TIM3_ClearFlag_Def
+void TIM3_ClearFlag(TIM3_FLAG_TypeDef TIM3_FLAG);
+#endif
+
+//#define TIM3_GetITStatus_Def
+#ifdef TIM3_GetITStatus_Def
+ITStatus TIM3_GetITStatus(TIM3_IT_TypeDef TIM3_IT);
+#endif
+
+#define TIM3_ClearITPendingBit_Def
+#ifdef TIM3_ClearITPendingBit_Def
+void TIM3_ClearITPendingBit(TIM3_IT_TypeDef TIM3_IT);
+#endif
 /**
   * @}
   */

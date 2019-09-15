@@ -28,7 +28,7 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM8S_H
 #define __STM8S_H
-
+#include "main.h"
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{
   */

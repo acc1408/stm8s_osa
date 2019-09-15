@@ -349,30 +349,125 @@ typedef enum {
 /** @addtogroup CLK_Exported_functions
   * @{
   */
+#define CLK_DeInit_Def
+#ifdef CLK_DeInit_Def
 void CLK_DeInit(void);
+#endif
+
+#define CLK_HSECmd_Def
+#ifdef CLK_HSECmd_Def
 void CLK_HSECmd(FunctionalState NewState);
+#endif
+
+#define CLK_HSICmd_Def
+#ifdef CLK_HSICmd_Def
 void CLK_HSICmd(FunctionalState NewState);
+#endif
+
+//#define CLK_LSICmd_Def
+#ifdef CLK_LSICmd_Def
 void CLK_LSICmd(FunctionalState NewState);
+#endif
+
+//#define CLK_CCOCmd_Def
+#ifdef CLK_CCOCmd_Def
 void CLK_CCOCmd(FunctionalState NewState);
+#endif
+
+#define CLK_ClockSwitchCmd_Def
+#ifdef CLK_ClockSwitchCmd_Def
 void CLK_ClockSwitchCmd(FunctionalState NewState);
+#endif
+
+//#define CLK_FastHaltWakeUpCmd_Def
+#ifdef CLK_FastHaltWakeUpCmd_Def
 void CLK_FastHaltWakeUpCmd(FunctionalState NewState);
+#endif
+
+//#define CLK_SlowActiveHaltWakeUpCmd_Def
+#ifdef CLK_SlowActiveHaltWakeUpCmd_Def
 void CLK_SlowActiveHaltWakeUpCmd(FunctionalState NewState);
+#endif
+
+#define CLK_PeripheralClockConfig_Def
+#ifdef CLK_PeripheralClockConfig_Def
 void CLK_PeripheralClockConfig(CLK_Peripheral_TypeDef CLK_Peripheral, FunctionalState NewState);
+#endif
+
+#define CLK_ClockSwitchConfig_Def
+#ifdef CLK_ClockSwitchConfig_Def
 ErrorStatus CLK_ClockSwitchConfig(CLK_SwitchMode_TypeDef CLK_SwitchMode, CLK_Source_TypeDef CLK_NewClock, FunctionalState ITState, CLK_CurrentClockState_TypeDef CLK_CurrentClockState);
+#endif
+
+#define CLK_HSIPrescalerConfig_Def
+#ifdef CLK_HSIPrescalerConfig_Def
 void CLK_HSIPrescalerConfig(CLK_Prescaler_TypeDef HSIPrescaler);
+#endif
+
+//#define CLK_CCOConfig_Def
+#ifdef CLK_CCOConfig_Def
 void CLK_CCOConfig(CLK_Output_TypeDef CLK_CCO);
+#endif
+
+#define CLK_ITConfig_Def
+#ifdef CLK_ITConfig_Def
 void CLK_ITConfig(CLK_IT_TypeDef CLK_IT, FunctionalState NewState);
+#endif
+
+#define CLK_SYSCLKConfig_Def
+#ifdef CLK_SYSCLKConfig_Def
 void CLK_SYSCLKConfig(CLK_Prescaler_TypeDef CLK_Prescaler);
+#endif
+
+//#define CLK_SWIMConfig_Def
+#ifdef CLK_SWIMConfig_Def
 void CLK_SWIMConfig(CLK_SWIMDivider_TypeDef CLK_SWIMDivider);
+#endif
+
+#define CLK_ClockSecuritySystemEnable_Def
+#ifdef CLK_ClockSecuritySystemEnable_Def
 void CLK_ClockSecuritySystemEnable(void);
+#endif
+
+#define CLK_SYSCLKEmergencyClear_Def
+#ifdef CLK_SYSCLKEmergencyClear_Def
 void CLK_SYSCLKEmergencyClear(void);
+#endif
+
+//#define CLK_AdjustHSICalibrationValue_Def
+#ifdef CLK_AdjustHSICalibrationValue_Def
 void CLK_AdjustHSICalibrationValue(CLK_HSITrimValue_TypeDef CLK_HSICalibrationValue);
+#endif
+
+#define CLK_GetClockFreq_Def
+#ifdef CLK_GetClockFreq_Def
 uint32_t CLK_GetClockFreq(void);
+#endif
+
+#define CLK_GetCPUClk_Def
+#ifdef CLK_GetCPUClk_Def
 uint32_t CLK_GetCPUClk(void);
+#endif
+
+#define CLK_GetSYSCLKSource_Def
+#ifdef CLK_GetSYSCLKSource_Def
 CLK_Source_TypeDef CLK_GetSYSCLKSource(void);
+#endif
+
+#define CLK_GetFlagStatus_Def
+#ifdef CLK_GetFlagStatus_Def
 FlagStatus CLK_GetFlagStatus(CLK_Flag_TypeDef CLK_FLAG);
+#endif
+
+#define CLK_GetITStatus_Def
+#ifdef CLK_GetITStatus_Def
 ITStatus CLK_GetITStatus(CLK_IT_TypeDef CLK_IT);
+#endif
+
+#define CLK_ClearITPendingBit_Def
+#ifdef CLK_ClearITPendingBit_Def
 void CLK_ClearITPendingBit(CLK_IT_TypeDef CLK_IT);
+#endif
 
 /**
   * @}

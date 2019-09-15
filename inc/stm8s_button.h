@@ -29,7 +29,7 @@ typedef struct
 	uint8_t Level:1;  // прошлое состояние линии
 	buttoncode_t ret:2; // возвращенное функцией значение
 	uint8_t PressLongCycleMin; // минимальная задержка для кода удеражания клавиши
-	uint8_t CyclePress; // счетчик кол-ва нажатий 
+	uint8_t CyclePress; // счетчик кол-ва циклов удержания 
 } button_t;
 /**
   * @brief  Инициализация структуры кнопки

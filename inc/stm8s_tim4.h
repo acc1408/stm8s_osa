@@ -135,27 +135,98 @@ typedef enum
 /** @addtogroup TIM4_Exported_Functions
   * @{
   */
+//#define	TIM4_DeInit_Def	
+#ifdef	TIM4_DeInit_Def
 void TIM4_DeInit(void);
+#endif
+
+#define TIM4_TimeBaseInit_Def
+#ifdef TIM4_TimeBaseInit_Def
 void TIM4_TimeBaseInit(TIM4_Prescaler_TypeDef TIM4_Prescaler, uint8_t TIM4_Period);
+#endif
+
+#define TIM4_Cmd_Def
+#ifdef TIM4_Cmd_Def
 void TIM4_Cmd(FunctionalState NewState);
+#endif
+
+#define TIM4_ITConfig_Def
+#ifdef TIM4_ITConfig_Def
 void TIM4_ITConfig(TIM4_IT_TypeDef TIM4_IT, FunctionalState NewState);
+#endif
+
+#define TIM4_UpdateDisableConfig_Def
+#ifdef TIM4_UpdateDisableConfig_Def
 void TIM4_UpdateDisableConfig(FunctionalState NewState);
+#endif
+
+#define TIM4_UpdateRequestConfig_Def
+#ifdef TIM4_UpdateRequestConfig_Def
 void TIM4_UpdateRequestConfig(TIM4_UpdateSource_TypeDef TIM4_UpdateSource);
+#endif
+
+//#define TIM4_SelectOnePulseMode_Def
+#ifdef TIM4_SelectOnePulseMode_Def
 void TIM4_SelectOnePulseMode(TIM4_OPMode_TypeDef TIM4_OPMode);
+#endif
+
+//#define TIM4_PrescalerConfig_Def
+#ifdef TIM4_PrescalerConfig_Def
 void TIM4_PrescalerConfig(TIM4_Prescaler_TypeDef Prescaler, TIM4_PSCReloadMode_TypeDef TIM4_PSCReloadMode);
+#endif
+
+#define TIM4_ARRPreloadConfig_Def
+#ifdef TIM4_ARRPreloadConfig_Def
 void TIM4_ARRPreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM4_GenerateEvent_Def
+#ifdef TIM4_GenerateEvent_Def
 void TIM4_GenerateEvent(TIM4_EventSource_TypeDef TIM4_EventSource);
+#endif
+
+#define TIM4_SetCounter_Def
+#ifdef TIM4_SetCounter_Def
 void TIM4_SetCounter(uint8_t Counter);
+#endif
+
+#define TIM4_SetAutoreload_Def
+#ifdef TIM4_SetAutoreload_Def
 void TIM4_SetAutoreload(uint8_t Autoreload);
+#endif
+
+//#define TIM4_GetCounter_Def
+#ifdef TIM4_GetCounter_Def
 uint8_t TIM4_GetCounter(void);
+#endif
+
+//#define TI4_GetPrescaler_Def
+#ifdef TI4_GetPrescaler_Def
 TIM4_Prescaler_TypeDef TIM4_GetPrescaler(void);
+#endif
+
+//#define TIM4_GetFlagStatus_Def
+#ifdef TIM4_GetFlagStatus_Def
 FlagStatus TIM4_GetFlagStatus(TIM4_FLAG_TypeDef TIM4_FLAG);
+#endif
+
+#define TIM4_ClearFlag_Def
+#ifdef TIM4_ClearFlag_Def
 void TIM4_ClearFlag(TIM4_FLAG_TypeDef TIM4_FLAG);
+#endif
+
+#define TIM4_GetITStatus_Def
+#ifdef TIM4_GetITStatus_Def
 ITStatus TIM4_GetITStatus(TIM4_IT_TypeDef TIM4_IT);
+#endif
+
+#define TIM4_ClearITPendingBit_Def
+#ifdef TIM4_ClearITPendingBit_Def
 void TIM4_ClearITPendingBit(TIM4_IT_TypeDef TIM4_IT);
+#endif
+ 
 #ifdef __OSA__ 
 void TIM4_TimerOSA(uint16_t us);
-
 #endif
 
 /**

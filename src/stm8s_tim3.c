@@ -38,11 +38,14 @@
 /* Private function prototypes -----------------------------------------------*/
 static void TIM3_TI1_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
 static void TIM3_TI2_Config(uint8_t TIM3_ICPolarity, uint8_t TIM3_ICSelection, uint8_t TIM3_ICFilter);
+//void TIM3_SetIC1Prescaler(TIM3_ICPSC_TypeDef TIM3_IC1Prescaler);
+//void TIM3_SetIC2Prescaler(TIM3_ICPSC_TypeDef TIM3_IC1Prescaler);
 /**
   * @addtogroup TIM3_Public_Functions
   * @{
   */
 
+#ifdef TIM3_DeInit_Def
 /**
   * @brief  Deinitializes the TIM3 peripheral registers to their default reset values.
   * @param  None
@@ -72,7 +75,9 @@ void TIM3_DeInit(void)
   TIM3->CCR2L = (uint8_t)TIM3_CCR2L_RESET_VALUE;
   TIM3->SR1 = (uint8_t)TIM3_SR1_RESET_VALUE;
 }
+#endif
 
+#ifdef TIM3_TimeBaseInit_Def
 /**
   * @brief  Initializes the TIM3 Time Base Unit according to the specified parameters.
   * @param    TIM3_Prescaler specifies the Prescaler from TIM3_Prescaler_TypeDef.
@@ -88,7 +93,9 @@ void TIM3_TimeBaseInit( TIM3_Prescaler_TypeDef TIM3_Prescaler,
   TIM3->ARRH = (uint8_t)(TIM3_Period >> 8);
   TIM3->ARRL = (uint8_t)(TIM3_Period);
 }
+#endif
 
+#ifdef TIM3_OC1Init_Def
 /**
   * @brief  Initializes the TIM3 Channel1 according to the specified parameters.
   * @param   TIM3_OCMode specifies the Output Compare mode  from @ref TIM3_OCMode_TypeDef.
@@ -119,7 +126,9 @@ void TIM3_OC1Init(TIM3_OCMode_TypeDef TIM3_OCMode,
   TIM3->CCR1H = (uint8_t)(TIM3_Pulse >> 8);
   TIM3->CCR1L = (uint8_t)(TIM3_Pulse);
 }
+#endif
 
+#ifdef TIM3_OC2Init_Def
 /**
   * @brief  Initializes the TIM3 Channel2 according to the specified parameters.
   * @param   TIM3_OCMode specifies the Output Compare mode  from @ref TIM3_OCMode_TypeDef.
@@ -153,7 +162,9 @@ void TIM3_OC2Init(TIM3_OCMode_TypeDef TIM3_OCMode,
   TIM3->CCR2H = (uint8_t)(TIM3_Pulse >> 8);
   TIM3->CCR2L = (uint8_t)(TIM3_Pulse);
 }
+#endif
 
+#ifdef TIM3_ICInit_Def
 /**
   * @brief  Initializes the TIM3 peripheral according to the specified parameters.
   * @param    TIM3_Channel specifies the Input Capture Channel from @ref TIM3_Channel_TypeDef.
@@ -197,7 +208,9 @@ void TIM3_ICInit(TIM3_Channel_TypeDef TIM3_Channel,
     TIM3_SetIC2Prescaler(TIM3_ICPrescaler);
   }
 }
+#endif
 
+#ifdef TIM3_PWMIConfig_Def
 /**
   * @brief  Configures the TIM3 peripheral in PWM Input Mode according to the specified parameters.
   * @param    TIM3_Channel specifies the Input Capture Channel from @ref TIM3_Channel_TypeDef.
@@ -273,7 +286,9 @@ void TIM3_PWMIConfig(TIM3_Channel_TypeDef TIM3_Channel,
     TIM3_SetIC1Prescaler(TIM3_ICPrescaler);
   }
 }
+#endif
 
+#ifdef TIM3_Cmd_Def
 /**
   * @brief  Enables or disables the TIM3 peripheral.
   * @param   NewState new state of the TIM3 peripheral. This parameter can
@@ -295,7 +310,9 @@ void TIM3_Cmd(FunctionalState NewState)
     TIM3->CR1 &= (uint8_t)(~TIM3_CR1_CEN);
   }
 }
+#endif
 
+#ifdef TIM3_ITConfig_Def
 /**
   * @brief  Enables or disables the specified TIM3 interrupts.
   * @param   NewState new state of the TIM3 peripheral.
@@ -325,7 +342,9 @@ void TIM3_ITConfig(TIM3_IT_TypeDef TIM3_IT, FunctionalState NewState)
     TIM3->IER &= (uint8_t)(~TIM3_IT);
   }
 }
+#endif
 
+#ifdef TIM3_UpdateDisableConfig_Def
 /**
   * @brief  Enables or Disables the TIM3 Update event.
   * @param   NewState new state of the TIM3 peripheral Preload register. This parameter can
@@ -347,7 +366,9 @@ void TIM3_UpdateDisableConfig(FunctionalState NewState)
     TIM3->CR1 &= (uint8_t)(~TIM3_CR1_UDIS);
   }
 }
+#endif
 
+#ifdef TIM3_UpdateRequestConfig_Def
 /**
   * @brief  Selects the TIM3 Update Request Interrupt source.
   * @param   TIM3_UpdateSource specifies the Update source.
@@ -371,7 +392,9 @@ void TIM3_UpdateRequestConfig(TIM3_UpdateSource_TypeDef TIM3_UpdateSource)
     TIM3->CR1 &= (uint8_t)(~TIM3_CR1_URS);
   }
 }
+#endif
 
+#ifdef TIM3_SelectOnePulseMode_Def
 /**
   * @brief  Selects the TIM3’s One Pulse Mode.
   * @param   TIM3_OPMode specifies the OPM Mode to be used.
@@ -395,7 +418,9 @@ void TIM3_SelectOnePulseMode(TIM3_OPMode_TypeDef TIM3_OPMode)
     TIM3->CR1 &= (uint8_t)(~TIM3_CR1_OPM);
   }
 }
+#endif
 
+#ifdef TIM3_PrescalerConfig_Def
 /**
   * @brief  Configures the TIM3 Prescaler.
   * @param   Prescaler specifies the Prescaler Register value
@@ -437,7 +462,9 @@ void TIM3_PrescalerConfig(TIM3_Prescaler_TypeDef Prescaler,
   /* Set or reset the UG Bit */
   TIM3->EGR = (uint8_t)TIM3_PSCReloadMode;
 }
+#endif
 
+#ifdef TIM3_ForcedOC1Config_Def
 /**
   * @brief  Forces the TIM3 Channel1 output waveform to active or inactive level.
   * @param   TIM3_ForcedAction specifies the forced Action to be set to the output waveform.
@@ -455,7 +482,9 @@ void TIM3_ForcedOC1Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction)
   /* Reset the OCM Bits & Configure the Forced output Mode */
   TIM3->CCMR1 =  (uint8_t)((uint8_t)(TIM3->CCMR1 & (uint8_t)(~TIM3_CCMR_OCM))  | (uint8_t)TIM3_ForcedAction);
 }
+#endif
 
+#ifdef TIM3_ForcedOC2Config_Def
 /**
   * @brief  Forces the TIM3 Channel2 output waveform to active or inactive level.
   * @param   TIM3_ForcedAction specifies the forced Action to be set to the output waveform.
@@ -473,7 +502,9 @@ void TIM3_ForcedOC2Config(TIM3_ForcedAction_TypeDef TIM3_ForcedAction)
   /* Reset the OCM Bits & Configure the Forced output Mode */
   TIM3->CCMR2 =  (uint8_t)((uint8_t)(TIM3->CCMR2 & (uint8_t)(~TIM3_CCMR_OCM)) | (uint8_t)TIM3_ForcedAction);
 }
+#endif
 
+#ifdef TIM3_ARRPreloadConfig_Def
 /**
   * @brief  Enables or disables TIM3 peripheral Preload register on ARR.
   * @param   NewState new state of the TIM3 peripheral Preload register.
@@ -495,7 +526,9 @@ void TIM3_ARRPreloadConfig(FunctionalState NewState)
     TIM3->CR1 &= (uint8_t)(~TIM3_CR1_ARPE);
   }
 }
+#endif
 
+#ifdef TIM3_OC1PreloadConfig_Def
 /**
   * @brief  Enables or disables the TIM3 peripheral Preload Register on CCR1.
   * @param   NewState new state of the Capture Compare Preload register.
@@ -517,7 +550,9 @@ void TIM3_OC1PreloadConfig(FunctionalState NewState)
     TIM3->CCMR1 &= (uint8_t)(~TIM3_CCMR_OCxPE);
   }
 }
+#endif
 
+#ifdef TIM3_OC2PreloadConfig_Def
 /**
   * @brief  Enables or disables the TIM3 peripheral Preload Register on CCR2.
   * @param   NewState new state of the Capture Compare Preload register.
@@ -539,7 +574,9 @@ void TIM3_OC2PreloadConfig(FunctionalState NewState)
     TIM3->CCMR2 &= (uint8_t)(~TIM3_CCMR_OCxPE);
   }
 }
+#endif
 
+#ifdef TIM3_GenerateEvent_Def
 /**
   * @brief  Configures the TIM3 event to be generated by software.
   * @param   TIM3_EventSource specifies the event source.
@@ -557,7 +594,9 @@ void TIM3_GenerateEvent(TIM3_EventSource_TypeDef TIM3_EventSource)
   /* Set the event sources */
   TIM3->EGR = (uint8_t)TIM3_EventSource;
 }
+#endif
 
+#ifdef TIM3_OC1PolarityConfig_Def
 /**
   * @brief  Configures the TIM3 Channel 1 polarity.
   * @param   TIM3_OCPolarity specifies the OC1 Polarity.
@@ -581,7 +620,9 @@ void TIM3_OC1PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity)
     TIM3->CCER1 &= (uint8_t)(~TIM3_CCER1_CC1P);
   }
 }
+#endif
 
+#ifdef TIM3_OC2PolarityConfig_Def
 /**
   * @brief  Configures the TIM3 Channel 2 polarity.
   * @param   TIM3_OCPolarity specifies the OC2 Polarity.
@@ -605,7 +646,9 @@ void TIM3_OC2PolarityConfig(TIM3_OCPolarity_TypeDef TIM3_OCPolarity)
     TIM3->CCER1 &= (uint8_t)(~TIM3_CCER1_CC2P);
   }
 }
+#endif
 
+#ifdef TIM3_CCxCmd_Def
 /**
   * @brief  Enables or disables the TIM3 Capture Compare Channel x.
   * @param   TIM3_Channel specifies the TIM3 Channel.
@@ -648,7 +691,9 @@ void TIM3_CCxCmd(TIM3_Channel_TypeDef TIM3_Channel, FunctionalState NewState)
     }
   }
 }
+#endif
 
+#ifdef TIM3_SelectOCxM_Def
 /**
   * @brief  Selects the TIM3 Output Compare Mode. This function disables the
   * selected channel before changing the Output Compare Mode. User has to
@@ -691,7 +736,9 @@ void TIM3_SelectOCxM(TIM3_Channel_TypeDef TIM3_Channel, TIM3_OCMode_TypeDef TIM3
     TIM3->CCMR2 = (uint8_t)((uint8_t)(TIM3->CCMR2 & (uint8_t)(~TIM3_CCMR_OCM)) | (uint8_t)TIM3_OCMode);
   }
 }
+#endif
 
+#ifdef TIM3_SetCounter_Def
 /**
   * @brief  Sets the TIM3 Counter Register value.
   * @param   Counter specifies the Counter register new value.
@@ -704,7 +751,9 @@ void TIM3_SetCounter(uint16_t Counter)
   TIM3->CNTRH = (uint8_t)(Counter >> 8);
   TIM3->CNTRL = (uint8_t)(Counter);
 }
+#endif
 
+#ifdef TIM3_SetAutoreload_Def
 /**
   * @brief  Sets the TIM3 Autoreload Register value.
   * @param   Autoreload specifies the Autoreload register new value.
@@ -717,7 +766,9 @@ void TIM3_SetAutoreload(uint16_t Autoreload)
   TIM3->ARRH = (uint8_t)(Autoreload >> 8);
   TIM3->ARRL = (uint8_t)(Autoreload);
 }
+#endif
 
+#ifdef TIM3_SetCompare1_Def
 /**
   * @brief  Sets the TIM3 Capture Compare1 Register value.
   * @param   Compare1 specifies the Capture Compare1 register new value.
@@ -730,7 +781,9 @@ void TIM3_SetCompare1(uint16_t Compare1)
   TIM3->CCR1H = (uint8_t)(Compare1 >> 8);
   TIM3->CCR1L = (uint8_t)(Compare1);
 }
+#endif
 
+#ifdef TIM3_SetCompare2_Def
 /**
   * @brief  Sets the TIM3 Capture Compare2 Register value.
   * @param   Compare2 specifies the Capture Compare2 register new value.
@@ -743,7 +796,9 @@ void TIM3_SetCompare2(uint16_t Compare2)
   TIM3->CCR2H = (uint8_t)(Compare2 >> 8);
   TIM3->CCR2L = (uint8_t)(Compare2);
 }
+#endif
 
+#if defined(TIM3_SetIC1Prescaler_Def) ||defined(TIM3_ICInit_Def)
 /**
   * @brief  Sets the TIM3 Input Capture 1 prescaler.
   * @param   TIM3_IC1Prescaler specifies the Input Capture prescaler new value
@@ -762,7 +817,9 @@ void TIM3_SetIC1Prescaler(TIM3_ICPSC_TypeDef TIM3_IC1Prescaler)
   /* Reset the IC1PSC Bits & Set the IC1PSC value */
   TIM3->CCMR1 = (uint8_t)((uint8_t)(TIM3->CCMR1 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)TIM3_IC1Prescaler);
 }
+#endif
 
+#if defined(TIM3_SetIC2Prescaler_Def)||defined(TIM3_ICInit_Def)
 /**
   * @brief  Sets the TIM3 Input Capture 2 prescaler.
   * @param   TIM3_IC2Prescaler specifies the Input Capture prescaler new value
@@ -781,7 +838,9 @@ void TIM3_SetIC2Prescaler(TIM3_ICPSC_TypeDef TIM3_IC2Prescaler)
   /* Reset the IC1PSC Bits & Set the IC1PSC value */
   TIM3->CCMR2 = (uint8_t)((uint8_t)(TIM3->CCMR2 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)TIM3_IC2Prescaler);
 }
+#endif
 
+#ifdef TIM3_GetCapture1_Def
 /**
   * @brief  Gets the TIM3 Input Capture 1 value.
   * @param  None
@@ -801,7 +860,9 @@ uint16_t TIM3_GetCapture1(void)
   /* Get the Capture 1 Register value */
   return (uint16_t)tmpccr1;
 }
+#endif
 
+#ifdef TIM3_GetCapture2_Def
 /**
   * @brief  Gets the TIM3 Input Capture 2 value.
   * @param  None
@@ -821,7 +882,9 @@ uint16_t TIM3_GetCapture2(void)
   /* Get the Capture 2 Register value */
   return (uint16_t)tmpccr2;
 }
+#endif
 
+#ifdef TIM3_GetCounter_Def
 /**
   * @brief  Gets the TIM3 Counter value.
   * @param  None
@@ -835,7 +898,9 @@ uint16_t TIM3_GetCounter(void)
   /* Get the Counter Register value */
   return (uint16_t)( tmpcntr| (uint16_t)(TIM3->CNTRL));
 }
+#endif
 
+#ifdef TIM3_GetPrescaler_Def
 /**
   * @brief  Gets the TIM3 Prescaler value.
   * @param  None
@@ -846,7 +911,9 @@ TIM3_Prescaler_TypeDef TIM3_GetPrescaler(void)
   /* Get the Prescaler Register value */
   return (TIM3_Prescaler_TypeDef)(TIM3->PSCR);
 }
+#endif
 
+#ifdef TIM3_GetFlagStatus_Def
 /**
   * @brief  Checks whether the specified TIM3 flag is set or not.
   * @param   TIM3_FLAG specifies the flag to check.
@@ -879,7 +946,9 @@ FlagStatus TIM3_GetFlagStatus(TIM3_FLAG_TypeDef TIM3_FLAG)
   }
   return (FlagStatus)bitstatus;
 }
+#endif
 
+#ifdef TIM3_ClearFlag_Def
 /**
   * @brief  Clears the TIM3’s pending flags.
   * @param   TIM3_FLAG specifies the flag to clear.
@@ -900,7 +969,9 @@ void TIM3_ClearFlag(TIM3_FLAG_TypeDef TIM3_FLAG)
   TIM3->SR1 = (uint8_t)(~((uint8_t)(TIM3_FLAG)));
   TIM3->SR2 = (uint8_t)(~((uint8_t)((uint16_t)TIM3_FLAG >> 8)));
 }
+#endif
 
+#ifdef TIM3_GetITStatus_Def
 /**
   * @brief  Checks whether the TIM3 interrupt has occurred or not.
   * @param   TIM3_IT specifies the TIM3 interrupt source to check.
@@ -932,7 +1003,9 @@ ITStatus TIM3_GetITStatus(TIM3_IT_TypeDef TIM3_IT)
   }
   return (ITStatus)(bitstatus);
 }
+#endif
 
+#ifdef TIM3_ClearITPendingBit_Def
 /**
   * @brief  Clears the TIM3's interrupt pending bits.
   * @param   TIM3_IT specifies the pending bit to clear.
@@ -950,7 +1023,9 @@ void TIM3_ClearITPendingBit(TIM3_IT_TypeDef TIM3_IT)
   /* Clear the IT pending Bit */
   TIM3->SR1 = (uint8_t)(~TIM3_IT);
 }
+#endif
 
+#if defined(TIM3_ICInit_Def)||defined(TIM3_PWMIConfig_Def)
 /**
   * @brief  Configure the TI1 as Input.
   * @param   TIM3_ICPolarity  The Input Polarity.
@@ -1031,7 +1106,7 @@ static void TIM3_TI2_Config(uint8_t TIM3_ICPolarity,
   /* Set the CCE Bit */
   TIM3->CCER1 |= TIM3_CCER1_CC2E;
 }
-
+#endif
 /**
   * @}
   */

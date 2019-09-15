@@ -281,59 +281,233 @@ typedef enum
 /** @addtogroup TIM2_Exported_Functions
   * @{
   */
-
+//#define TIM2_DeInit_DEF
+#ifdef TIM2_DeInit_DEF
 void TIM2_DeInit(void);
+#endif
+
+#define TIM2_TimeBaseInit_DEF
+#ifdef TIM2_DeInit_DEF
 void TIM2_TimeBaseInit(TIM2_Prescaler_TypeDef TIM2_Prescaler, uint16_t TIM2_Period);
+#endif
+
+#define TIM2_Cmd_DEF
+#ifdef TIM2_Cmd_DEF
 void TIM2_Cmd(FunctionalState NewState);
+#endif
+
 // Настройка выхода ОС1
-#define TIM2_OC1Init_DEF
+//#define TIM2_OC1Init_DEF
 #ifdef TIM2_OC1Init_DEF
 void TIM2_OC1Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
 #endif
-// Настройка выхода ОС2
-void TIM2_OC2Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
-// Настройка выхода ОС3
-void TIM2_OC3Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
-void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
-void TIM2_PWMIConfig(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
-void TIM2_ITConfig(TIM2_IT_TypeDef TIM2_IT, FunctionalState NewState);
-void TIM2_InternalClockConfig(void);
-void TIM2_UpdateDisableConfig(FunctionalState NewState);
-void TIM2_UpdateRequestConfig(TIM2_UpdateSource_TypeDef TIM2_UpdateSource);
-void TIM2_SelectOnePulseMode(TIM2_OPMode_TypeDef TIM2_OPMode);
-void TIM2_PrescalerConfig(TIM2_Prescaler_TypeDef Prescaler, TIM2_PSCReloadMode_TypeDef TIM2_PSCReloadMode);
-void TIM2_ForcedOC1Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
-void TIM2_ForcedOC2Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
-void TIM2_ForcedOC3Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
-void TIM2_ARRPreloadConfig(FunctionalState NewState);
-void TIM2_CCPreloadControl(FunctionalState NewState);
-void TIM2_OC1PreloadConfig(FunctionalState NewState);
-void TIM2_OC2PreloadConfig(FunctionalState NewState);
-void TIM2_OC3PreloadConfig(FunctionalState NewState);
-void TIM2_GenerateEvent(TIM2_EventSource_TypeDef TIM2_EventSource);
-void TIM2_OC1PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
-void TIM2_OC2PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
-void TIM2_OC3PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
-void TIM2_CCxCmd(TIM2_Channel_TypeDef TIM2_Channel, FunctionalState NewState);
-void TIM2_SelectOCxM(TIM2_Channel_TypeDef TIM2_Channel, TIM2_OCMode_TypeDef TIM2_OCMode);
-void TIM2_SetCounter(uint16_t Counter);
-void TIM2_SetAutoreload(uint16_t Autoreload);
-void TIM2_SetCompare1(uint16_t Compare1);
-void TIM2_SetCompare2(uint16_t Compare2);
-void TIM2_SetCompare3(uint16_t Compare3);
-void TIM2_SetIC1Prescaler(TIM2_ICPSC_TypeDef TIM2_IC1Prescaler);
-void TIM2_SetIC2Prescaler(TIM2_ICPSC_TypeDef TIM2_IC2Prescaler);
-void TIM2_SetIC3Prescaler(TIM2_ICPSC_TypeDef TIM2_IC3Prescaler);
-uint16_t TIM2_GetCapture1(void);
-uint16_t TIM2_GetCapture2(void);
-uint16_t TIM2_GetCapture3(void);
-uint16_t TIM2_GetCounter(void);
-TIM2_Prescaler_TypeDef TIM2_GetPrescaler(void);
-FlagStatus TIM2_GetFlagStatus(TIM2_FLAG_TypeDef TIM2_FLAG);
-void TIM2_ClearFlag(TIM2_FLAG_TypeDef TIM2_FLAG);
-ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
-void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
 
+// Настройка выхода ОС2
+#define TIM2_OC2Init_DEF
+#ifdef TIM2_OC2Init_DEF
+void TIM2_OC2Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
+
+// Настройка выхода ОС3
+//#define TIM2_OC3Init_DEF
+#ifdef TIM2_OC3Init_DEF
+void TIM2_OC3Init(TIM2_OCMode_TypeDef TIM2_OCMode, TIM2_OutputState_TypeDef TIM2_OutputState, uint16_t TIM2_Pulse, TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
+
+//#define TIM2_ICInit_DEF
+#ifdef  TIM2_ICInit_DEF
+void TIM2_ICInit(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
+#endif
+
+//#define TIM2_PWMIConfig_DEF
+#ifdef  TIM2_PWMIConfig_DEF
+void TIM2_PWMIConfig(TIM2_Channel_TypeDef TIM2_Channel, TIM2_ICPolarity_TypeDef TIM2_ICPolarity, TIM2_ICSelection_TypeDef TIM2_ICSelection,  TIM2_ICPSC_TypeDef TIM2_ICPrescaler, uint8_t TIM2_ICFilter);
+#endif
+
+#define TIM2_ITConfig_DEF
+#ifdef  TIM2_ITConfig_DEF
+void TIM2_ITConfig(TIM2_IT_TypeDef TIM2_IT, FunctionalState NewState);
+#endif
+
+//#define TIM2_InternalClockConfig_DEF
+#ifdef  TIM2_InternalClockConfig_DEF
+void TIM2_InternalClockConfig(void);
+#endif
+
+//#define TIM2_UpdateDisableConfig_DEF
+#ifdef  TIM2_UpdateDisableConfig_DEF
+void TIM2_UpdateDisableConfig(FunctionalState NewState);
+#endif
+
+//#define TIM2_UpdateRequestConfig_DEF
+#ifdef  TIM2_UpdateRequestConfig_DEF
+void TIM2_UpdateRequestConfig(TIM2_UpdateSource_TypeDef TIM2_UpdateSource);
+#endif
+
+//#define TIM2_SelectOnePulseMode_DEF
+#ifdef  TIM2_SelectOnePulseMode_DEF
+void TIM2_SelectOnePulseMode(TIM2_OPMode_TypeDef TIM2_OPMode);
+#endif
+
+//#define TIM2_PrescalerConfig_DEF
+#ifdef  TIM2_PrescalerConfig_DEF
+void TIM2_PrescalerConfig(TIM2_Prescaler_TypeDef Prescaler, TIM2_PSCReloadMode_TypeDef TIM2_PSCReloadMode);
+#endif
+
+//#define TIM2_ForcedOC1Config_DEF
+#ifdef  TIM2_ForcedOC1Config_DEF
+void TIM2_ForcedOC1Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
+#endif
+
+//#define TIM2_ForcedOC2Config_DEF
+#ifdef  TIM2_ForcedOC2Config_DEF
+void TIM2_ForcedOC2Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
+#endif
+
+//#define TIM2_ForcedOC3Config_DEF
+#ifdef  TIM2_ForcedOC3Config_DEF
+void TIM2_ForcedOC3Config(TIM2_ForcedAction_TypeDef TIM2_ForcedAction);
+#endif
+
+#define TIM2_ARRPreloadConfig_DEF
+#ifdef  TIM2_ARRPreloadConfig_DEF
+void TIM2_ARRPreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM2_CCPreloadControl_DEF
+#ifdef  TIM2_CCPreloadControl_DEF
+void TIM2_CCPreloadControl(FunctionalState NewState);
+#endif
+
+//#define TIM2_OC1PreloadConfig_DEF
+#ifdef  TIM2_OC1PreloadConfig_DEF
+void TIM2_OC1PreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM2_OC2PreloadConfig_DEF
+#ifdef  TIM2_OC2PreloadConfig_DEF
+void TIM2_OC2PreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM2_OC3PreloadConfig_DEF
+#ifdef  TIM2_OC3PreloadConfig_DEF
+void TIM2_OC3PreloadConfig(FunctionalState NewState);
+#endif
+
+//#define TIM2_GenerateEvent_DEF
+#ifdef  TIM2_GenerateEvent_DEF
+void TIM2_GenerateEvent(TIM2_EventSource_TypeDef TIM2_EventSource);
+#endif
+
+//#define TIM2_OC1PolarityConfig_DEF
+#ifdef  TIM2_OC1PolarityConfig_DEF
+void TIM2_OC1PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
+
+//#define TIM2_OC2PolarityConfig_DEF
+#ifdef  TIM2_OC2PolarityConfig_DEF
+void TIM2_OC2PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
+
+//#define TIM2_OC3PolarityConfig_DEF
+#ifdef  TIM2_OC3PolarityConfig_DEF
+void TIM2_OC3PolarityConfig(TIM2_OCPolarity_TypeDef TIM2_OCPolarity);
+#endif
+
+//#define TIM2_CCxCmd_DEF
+#ifdef  TIM2_CCxCmd_DEF
+void TIM2_CCxCmd(TIM2_Channel_TypeDef TIM2_Channel, FunctionalState NewState);
+#endif
+
+//#define TIM2_SelectOCxM_DEF
+#ifdef  TIM2_SelectOCxM_DEF
+void TIM2_SelectOCxM(TIM2_Channel_TypeDef TIM2_Channel, TIM2_OCMode_TypeDef TIM2_OCMode);
+#endif
+
+//#define TIM2_SetCounter_DEF
+#ifdef  TIM2_SetCounter_DEF
+void TIM2_SetCounter(uint16_t Counter);
+#endif
+
+#define TIM2_SetAutoreload_DEF
+#ifdef  TIM2_SetAutoreload_DEF
+void TIM2_SetAutoreload(uint16_t Autoreload);
+#endif
+
+//#define TIM2_SetCompare1_DEF
+#ifdef  TIM2_SetCompare1_DEF
+void TIM2_SetCompare1(uint16_t Compare1);
+#endif
+
+//#define TIM2_SetCompare2_DEF
+#ifdef  TIM2_SetCompare2_DEF
+void TIM2_SetCompare2(uint16_t Compare2);
+#endif
+
+//#define TIM2_SetCompare3_DEF
+#ifdef  TIM2_SetCompare3_DEF
+void TIM2_SetCompare3(uint16_t Compare3);
+#endif
+
+//#define TIM2_SetIC1Prescaler_DEF
+#ifdef  TIM2_SetIC1Prescaler_DEF
+void TIM2_SetIC1Prescaler(TIM2_ICPSC_TypeDef TIM2_IC1Prescaler);
+#endif
+
+//#define TIM2_SetIC2Prescaler_DEF
+#ifdef  TIM2_SetIC2Prescaler_DEF
+void TIM2_SetIC2Prescaler(TIM2_ICPSC_TypeDef TIM2_IC2Prescaler);
+#endif
+
+//#define TIM2_SetIC3Prescaler_DEF
+#ifdef  TIM2_SetIC3Prescaler_DEF
+void TIM2_SetIC3Prescaler(TIM2_ICPSC_TypeDef TIM2_IC3Prescaler);
+#endif
+
+//#define TIM2_GetCapture1_DEF
+#ifdef  TIM2_GetCapture1_DEF
+uint16_t TIM2_GetCapture1(void);
+#endif
+
+//#define TIM2_GetCapture2_DEF
+#ifdef  TIM2_GetCapture2_DEF
+uint16_t TIM2_GetCapture2(void);
+#endif
+
+//#define TIM2_GetCapture3_DEF
+#ifdef  TIM2_GetCapture3_DEF
+uint16_t TIM2_GetCapture3(void);
+#endif
+
+//#define TIM2_GetCounter_DEF
+#ifdef  TIM2_GetCounter_DEF
+uint16_t TIM2_GetCounter(void);
+#endif
+
+//#define TIM2_GetPrescaler_DEF
+#ifdef  TIM2_GetPrescaler_DEF
+TIM2_Prescaler_TypeDef TIM2_GetPrescaler(void);
+#endif
+
+//#define TIM2_GetFlagStatus_DEF
+#ifdef  TIM2_GetFlagStatus_DEF
+FlagStatus TIM2_GetFlagStatus(TIM2_FLAG_TypeDef TIM2_FLAG);
+#endif
+
+//#define TIM2_ClearFlag_DEF
+#ifdef  TIM2_ClearFlag_DEF
+void TIM2_ClearFlag(TIM2_FLAG_TypeDef TIM2_FLAG);
+#endif
+
+//#define TIM2_GetITStatus_DEF
+#ifdef  TIM2_GetITStatus_DEF
+ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
+#endif
+
+//#define TIM2_ClearITPendingBit_DEF
+#ifdef  TIM2_ClearITPendingBit_DEF
+void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
+#endif
 
 
 /**
