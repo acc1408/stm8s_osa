@@ -17,7 +17,7 @@
 #define LiftStopGpio 		GPIOC, GPIO_PIN_1 // Кнопка Стоп подъема
 #define LiftStartGpio		GPIOF, GPIO_PIN_4	// Кнопка Старт подъема
 
-#define EncoderGpio 		GPIOB,GPIO_PIN_2,GPIOB,GPIO_PIN_3 // Энкодер
+#define EncoderGpio 		GPIOB,GPIO_PIN_3,GPIOB,GPIO_PIN_2 // Энкодер
 #define RotPauseGpio 		GPIOB, GPIO_PIN_1 // Кнопка экнодера
 
 #endif

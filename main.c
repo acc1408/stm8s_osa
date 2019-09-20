@@ -177,11 +177,11 @@ void Led(void)
 		{
 			if (rtn.MotorEnRot==1)
 			{
-				GPIO_WriteLow(RotLedGpio);
+				GPIO_WriteHigh(RotLedGpio);
 			}
 			else
 			{
-				GPIO_WriteHigh(RotLedGpio);
+				GPIO_WriteLow(RotLedGpio);
 			}
 		}
 		//---------------
@@ -193,11 +193,11 @@ void Led(void)
 		{
 			if (rtn.MotorEnLeft==1)
 			{
-				GPIO_WriteLow(LiftLedGpio);
+				GPIO_WriteHigh(LiftLedGpio);
 			}
 			else
 			{
-				GPIO_WriteHigh(LiftLedGpio);
+				GPIO_WriteLow(LiftLedGpio);
 			}
 		}
 		OS_Delay (1000);
