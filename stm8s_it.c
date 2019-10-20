@@ -385,28 +385,13 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
- extern int32_t LeftCnt;
- extern encoder_t LiftEnc;
+ 
  INTERRUPT_HANDLER(TIM3_UPD_OVF_BRK_IRQHandler, 15)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-	GPIO_WriteReverse(LiftPulseGpio);
-	if (LeftCnt>0)
-	{
-		LeftCnt--;
-	}
-	else
-	{
-		LeftCnt++;
-	}
-  EncoderSetCount(&LiftEnc,LeftCnt);
-	if (LeftCnt==0) 
-	{
-		TIM3_Cmd(DISABLE);
-	}
-	TIM3_ClearFlag(TIM3_FLAG_UPDATE);
+	
  }
 
 /**
