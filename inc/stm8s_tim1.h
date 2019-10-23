@@ -490,7 +490,7 @@ typedef enum
 /** @addtogroup TIM1_Exported_Functions
   * @{
   */
-#define TIM1_DeInit_DEF
+//#define TIM1_DeInit_DEF
 #ifdef  TIM1_DeInit_DEF
 void TIM1_DeInit(void);
 #endif
@@ -502,7 +502,7 @@ void TIM1_TimeBaseInit(uint16_t TIM1_Prescaler,
                        uint16_t TIM1_Period, uint8_t TIM1_RepetitionCounter);
 #endif
 
-#define TIM1_OC1Init_DEF
+//#define TIM1_OC1Init_DEF
 #ifdef  TIM1_OC1Init_DEF
 void TIM1_OC1Init(TIM1_OCMode_TypeDef TIM1_OCMode, 
                   TIM1_OutputState_TypeDef TIM1_OutputState, 
@@ -513,7 +513,7 @@ void TIM1_OC1Init(TIM1_OCMode_TypeDef TIM1_OCMode,
                   TIM1_OCNIdleState_TypeDef TIM1_OCNIdleState);
 #endif
 
-#define TIM1_OC2Init_DEF
+//#define TIM1_OC2Init_DEF
 #ifdef  TIM1_OC2Init_DEF
 void TIM1_OC2Init(TIM1_OCMode_TypeDef TIM1_OCMode, 
                   TIM1_OutputState_TypeDef TIM1_OutputState, 
@@ -524,7 +524,7 @@ void TIM1_OC2Init(TIM1_OCMode_TypeDef TIM1_OCMode,
                   TIM1_OCNIdleState_TypeDef TIM1_OCNIdleState);
 #endif
 
-#define TIM1_OC3Init_DEF
+//#define TIM1_OC3Init_DEF
 #ifdef  TIM1_OC3Init_DEF
 void TIM1_OC3Init(TIM1_OCMode_TypeDef TIM1_OCMode, 
                   TIM1_OutputState_TypeDef TIM1_OutputState, 
@@ -535,7 +535,7 @@ void TIM1_OC3Init(TIM1_OCMode_TypeDef TIM1_OCMode,
                   TIM1_OCNIdleState_TypeDef TIM1_OCNIdleState);
 #endif
 
-#define TIM1_OC4Init_DEF
+//#define TIM1_OC4Init_DEF
 #ifdef  TIM1_OC4Init_DEF
 void TIM1_OC4Init(TIM1_OCMode_TypeDef TIM1_OCMode, 
                   TIM1_OutputState_TypeDef TIM1_OutputState, uint16_t TIM1_Pulse,
@@ -543,7 +543,7 @@ void TIM1_OC4Init(TIM1_OCMode_TypeDef TIM1_OCMode,
                   TIM1_OCIdleState_TypeDef TIM1_OCIdleState);
 #endif
 
-#define TIM1_BDTRConfig_DEF
+//#define TIM1_BDTRConfig_DEF
 #ifdef  TIM1_BDTRConfig_DEF
 void TIM1_BDTRConfig(TIM1_OSSIState_TypeDef TIM1_OSSIState, 
                      TIM1_LockLevel_TypeDef TIM1_LockLevel, uint8_t TIM1_DeadTime,
@@ -552,7 +552,7 @@ void TIM1_BDTRConfig(TIM1_OSSIState_TypeDef TIM1_OSSIState,
                      TIM1_AutomaticOutput_TypeDef TIM1_AutomaticOutput);
 #endif
 
-#define TIM1_ICInit_DEF
+//#define TIM1_ICInit_DEF
 #ifdef  TIM1_ICInit_DEF
 void TIM1_ICInit(TIM1_Channel_TypeDef TIM1_Channel, 
                  TIM1_ICPolarity_TypeDef TIM1_ICPolarity, 
@@ -560,7 +560,8 @@ void TIM1_ICInit(TIM1_Channel_TypeDef TIM1_Channel,
                  TIM1_ICPSC_TypeDef TIM1_ICPrescaler, uint8_t TIM1_ICFilter);
 #endif
 
-#define TIM1_PWMIConfig_DEF
+
+//#define TIM1_PWMIConfig_DEF
 #ifdef  TIM1_PWMIConfig_DEF
 void TIM1_PWMIConfig(TIM1_Channel_TypeDef TIM1_Channel, 
                      TIM1_ICPolarity_TypeDef TIM1_ICPolarity, 
@@ -573,327 +574,329 @@ void TIM1_PWMIConfig(TIM1_Channel_TypeDef TIM1_Channel,
 void TIM1_Cmd(FunctionalState NewState);
 #endif
 
-#define TIM1_CtrlPWMOutputs_DEF
+//#define TIM1_CtrlPWMOutputs_DEF
 #ifdef  TIM1_CtrlPWMOutputs_DEF
 void TIM1_CtrlPWMOutputs(FunctionalState NewState);
 #endif
 
-#define TIM1_ITConfig_DEF
+//#define TIM1_ITConfig_DEF
 #ifdef  TIM1_ITConfig_DEF
 void TIM1_ITConfig(TIM1_IT_TypeDef TIM1_IT, FunctionalState NewState);
 #endif
 
-#define TIM1_InternalClockConfig_DEF
+//#define TIM1_InternalClockConfig_DEF
 #ifdef  TIM1_InternalClockConfig_DEF
 void TIM1_InternalClockConfig(void);
 #endif
 
-#define TIM1_ETRClockMode1Config_DEF
+//#define TIM1_ETRClockMode1Config_DEF
 #ifdef  TIM1_ETRClockMode1Config_DEF
 void TIM1_ETRClockMode1Config(TIM1_ExtTRGPSC_TypeDef TIM1_ExtTRGPrescaler, 
                               TIM1_ExtTRGPolarity_TypeDef TIM1_ExtTRGPolarity, 
                               uint8_t ExtTRGFilter);
 #endif
 
-#define TIM1_ETRClockMode2Config_DEF
+//#define TIM1_ETRClockMode2Config_DEF
 #ifdef  TIM1_ETRClockMode2Config_DEF
 void TIM1_ETRClockMode2Config(TIM1_ExtTRGPSC_TypeDef TIM1_ExtTRGPrescaler, 
                               TIM1_ExtTRGPolarity_TypeDef TIM1_ExtTRGPolarity, 
                               uint8_t ExtTRGFilter);
 #endif
 
-#define TIM1_ETRConfig_DEF
-#ifdef  TIM1_ETRConfig_DEF
+//#define TIM1_ETRConfig_DEF
+#if  defined(TIM1_ETRConfig_DEF)||defined(TIM1_ETRClockMode1Config_DEF)
 void TIM1_ETRConfig(TIM1_ExtTRGPSC_TypeDef TIM1_ExtTRGPrescaler, 
                     TIM1_ExtTRGPolarity_TypeDef TIM1_ExtTRGPolarity, 
                     uint8_t ExtTRGFilter);
 #endif
 
-#define TIM1_TIxExternalClockConfig_DEF
+//#define TIM1_TIxExternalClockConfig_DEF
 #ifdef  TIM1_TIxExternalClockConfig_DEF
 void TIM1_TIxExternalClockConfig(TIM1_TIxExternalCLK1Source_TypeDef TIM1_TIxExternalCLKSource, 
                                  TIM1_ICPolarity_TypeDef TIM1_ICPolarity, 
                                  uint8_t ICFilter);
 #endif
 
-#define TIM1_SelectInputTrigger_DEF
-#ifdef  TIM1_SelectInputTrigger_DEF
+//#define TIM1_SelectInputTrigger_DEF
+#if defined(TIM1_SelectInputTrigger_DEF)|| defined (TIM1_TIxExternalClockConfig_DEF)
 void TIM1_SelectInputTrigger(TIM1_TS_TypeDef TIM1_InputTriggerSource);
 #endif
 
-#define TIM1_UpdateDisableConfig_DEF
+//#define TIM1_UpdateDisableConfig_DEF
 #ifdef  TIM1_UpdateDisableConfig_DEF
 void TIM1_UpdateDisableConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_UpdateRequestConfig_DEF
+//#define TIM1_UpdateRequestConfig_DEF
 #ifdef  TIM1_UpdateRequestConfig_DEF
 void TIM1_UpdateRequestConfig(TIM1_UpdateSource_TypeDef TIM1_UpdateSource);
 #endif
 
-#define TIM1_SelectHallSensor_DEF
+//#define TIM1_SelectHallSensor_DEF
 #ifdef  TIM1_SelectHallSensor_DEF
 void TIM1_SelectHallSensor(FunctionalState NewState);
 #endif
 
-#define TIM1_SelectOnePulseMode_DEF
+//#define TIM1_SelectOnePulseMode_DEF
 #ifdef  TIM1_SelectOnePulseMode_DEF
 void TIM1_SelectOnePulseMode(TIM1_OPMode_TypeDef TIM1_OPMode);
 #endif
 
-#define TIM1_SelectOutputTrigger_DEF
+//#define TIM1_SelectOutputTrigger_DEF
 #ifdef  TIM1_SelectOutputTrigger_DEF
 void TIM1_SelectOutputTrigger(TIM1_TRGOSource_TypeDef TIM1_TRGOSource);
 #endif
 
-#define TIM1_SelectSlaveMode_DEF
+//#define TIM1_SelectSlaveMode_DEF
 #ifdef  TIM1_SelectSlaveMode_DEF
 void TIM1_SelectSlaveMode(TIM1_SlaveMode_TypeDef TIM1_SlaveMode);
 #endif
 
-#define TIM1_SelectMasterSlaveMode_DEF
+//#define TIM1_SelectMasterSlaveMode_DEF
 #ifdef  TIM1_SelectMasterSlaveMode_DEF
 void TIM1_SelectMasterSlaveMode(FunctionalState NewState);
 #endif
 
-#define TIM1_EncoderInterfaceConfig_DEF
+//#define TIM1_EncoderInterfaceConfig_DEF
 #ifdef  TIM1_EncoderInterfaceConfig_DEF
 void TIM1_EncoderInterfaceConfig(TIM1_EncoderMode_TypeDef TIM1_EncoderMode, 
 TIM1_ICPolarity_TypeDef TIM1_IC1Polarity, 
                                  TIM1_ICPolarity_TypeDef TIM1_IC2Polarity);
 #endif
 
-#define TIM1_PrescalerConfig_DEF
+//#define TIM1_PrescalerConfig_DEF
 #ifdef  TIM1_PrescalerConfig_DEF
 void TIM1_PrescalerConfig(uint16_t Prescaler, TIM1_PSCReloadMode_TypeDef TIM1_PSCReloadMode);
 #endif
 
-#define TIM1_CounterModeConfig_DEF
+//#define TIM1_CounterModeConfig_DEF
 #ifdef  TIM1_CounterModeConfig_DEF
 void TIM1_CounterModeConfig(TIM1_CounterMode_TypeDef TIM1_CounterMode);
 #endif
 
-#define TIM1_ForcedOC1Config_DEF
+//#define TIM1_ForcedOC1Config_DEF
 #ifdef  TIM1_ForcedOC1Config_DEF
 void TIM1_ForcedOC1Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 #endif
 
-#define TIM1_ForcedOC2Config_DEF
+//#define TIM1_ForcedOC2Config_DEF
 #ifdef  TIM1_ForcedOC2Config_DEF
 void TIM1_ForcedOC2Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 #endif
 
-#define TIM1_ForcedOC3Config_DEF
+//#define TIM1_ForcedOC3Config_DEF
 #ifdef  TIM1_ForcedOC3Config_DEF
 void TIM1_ForcedOC3Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 #endif
 
-#define TIM1_ForcedOC4Config_DEF
+//#define TIM1_ForcedOC4Config_DEF
 #ifdef  TIM1_ForcedOC4Config_DEF
 void TIM1_ForcedOC4Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 #endif
 
-#define TIM1_ARRPreloadConfig_DEF
+//#define TIM1_ARRPreloadConfig_DEF
 #ifdef  TIM1_ARRPreloadConfig_DEF
 void TIM1_ARRPreloadConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_SelectCOM_DEF
+//#define TIM1_SelectCOM_DEF
 #ifdef  TIM1_SelectCOM_DEF
 void TIM1_SelectCOM(FunctionalState NewState);
 #endif
 
-#define TIM1_CCPreloadControl_DEF
+//#define TIM1_CCPreloadControl_DEF
 #ifdef  TIM1_CCPreloadControl_DEF
 void TIM1_CCPreloadControl(FunctionalState NewState);
 #endif
 
-#define TIM1_OC1PreloadConfig_DEF
+//#define TIM1_OC1PreloadConfig_DEF
 #ifdef  TIM1_OC1PreloadConfig_DEF
 void TIM1_OC1PreloadConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC2PreloadConfig_DEF
+//#define TIM1_OC2PreloadConfig_DEF
 #ifdef  TIM1_OC2PreloadConfig_DEF
 void TIM1_OC2PreloadConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC3PreloadConfig_DEF
+//#define TIM1_OC3PreloadConfig_DEF
 #ifdef  TIM1_OC3PreloadConfig_DEF
 void TIM1_OC3PreloadConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC4PreloadConfig_DEF
+//#define TIM1_OC4PreloadConfig_DEF
 #ifdef  TIM1_OC4PreloadConfig_DEF
 void TIM1_OC4PreloadConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC1FastConfig_DEF
+//#define TIM1_OC1FastConfig_DEF
 #ifdef  TIM1_OC1FastConfig_DEF
 void TIM1_OC1FastConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC2FastConfig_DEF
+//#define TIM1_OC2FastConfig_DEF
 #ifdef  TIM1_OC2FastConfig_DEF
 void TIM1_OC2FastConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC3FastConfig_DEF
+//#define TIM1_OC3FastConfig_DEF
 #ifdef  TIM1_OC3FastConfig_DEF
 void TIM1_OC3FastConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_OC4FastConfig_DEF
+//#define TIM1_OC4FastConfig_DEF
 #ifdef  TIM1_OC4FastConfig_DEF
 void TIM1_OC4FastConfig(FunctionalState NewState);
 #endif
 
-#define TIM1_GenerateEvent_DEF
+//#define TIM1_GenerateEvent_DEF
 #ifdef  TIM1_GenerateEvent_DEF
 void TIM1_GenerateEvent(TIM1_EventSource_TypeDef TIM1_EventSource);
 #endif
 
-#define TIM1_OC1PolarityConfig_DEF
+//#define TIM1_OC1PolarityConfig_DEF
 #ifdef  TIM1_OC1PolarityConfig_DEF
 void TIM1_OC1PolarityConfig(TIM1_OCPolarity_TypeDef TIM1_OCPolarity);
 #endif
 
-#define TIM1_OC1NPolarityConfig_DEF
+//#define TIM1_OC1NPolarityConfig_DEF
 #ifdef  TIM1_OC1NPolarityConfig_DEF
 void TIM1_OC1NPolarityConfig(TIM1_OCNPolarity_TypeDef TIM1_OCNPolarity);
 #endif
 
-#define TIM1_OC2PolarityConfig_DEF
+//#define TIM1_OC2PolarityConfig_DEF
 #ifdef  TIM1_OC2PolarityConfig_DEF
 void TIM1_OC2PolarityConfig(TIM1_OCPolarity_TypeDef TIM1_OCPolarity);
 #endif
 
-#define TIM1_OC2NPolarityConfig_DEF
+//#define TIM1_OC2NPolarityConfig_DEF
 #ifdef  TIM1_OC2NPolarityConfig_DEF
 void TIM1_OC2NPolarityConfig(TIM1_OCNPolarity_TypeDef TIM1_OCNPolarity);
 #endif
 
-#define TIM1_OC3PolarityConfig_DEF
+//#define TIM1_OC3PolarityConfig_DEF
 #ifdef  TIM1_OC3PolarityConfig_DEF
 void TIM1_OC3PolarityConfig(TIM1_OCPolarity_TypeDef TIM1_OCPolarity);
 #endif
 
-#define TIM1_OC3NPolarityConfig_DEF
+//#define TIM1_OC3NPolarityConfig_DEF
 #ifdef  TIM1_OC3NPolarityConfig_DEF
 void TIM1_OC3NPolarityConfig(TIM1_OCNPolarity_TypeDef TIM1_OCNPolarity);
 #endif
 
-#define TIM1_OC4PolarityConfig_DEF
+//#define TIM1_OC4PolarityConfig_DEF
 #ifdef  TIM1_OC4PolarityConfig_DEF
 void TIM1_OC4PolarityConfig(TIM1_OCPolarity_TypeDef TIM1_OCPolarity);
 #endif
 
-#define TIM1_CCxCmd_DEF
+//#define TIM1_CCxCmd_DEF
 #ifdef  TIM1_CCxCmd_DEF
 void TIM1_CCxCmd(TIM1_Channel_TypeDef TIM1_Channel, FunctionalState NewState);
 #endif
 
-#define TIM1_CCxNCmd_DEF
+//#define TIM1_CCxNCmd_DEF
 #ifdef  TIM1_CCxNCmd_DEF
 void TIM1_CCxNCmd(TIM1_Channel_TypeDef TIM1_Channel, FunctionalState NewState);
 #endif
 
-#define TIM1_SelectOCxM_DEF
+//#define TIM1_SelectOCxM_DEF
 #ifdef  TIM1_SelectOCxM_DEF
 void TIM1_SelectOCxM(TIM1_Channel_TypeDef TIM1_Channel, TIM1_OCMode_TypeDef TIM1_OCMode);
 #endif
 
-#define TIM1_SetCounter_DEF
+//#define TIM1_SetCounter_DEF
 #ifdef  TIM1_SetCounter_DEF
 void TIM1_SetCounter(uint16_t Counter);
 #endif
 
-#define TIM1_SetAutoreload_DEF
+//#define TIM1_SetAutoreload_DEF
 #ifdef  TIM1_SetAutoreload_DEF
 void TIM1_SetAutoreload(uint16_t Autoreload);
 #endif
 
-#define TIM1_SetCompare1_DEF
+//#define TIM1_SetCompare1_DEF
 #ifdef  TIM1_SetCompare1_DEF
 void TIM1_SetCompare1(uint16_t Compare1);
 #endif
 
-#define TIM1_SetCompare2_DEF
+//#define TIM1_SetCompare2_DEF
 #ifdef  TIM1_SetCompare2_DEF
 void TIM1_SetCompare2(uint16_t Compare2);
 #endif
 
-#define TIM1_SetCompare3_DEF
+//#define TIM1_SetCompare3_DEF
 #ifdef  TIM1_SetCompare3_DEF
 void TIM1_SetCompare3(uint16_t Compare3);
 #endif
 
-#define TIM1_SetCompare4_DEF
+//#define TIM1_SetCompare4_DEF
 #ifdef  TIM1_SetCompare4_DEF
 void TIM1_SetCompare4(uint16_t Compare4);
 #endif
 
-#define TIM1_SetIC1Prescaler_DEF
-#ifdef  TIM1_SetIC1Prescaler_DEF
+//#define TIM1_SetIC1Prescaler_DEF
+#if  defined(TIM1_SetIC1Prescaler_DEF)||defined (TIM1_ICInit_DEF) \
+		|| defined(TIM1_PWMIConfig_DEF)
 void TIM1_SetIC1Prescaler(TIM1_ICPSC_TypeDef TIM1_IC1Prescaler);
 #endif
 
-#define TIM1_SetIC2Prescaler_DEF
-#ifdef  TIM1_SetIC2Prescaler_DEF
+//#define TIM1_SetIC2Prescaler_DEF
+#if  defined(TIM1_SetIC2Prescaler_DEF)||defined (TIM1_ICInit_DEF) \
+		|| defined(TIM1_PWMIConfig_DEF)
 void TIM1_SetIC2Prescaler(TIM1_ICPSC_TypeDef TIM1_IC2Prescaler);
 #endif
 
-#define TIM1_SetIC3Prescaler_DEF
-#ifdef  TIM1_SetIC3Prescaler_DEF
+//#define TIM1_SetIC3Prescaler_DEF
+#if  defined(TIM1_SetIC3Prescaler_DEF)||defined (TIM1_ICInit_DEF)
 void TIM1_SetIC3Prescaler(TIM1_ICPSC_TypeDef TIM1_IC3Prescaler);
 #endif
 
-#define TIM1_SetIC4Prescaler_DEF
-#ifdef  TIM1_SetIC4Prescaler_DEF
+//#define TIM1_SetIC4Prescaler_DEF
+#if  defined(TIM1_SetIC4Prescaler_DEF)||defined (TIM1_ICInit_DEF)
 void TIM1_SetIC4Prescaler(TIM1_ICPSC_TypeDef TIM1_IC4Prescaler);
 #endif
 
-#define TIM1_GetCapture1_DEF
+//#define TIM1_GetCapture1_DEF
 #ifdef  TIM1_GetCapture1_DEF
 uint16_t TIM1_GetCapture1(void);
 #endif
 
-#define TIM1_GetCapture2_DEF
+//#define TIM1_GetCapture2_DEF
 #ifdef  TIM1_GetCapture2_DEF
 uint16_t TIM1_GetCapture2(void);
 #endif
 
-#define TIM1_GetCapture3_DEF
+//#define TIM1_GetCapture3_DEF
 #ifdef  TIM1_GetCapture3_DEF
 uint16_t TIM1_GetCapture3(void);
 #endif
 
-#define TIM1_GetCapture4_DEF
+//#define TIM1_GetCapture4_DEF
 #ifdef  TIM1_GetCapture4_DEF
 uint16_t TIM1_GetCapture4(void);
 #endif
 
-#define TIM1_GetCounter_DEF
+//#define TIM1_GetCounter_DEF
 #ifdef  TIM1_GetCounter_DEF
 uint16_t TIM1_GetCounter(void);
 #endif
 
-#define TIM1_GetPrescaler_DEF
+//#define TIM1_GetPrescaler_DEF
 #ifdef  TIM1_GetPrescaler_DEF
 uint16_t TIM1_GetPrescaler(void);
 #endif
 
-#define TIM1_GetFlagStatus_DEF
+//#define TIM1_GetFlagStatus_DEF
 #ifdef  TIM1_GetFlagStatus_DEF
 FlagStatus TIM1_GetFlagStatus(TIM1_FLAG_TypeDef TIM1_FLAG);
 #endif
 
-#define TIM1_ClearFlag_DEF
+//#define TIM1_ClearFlag_DEF
 #ifdef  TIM1_ClearFlag_DEF
 void TIM1_ClearFlag(TIM1_FLAG_TypeDef TIM1_FLAG);
 #endif
 
-#define TIM1_GetITStatus_DEF
+//#define TIM1_GetITStatus_DEF
 #ifdef  TIM1_GetITStatus_DEF
 ITStatus TIM1_GetITStatus(TIM1_IT_TypeDef TIM1_IT);
 #endif

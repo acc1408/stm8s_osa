@@ -818,7 +818,7 @@ void TIM1_TIxExternalClockConfig(TIM1_TIxExternalCLK1Source_TypeDef TIM1_TIxExte
   *                       - TIM1_TS_ETRF: External Trigger input
   * @retval None
   */
-#ifdef TIM1_SelectInputTrigger_DEF
+#if defined(TIM1_SelectInputTrigger_DEF)|| defined (TIM1_TIxExternalClockConfig_DEF)
 void TIM1_SelectInputTrigger(TIM1_TS_TypeDef TIM1_InputTriggerSource)
 {
   /* Check the parameters */
@@ -1917,7 +1917,8 @@ void TIM1_SetCompare4(uint16_t Compare4)
   *                       - TIM1_ICPSC_DIV8: capture is done once every 8 events
   * @retval None
   */
-#ifdef TIM1_SetIC1Prescaler_DEF
+#if  defined(TIM1_SetIC1Prescaler_DEF)||defined (TIM1_ICInit_DEF) \
+		|| defined(TIM1_PWMIConfig_DEF)
 void TIM1_SetIC1Prescaler(TIM1_ICPSC_TypeDef TIM1_IC1Prescaler)
 {
   /* Check the parameters */
@@ -1938,7 +1939,7 @@ void TIM1_SetIC1Prescaler(TIM1_ICPSC_TypeDef TIM1_IC1Prescaler)
   *                       - TIM1_ICPSC_DIV8: capture is done once every 8 events
   * @retval None
   */
-#ifdef TIM1_SetIC2Prescaler_DEF
+#if  defined(TIM1_SetIC2Prescaler_DEF)||defined (TIM1_ICInit_DEF) 
 void TIM1_SetIC2Prescaler(TIM1_ICPSC_TypeDef TIM1_IC2Prescaler)
 {
   
@@ -1960,7 +1961,7 @@ void TIM1_SetIC2Prescaler(TIM1_ICPSC_TypeDef TIM1_IC2Prescaler)
   *                       - TIM1_ICPSC_DIV8: capture is done once every 8 events
   * @retval None
   */
-#ifdef TIM1_SetIC3Prescaler_DEF
+#if  defined(TIM1_SetIC3Prescaler_DEF)||defined (TIM1_ICInit_DEF)
 void TIM1_SetIC3Prescaler(TIM1_ICPSC_TypeDef TIM1_IC3Prescaler)
 {
   
@@ -1982,7 +1983,7 @@ void TIM1_SetIC3Prescaler(TIM1_ICPSC_TypeDef TIM1_IC3Prescaler)
   *                       - TIM1_ICPSC_DIV8: capture is done once every 8 events
   * @retval None
   */
-#ifdef TIM1_SetIC4Prescaler_DEF
+#if  defined(TIM1_SetIC4Prescaler_DEF)||defined (TIM1_ICInit_DEF)
 void TIM1_SetIC4Prescaler(TIM1_ICPSC_TypeDef TIM1_IC4Prescaler)
 {
   
