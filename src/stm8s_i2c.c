@@ -109,7 +109,7 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
   assert_param(IS_I2C_INPUT_CLOCK_FREQ_OK(InputClockFrequencyMHz));
   assert_param(IS_I2C_OUTPUT_CLOCK_FREQ_OK(OutputClockFrequencyHz));
 
-
+	
   /*------------------------- I2C FREQ Configuration ------------------------*/
   /* Clear frequency bits */
   I2C->FREQR &= (uint8_t)(~I2C_FREQR_FREQ);
@@ -247,46 +247,56 @@ void I2C_GeneralCallCmd(FunctionalState NewState)
   *         This parameter can be any of the @ref FunctionalState enumeration.
   * @retval None
   */
+void I2C_GenerateSTART(void)
+{
+	I2C->CR2 |= I2C_CR2_START;
+}
+	/*
 void I2C_GenerateSTART(FunctionalState NewState)
 {
-  /* Check function parameters */
+  // Check function parameters 
   assert_param(IS_FUNCTIONALSTATE_OK(NewState));
 
   if (NewState != DISABLE)
   {
-    /* Generate a START condition */
+    // Generate a START condition
     I2C->CR2 |= I2C_CR2_START;
   }
-  else /* NewState == DISABLE */
+  else // NewState == DISABLE 
   {
-    /* Disable the START condition generation */
+    // Disable the START condition generation 
     I2C->CR2 &= (uint8_t)(~I2C_CR2_START);
   }
 }
-
+*/
 /**
   * @brief  Generates I2C communication STOP condition.
   * @param   NewState : Enable or disable the stop condition.
   *          This parameter can be any of the @ref FunctionalState enumeration.
   * @retval None
   */
+void I2C_GenerateSTOP(void)
+{
+	I2C->CR2 |= I2C_CR2_STOP;
+}
+/*
 void I2C_GenerateSTOP(FunctionalState NewState)
 {
-  /* Check function parameters */
+  // Check function parameters
   assert_param(IS_FUNCTIONALSTATE_OK(NewState));
 
   if (NewState != DISABLE)
   {
-    /* Generate a STOP condition */
+    // Generate a STOP condition
     I2C->CR2 |= I2C_CR2_STOP;
   }
-  else /* NewState == DISABLE */
+  else // NewState == DISABLE 
   {
-    /* Disable the STOP condition generation */
+    // Disable the STOP condition generation 
     I2C->CR2 &= (uint8_t)(~I2C_CR2_STOP);
   }
 }
-
+*/
 /**
   * @brief  Enables or disables I2C software reset.
   * @param  NewState : Specifies the new state of the I2C software reset.

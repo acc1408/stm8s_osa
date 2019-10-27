@@ -86,7 +86,52 @@ typedef enum
   I2C_DIRECTION_TX = (uint8_t)0x00,  /*!< Transmission direction */
   I2C_DIRECTION_RX = (uint8_t)0x01   /*!< Reception direction */
 } I2C_Direction_TypeDef;
+//------------------------
+typedef union
+	{
+		uint8_t sr1;       /*!< I2C status register 1 */
+		struct
+		{
+			uint8_t sb:1; // start bit generation=1
+			uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
+			uint8_t btf:1;	// byte transfer=1
+			uint8_t add10:1; // master has sent header 10-bit=1 address
+			uint8_t stopf:1; //stop detection=1 (slave)
+			uint8_t reserv_sr1:1; // reserved
+			uint8_t rxne:1; //data register not empty=1 (receiver)
+			uint8_t txe:1; // data register empty=1 (transmitters)
+		};
+	}i2c_sr1_t;
 
+typedef union
+	{
+		uint8_t sr2;       /*!< I2C status register 2 */
+		struct
+		{
+			uint8_t berr:1; // buss error=1
+			uint8_t arlo:1; // arbitration lost=1
+			uint8_t af:1; // acknowledge failure=1
+			uint8_t ovr:1; // overrun or underrun=1
+			uint8_t reserv_sr2:1; // reserved
+			uint8_t wufh:1;	// wakeup from Halt=1
+			uint8_t reserv2_sr2:2;// reserved
+		};
+	}i2c_sr2_t;
+	
+typedef union
+	{
+	uint8_t sr3;       /*!< I2C status register 3 */
+	struct
+		{
+			uint8_t msl:1; // master=1 / slave=0
+			uint8_t busy:1; //bus busy =1
+			uint8_t tra:1; // transmitter=1/ reciever=0
+			uint8_t reserv_sr3:1; // reserved
+			uint8_t gencall:1;	// generall call header=1 (slave)
+			uint8_t reserv2_sr3:2; // reserved
+			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+		};
+	}i2c_sr3_t;	
 /**
   * @brief  I2C Flags
   * @brief Elements values convention: 0xXXYY
@@ -327,6 +372,30 @@ typedef enum
 /**
   * @}
   */
+typedef union
+{
+	I2C_Event_TypeDef event;
+	struct
+	{
+			uint8_t sb:1; // start bit generation=1
+			uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
+			uint8_t btf:1;	// byte transfer=1
+			uint8_t add10:1; // master has sent header 10-bit=1 address
+			uint8_t stopf:1; //stop detection=1 (slave)
+			uint8_t reserv_sr1:1; // reserved
+			uint8_t rxne:1; //data register not empty=1 (receiver)
+			uint8_t txe:1; // data register empty=1 (transmitters)
+			//-----------------------
+			uint8_t msl:1; // master=1 / slave=0
+			uint8_t busy:1; //bus busy =1
+			uint8_t tra:1; // transmitter=1/ reciever=0
+			uint8_t reserv_sr3:1; // reserved
+			uint8_t gencall:1;	// generall call header=1 (slave)
+			uint8_t reserv2_sr3:2; // reserved
+			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+	};
+} I2CEventBit_t;
+
 
 /* Exported constants --------------------------------------------------------*/
 /** @addtogroup I2C_Exported_Constants
@@ -508,8 +577,11 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
               I2C_AddMode_TypeDef AddMode, uint8_t InputClockFrequencyMHz );
 void I2C_Cmd(FunctionalState NewState);
 void I2C_GeneralCallCmd(FunctionalState NewState);
-void I2C_GenerateSTART(FunctionalState NewState);
-void I2C_GenerateSTOP(FunctionalState NewState);
+void I2C_GenerateSTART(void);
+void I2C_GenerateSTOP(void);
+
+// void I2C_GenerateSTART(FunctionalState NewState);
+// void I2C_GenerateSTOP(FunctionalState NewState);
 void I2C_SoftwareResetCmd(FunctionalState NewState);
 void I2C_StretchClockCmd(FunctionalState NewState);
 void I2C_AcknowledgeConfig(I2C_Ack_TypeDef Ack);

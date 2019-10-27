@@ -28,6 +28,7 @@
   */ 
 
 /* Includes ------------------------------------------------------------------*/
+//#include "stm8s.h"
 #include "stm8s_it.h"
 
 /** @addtogroup Template_Project
@@ -465,11 +466,27 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
+	volatile uint8_t data, address=0b01111110;
+	
+	I2CEventBit_t event;
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	event.event=I2C_GetLastEvent();
+	switch (event.event)
+	{	
+		case I2C_EVENT_MASTER_MODE_SELECT:
+			//I2C_GenerateSTOP();
+			I2C_Send7bitAddress(address, I2C_DIRECTION_RX);
+			//I2C_GenerateSTOP();
+			break;
+		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
+			data=I2C_ReceiveData();
+			I2C_GenerateSTOP();
+			break;		
+	}
 }
 
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)

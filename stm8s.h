@@ -237,6 +237,31 @@ typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
 
 typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;
 
+typedef union{
+	uint8_t byte;
+	struct
+	{
+		uint8_t b0:1;
+		uint8_t b1:1;
+		uint8_t b2:1;
+		uint8_t b3:1;
+		uint8_t b4:1;
+		uint8_t b5:1;
+		uint8_t b6:1;
+		uint8_t b7:1;
+	};
+} bit8_t;
+typedef union{
+	uint16_t byte;
+	struct
+	{
+		uint16_t a:10;
+		uint16_t c:6;
+		
+	};
+} test_t;
+
+
 #define U8_MAX     (255)
 #define S8_MAX     (127)
 #define S8_MIN     (-128)
@@ -1327,21 +1352,133 @@ TIM6_TypeDef;
 
 typedef struct I2C_struct
 {
-  __IO uint8_t CR1;       /*!< I2C control register 1 */
-  __IO uint8_t CR2;       /*!< I2C control register 2 */
-  __IO uint8_t FREQR;     /*!< I2C frequency register */
-  __IO uint8_t OARL;      /*!< I2C own address register LSB */
-  __IO uint8_t OARH;      /*!< I2C own address register MSB */
-  uint8_t RESERVED1;      /*!< Reserved byte */
+  union
+	{
+		__IO uint8_t CR1;       /*!< I2C control register 1 */
+		struct
+		{
+			__IO uint8_t pe:1; // peripheral enable=1
+			__IO uint8_t reserv_cr1:5; // reserved
+			__IO uint8_t engc:1; //general call enable
+			__IO uint8_t nostretch:1; // clocl stetching disable=1
+		};
+	};
+  union
+	{
+		__IO uint8_t CR2;       /*!< I2C control register 2 */
+		struct
+		{
+			__IO uint8_t start:1; // start generation
+			__IO uint8_t stop:1; // stop generation
+			__IO uint8_t ack:1; // acknowledge enable
+			__IO uint8_t pos:1; //acknowledge position for 2 byte
+			__IO uint8_t reserv_cr2:3; //reserved
+			__IO uint8_t swrst:1; // software reset
+		};
+	};
+	union
+	{
+	__IO uint8_t FREQR;     /*!< I2C frequency register */
+		struct
+		{
+			__IO uint8_t freq:6; // peripheral clock frequency
+		};
+	};
+  union
+	{
+		__IO uint8_t OARL;      /*!< I2C own address register LSB */
+		struct
+		{
+			__IO uint8_t add0:1; // add[0] in 10-bit address 
+			__IO uint8_t add71:7; // add[7:1]
+		};
+	};
+  union
+	{
+	__IO uint8_t OARH;      /*!< I2C own address register MSB */
+		struct
+		{
+			__IO uint8_t reserv_oarh:1;
+			__IO uint8_t add98:2;
+			__IO uint8_t reserv2_oarh:3;
+			__IO uint8_t addconf:1; // must always be written as '1'
+			__IO uint8_t addmode:1; // address mode(7-bit=0,10-bit=1)
+		};
+	};
+	__I uint8_t RESERVED1;      /*!< Reserved byte */
   __IO uint8_t DR;        /*!< I2C data register */
-  __IO uint8_t SR1;       /*!< I2C status register 1 */
-  __IO uint8_t SR2;       /*!< I2C status register 2 */
-  __IO uint8_t SR3;       /*!< I2C status register 3 */
-  __IO uint8_t ITR;       /*!< I2C interrupt register */
-  __IO uint8_t CCRL;      /*!< I2C clock control register low */
-  __IO uint8_t CCRH;      /*!< I2C clock control register high */
-  __IO uint8_t TRISER;    /*!< I2C maximum rise time register */
-  uint8_t RESERVED2;      /*!< Reserved byte */
+  union
+	{
+		__I uint8_t SR1;       /*!< I2C status register 1 */
+		struct
+		{
+			__I uint8_t sb:1; // start bit generation=1
+			__I uint8_t addr:1; // addess sent=1 (master)/match=1 (slave)
+			__I uint8_t btf:1;	// byte transfer=1
+			__I uint8_t add10:1; // master has sent header 10-bit=1 address
+			__I uint8_t stopf:1; //stop detection=1 (slave)
+			__I uint8_t reserv_sr1:1; // reserved
+			__I uint8_t rxne:1; //data register not empty=1 (receiver)
+			__I uint8_t txe:1; // data register empty=1 (transmitters)
+		};
+	};
+	union
+	{
+		__IO uint8_t SR2;       /*!< I2C status register 2 */
+		struct
+		{
+			__IO uint8_t berr:1; // buss error=1
+			__IO uint8_t arlo:1; // arbitration lost=1
+			__IO uint8_t af:1; // acknowledge failure=1
+			__IO uint8_t ovr:1; // overrun or underrun=1
+			__IO uint8_t reserv_sr2:1; // reserved
+			__IO uint8_t wufh:1;	// wakeup from Halt=1
+			__IO uint8_t reserv2_sr2:2;// reserved
+		};
+	};
+	union
+	{
+	__I uint8_t SR3;       /*!< I2C status register 3 */
+	struct
+		{
+			__I uint8_t msl:1; // master=1 / slave=0
+			__I uint8_t busy:1; //bus busy =1
+			__I uint8_t tra:1; // transmitter=1/ reciever=0
+			__I uint8_t reserv_sr3:1; // reserved
+			__I uint8_t gencall:1;	// generall call header=1 (slave)
+			__I uint8_t reserv2_sr3:2; // reserved
+			__I uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+		};
+	};
+	union
+	{
+		__IO uint8_t ITR;       /*!< I2C interrupt register */
+	struct
+		{
+			__IO uint8_t iterren:1; //error
+			__IO uint8_t itevten:1; // event interrupt on=1
+			__IO uint8_t itbufen:1; // tx or rx interrupt on=1
+			__IO uint8_t reserv_itr:5;
+		};
+	};
+	union
+	{
+		struct
+		{
+			__IO uint8_t CCRL;      /*!< I2C clock control register low */
+			__IO uint8_t CCRH;      /*!< I2C clock control register high */
+		};
+		struct
+		{
+			__IO uint16_t ccr:12; // clock control in Master mode
+			__IO uint16_t reserv_ccr:2;
+			__IO uint16_t duty:1; // 0: tlow/thigh=2; 1:tlow/thigh=16/9 
+			__IO uint16_t fs:1; // mode standard=0 fast=1
+		};
+	};
+	
+	__IO uint8_t TRISER;    /*!< I2C maximum rise time register */
+  __IO uint8_t RESERVED2;      /*!< Reserved byte */
 }
 I2C_TypeDef;
 

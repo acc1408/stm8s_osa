@@ -1,9 +1,10 @@
 /* BASIC INTERRUPT VECTORS TABLE FOR STM8 devices
  * Copyright (c) 2014 STMicroelectronics
  */
-
+#include "stm8s.h"
 #include "stm8s_it.h"
-
+//#include "stm8s_it.c"
+//#include "stm8s_conf.h"
 typedef void @far (*interrupt_handler_t)(void);
 
 struct interrupt_vector {

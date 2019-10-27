@@ -43,12 +43,12 @@
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
  #include "inc/stm8s_gpio.h" // драйвер для GPIO
-// #include "inc/stm8s_i2c.h" // драйвер для шины I2C
+ #include "inc/stm8s_i2c.h" // драйвер для шины I2C
 // #include "inc/stm8s_itc.h"  //
 // #include "inc/stm8s_iwdg.h"
 // #include "inc/stm8s_rst.h"
 // #include "inc/stm8s_spi.h"  
- #include "inc/stm8s_tim1.h"
+// #include "inc/stm8s_tim1.h"
 
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
@@ -65,7 +65,7 @@
 #endif /* STM8S208 || STM8AF52Ax */
 
 #ifndef STM8S903
- #include "inc/stm8s_tim2.h" // драйвер для Timer2
+// #include "inc/stm8s_tim2.h" // драйвер для Timer2
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
