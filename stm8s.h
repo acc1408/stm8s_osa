@@ -28,7 +28,7 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM8S_H
 #define __STM8S_H
-#include "main.h"
+
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{
   */
@@ -1461,17 +1461,25 @@ typedef struct I2C_struct
 			__IO uint8_t reserv_itr:5;
 		};
 	};
+	
+	union
+	{
+		__IO uint8_t CCRL;      /*!< I2C clock control register low */
+	
+		__IO uint16_t ccr7_0; 	/*!< I2C clock control register low */
+		
+	};
+	
 	union
 	{
 		struct
 		{
-			__IO uint8_t CCRL;      /*!< I2C clock control register low */
 			__IO uint8_t CCRH;      /*!< I2C clock control register high */
 		};
 		struct
 		{
-			__IO uint16_t ccr:12; // clock control in Master mode
-			__IO uint16_t reserv_ccr:2;
+			__IO uint16_t ccr11_8:4; // clock control in Master mode
+			__IO uint16_t reserv_ccrh:2;
 			__IO uint16_t duty:1; // 0: tlow/thigh=2; 1:tlow/thigh=16/9 
 			__IO uint16_t fs:1; // mode standard=0 fast=1
 		};
@@ -2842,7 +2850,9 @@ CFG_TypeDef;
 
 
 #ifdef USE_STDPERIPH_DRIVER
+	
  #include "stm8s_conf.h"
+ #include "main.h"
 #endif
 
 /* Exported macro --------------------------------------------------------------*/

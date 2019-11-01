@@ -30,7 +30,7 @@
 #define __STM8S_CONF_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */

@@ -466,26 +466,82 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
-	volatile uint8_t data, address=0b01111110;
+	//volatile uint8_t data, address=0b01111110;
 	
-	I2CEventBit_t event;
+	//I2CEventBit_t event;
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-	event.event=I2C_GetLastEvent();
-	switch (event.event)
+	I2C_Event_TypeDef i2cEventI;
+	
+	i2cEventI=i2cEventGetI();
+	switch (i2cEventI)
 	{	
+		// Мастер
+		// отправлен старт, передача адреса
 		case I2C_EVENT_MASTER_MODE_SELECT:
-			//I2C_GenerateSTOP();
-			I2C_Send7bitAddress(address, I2C_DIRECTION_RX);
-			//I2C_GenerateSTOP();
+			// Проверяем возможность отправить данные
+			if (i2cMasterBufCheckSend())
+			{	
+				I2C->DR=i2cAddressWrite(); // Отправляем запрос на запись
+			}
+			else
+			{
+				I2C->DR=i2cAddressRead(); // отправляем запрос на чтение
+				switch(i2cMasterBufCheckReceive())
+				{
+					case 0: I2C_GenerateSTOP();
+						break;
+					case 1: I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						break;	
+					default:
+						I2C_AcknowledgeConfig(I2C_ACK_CURR);
+				}
+			}
 			break;
-		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
-			data=I2C_ReceiveData();
-			I2C_GenerateSTOP();
-			break;		
+		// отправка 1 байта после адреса
+		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
+		//
+		case I2C_EVENT_MASTER_BYTE_TRANSMITTING:
+		//
+		case I2C_EVENT_MASTER_BYTE_TRANSMITTED:
+		
+		if (i2cMasterBufCheckSend()) I2C->DR=i2cMasterDownloadBuf();
+			else 
+			{
+				// Проверяем задачу принятия данных в буфер
+				if (i2cMasterBufCheckReceive())	
+				{
+					I2C_GenerateSTART();
+				}
+					else
+				{
+					I2C_GenerateSTOP();
+					i2cStateSet(I2C_IDLE);
+				}
+			}
+			break;	
+		//---------------------------------
+		case I2C_EVENT_MASTER_BYTE_RECEIVED:
+				 i2cMasterBufReadDataI();
+				switch(i2cMasterBufCheckReceive())
+				{
+					case 0: I2C_GenerateSTOP();
+						break;
+					case 1: I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						break;	
+					default:
+						I2C_AcknowledgeConfig(I2C_ACK_CURR);
+				}
+			break;
+		//---------------------------------
+		// Ведомый не прислал подтверждения
+		case I2C_EVENT_SLAVE_ACK_FAILURE:
+		i2cStateSet(I2C_IDLE);
+		I2C_GenerateSTOP();
+		break;
 	}
 }
 

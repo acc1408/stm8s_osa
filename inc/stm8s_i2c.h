@@ -207,7 +207,10 @@ typedef enum
 
 typedef enum
 {
-  /*========================================
+  
+	// IDLE bus
+	I2C_IDLE =  (uint16_t)0x0000, // IDLE bus
+	/*========================================
 
                        I2C Master Events (Events grouped in order of communication)
                                                           ==========================================*/
@@ -288,7 +291,8 @@ typedef enum
 
   /* Master TRANSMITTER mode --------------------------*/
   /* --EV8 */
-  I2C_EVENT_MASTER_BYTE_TRANSMITTING         = (uint16_t)0x0780,  /*!< TRA, BUSY, MSL, TXE flags */
+  // 
+	I2C_EVENT_MASTER_BYTE_TRANSMITTING         = (uint16_t)0x0780,  /*!< TRA, BUSY, MSL, TXE flags */
   /* --EV8_2 */
 
   I2C_EVENT_MASTER_BYTE_TRANSMITTED          = (uint16_t)0x0784,  /*!< EV8_2: TRA, BUSY, MSL, TXE and BTF flags */
@@ -377,6 +381,15 @@ typedef union
 	I2C_Event_TypeDef event;
 	struct
 	{
+			
+			uint8_t msl:1; // master=1 / slave=0
+			uint8_t busy:1; //bus busy =1
+			uint8_t tra:1; // transmitter=1/ reciever=0
+			uint8_t reserv_sr3:1; // reserved
+			uint8_t gencall:1;	// generall call header=1 (slave)
+			uint8_t reserv2_sr3:2; // reserved
+			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+			//-----------------------
 			uint8_t sb:1; // start bit generation=1
 			uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
 			uint8_t btf:1;	// byte transfer=1
@@ -385,14 +398,7 @@ typedef union
 			uint8_t reserv_sr1:1; // reserved
 			uint8_t rxne:1; //data register not empty=1 (receiver)
 			uint8_t txe:1; // data register empty=1 (transmitters)
-			//-----------------------
-			uint8_t msl:1; // master=1 / slave=0
-			uint8_t busy:1; //bus busy =1
-			uint8_t tra:1; // transmitter=1/ reciever=0
-			uint8_t reserv_sr3:1; // reserved
-			uint8_t gencall:1;	// generall call header=1 (slave)
-			uint8_t reserv2_sr3:2; // reserved
-			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+			
 	};
 } I2CEventBit_t;
 
