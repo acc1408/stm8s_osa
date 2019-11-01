@@ -482,6 +482,20 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		// Мастер
 		// отправлен старт, передача адреса
 		case I2C_EVENT_MASTER_MODE_SELECT:
+			// передали данные для отправки
+			if (i2cAddressSend()) 
+			{
+				// чтение данных от Ведомого
+				if ()
+			}
+			else
+			{
+				// передача данных от Мастера
+				
+				
+			}
+			
+			/*
 			// Проверяем возможность отправить данные
 			if (i2cMasterBufCheckSend())
 			{	
@@ -500,6 +514,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 						I2C_AcknowledgeConfig(I2C_ACK_CURR);
 				}
 			}
+			*/
 			break;
 		// отправка 1 байта после адреса
 		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
