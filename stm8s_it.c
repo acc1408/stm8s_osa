@@ -474,47 +474,13 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-	I2C_Event_TypeDef i2cEventI;
 	
-	i2cEventI=i2cEventGetI();
-	switch (i2cEventI)
+	switch (i2cEventGet())
 	{	
 		// Мастер
 		// отправлен старт, передача адреса
 		case I2C_EVENT_MASTER_MODE_SELECT:
-			// передали данные для отправки
-			if (i2cAddressSend()) 
-			{
-				// чтение данных от Ведомого
-				if ()
-			}
-			else
-			{
-				// передача данных от Мастера
-				
-				
-			}
-			
-			/*
-			// Проверяем возможность отправить данные
-			if (i2cMasterBufCheckSend())
-			{	
-				I2C->DR=i2cAddressWrite(); // Отправляем запрос на запись
-			}
-			else
-			{
-				I2C->DR=i2cAddressRead(); // отправляем запрос на чтение
-				switch(i2cMasterBufCheckReceive())
-				{
-					case 0: I2C_GenerateSTOP();
-						break;
-					case 1: I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						break;	
-					default:
-						I2C_AcknowledgeConfig(I2C_ACK_CURR);
-				}
-			}
-			*/
+			i2cSendAddress();
 			break;
 		// отправка 1 байта после адреса
 		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
@@ -522,39 +488,30 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		case I2C_EVENT_MASTER_BYTE_TRANSMITTING:
 		//
 		case I2C_EVENT_MASTER_BYTE_TRANSMITTED:
-		
-		if (i2cMasterBufCheckSend()) I2C->DR=i2cMasterDownloadBuf();
-			else 
+			switch(i2cFuncCheck())
 			{
-				// Проверяем задачу принятия данных в буфер
-				if (i2cMasterBufCheckReceive())	
-				{
-					I2C_GenerateSTART();
-				}
-					else
-				{
-					I2C_GenerateSTOP();
-					i2cStateSet(I2C_IDLE);
-				}
+				case i2cSend:
+					i2cFuncSend();
+					break;
+				case i2cSendSend:
+					i2cFuncSendSend();
+					break;
+				case i2cSendReceive:
+					i2cFuncSendReceive();
+					break;
 			}
 			break;	
 		//---------------------------------
+		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
+			 i2cFuncAddressSendReceive();
+			break;
 		case I2C_EVENT_MASTER_BYTE_RECEIVED:
-				 i2cMasterBufReadDataI();
-				switch(i2cMasterBufCheckReceive())
-				{
-					case 0: I2C_GenerateSTOP();
-						break;
-					case 1: I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						break;	
-					default:
-						I2C_AcknowledgeConfig(I2C_ACK_CURR);
-				}
+				i2cFuncReceive();
 			break;
 		//---------------------------------
 		// Ведомый не прислал подтверждения
 		case I2C_EVENT_SLAVE_ACK_FAILURE:
-		i2cStateSet(I2C_IDLE);
+		//i2cStateSet(I2C_IDLE);
 		I2C_GenerateSTOP();
 		break;
 	}
