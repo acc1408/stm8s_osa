@@ -27,322 +27,173 @@
 
 
 /* Includes ------------------------------------------------------------------*/
-//#include "main.h"
+
 #include "stm8s.h"
 #include "stm8s_it.c"
 /* Private defines -----------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-/*
-bit8_t tst;
-//uint8_t ask, sr1,sr2,sr3;
-//test_t r;
-i2c_sr1_t sr1;
-i2c_sr2_t sr2;
-i2c_sr3_t sr3;
-*/
-
-#define Size_Master_Buf 20
 
 
 
-typedef struct
+//i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
+
+
+//uint8_t a[10]={0xFF,2,3,4,5,6,7,8,9,10};
+typedef union												//	*
+{															//	*
+struct														//	*
+{															//	*
+// Настройка увеличения счетчкиа курсора или экрана
+uint8_t	ID_cursorShiftRightLeft:1;// разрешен=1/запрещен=0*
+uint8_t S_ScreenShiftOnOff:1;// Сдвиг экрана при записи разшереш=1/ запрещен=0*
+//--------------------------------------------------------------*
+//Настройка экран и курсора
+uint8_t B_BlinkOnOff:	1; 	// Мигание курсора вкл=1/откл=0	*
+uint8_t C_CursorOnOff:	1; 	// курсор-подчеркивание виден=1/ невиден=0*
+uint8_t D_DisplayOnOff:1; 	// Дисплей включен=1/отключен=0 *
+//--------------------------------------------------------------*
+// прокрутка дисплея без изменения DDRAM 
+uint8_t SC_shiftScreenCursor:1;
+uint8_t RL_RightLeft:1;
+//--------------------
+uint8_t F_font:	1;	// Ширифт: 5*7px=0/5*10px=1					*
+uint8_t N_lines:	1;	// кол-во строк: строка1=0/строк2=1		*
+//uint8_t bit:	1;	// битность передачи 4бит=0 8бит=1
+uint8_t Backlight:1;
+};															//	*
+uint8_t set;		// доступ ко всем полям		*
+}SetLCD_t;													//	*
+//***************************************************************
+SetLCD_t lcd;
+
+
+typedef union
 {
-i2cFunc_t Func;
-I2CEventBit_t ItEvent;
-uint8_t	DeviceAddrRW;
-uint8_t *ArraySend;
-uint8_t NumSend;
-uint8_t *ArrSendReceive; 
-uint8_t NumSendReceive;
-uint8_t CurrentIndex;
-}i2cTask_t;
+	uint8_t data;
+	struct
+	{
+		uint8_t rs:1;
+		uint8_t rw:1;
+		uint8_t e:1;
+		uint8_t bl:1; //backlight
+		uint8_t db4:4;
+	};
+}i2cLcd1602_t;
 
-i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
+i2cLcd1602_t b[10];
 
-I2C_Event_TypeDef i2cEventGet(void)
+void LcdSendByte(uint8_t dc,uint8_t data)
 {
-	i2cTask.ItEvent.event= I2C_GetLastEvent();
-	return i2cTask.ItEvent.event;
+	while(i2cCheckStatusTransfer());
+	b[0].bl=lcd.Backlight;
+	b[0].e=1;
+	b[0].rs=dc;
+	b[0].rw=0;
+	b[0].db4=data>>4;
+	b[1].data=b[0].data;
+	b[1].e=0;
+	//----------------
+	b[2].data=b[0].data;
+	b[2].db4=data&0x0F;
+	//------------------
+	b[3].data=b[2].data;
+	b[3].e=0;
+	i2cMasterSend(0b0111111, &b[0].data, 4);
+	delay_ms(50);
 }
 
-void i2cTaskReset(void)
+const char st[]="Hellow world!!!";
+void inputstring(char *st)
 {
-	//i2cTask.ArraySend=ArraySend;
-	i2cTask.NumSend=0;
-	//i2cTask.ArrReceive=0;
-	i2cTask.NumSendReceive=0;
-	i2cTask.CurrentIndex=0;
-}
-// Функция передает массив ArraySend длиной NumSend по адресу DeviceAddress
-void i2cMasterSend(uint8_t DeviceAddress,uint8_t *ArraySend, uint8_t NumSend)
-{
-	while(i2cTask.Func);
-	i2cTaskReset(); // Сброс состояния
-	i2cTask.Func=i2cSend; // Загрузка функции
-	i2cTask.DeviceAddrRW=DeviceAddress<<1; //загрузка адреса
-	i2cTask.ArraySend=ArraySend; // загрузка указателя на массив
-	i2cTask.NumSend=NumSend; // загрузка кол-во байт для передачи
-	I2C_GenerateSTART();  // Генерация старта
+	//uint8_t i=0;
+	while(*st)
+	{
+		LcdSendByte(1,*st++);
+		//st++;
+	}
 }
 
-// Функция передает в начале массив адреса регистра, а затем передает данные.
-void i2cMasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
+void SettingLcd(void)
 {
-	while(i2cTask.Func);
-	i2cTaskReset();	// Сброс состояния
-	i2cTask.Func=i2cSendSend; // Загрузка функции
-	i2cTask.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
-	i2cTask.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
-	i2cTask.NumSend=NumAddress;// загрузка кол-во байт для передачи
-	i2cTask.ArrSendReceive=ArraySend; // загрузка указателя массива на данные 
-	i2cTask.NumSendReceive=NumSend; // загрузка кол-во данных для передачи
-	I2C_GenerateSTART();  // Генерация старта
-}
-
-// Функция считывает данные в массив *ArrReceive количеством NumReceive по адресу DeviceAddress
-void i2cMasterReceive(uint8_t DeviceAddress, uint8_t *ArrReceive, uint8_t NumReceive)
-{
-	while(i2cTask.Func);
-	i2cTaskReset();	// Сброс состояния
-	i2cTask.Func=i2cReceive; // Загрузка функции
-	i2cTask.DeviceAddrRW=DeviceAddress<<1|1;//загрузка адреса на чтение
-	i2cTask.ArrSendReceive=ArrReceive; // загрузка указателя массива на данные 
-	i2cTask.NumSendReceive=NumReceive; // загрузка кол-во данных для принятия
-	I2C_GenerateSTART();  // Генерация старта
-}
-
-// Функция отправляет в начале массив *ArrSend в количестве NumSend, затем считывает в массив *ArrReceive в количестве NumReceive
-void i2cMasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
-{
-	while(i2cTask.Func);
-	i2cTaskReset();	// Сброс состояния
-	i2cTask.Func=i2cSendReceive; // Загрузка функции
-	i2cTask.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
-	i2cTask.ArraySend=ArrSend; // загрузка указателя на адрес массива
-	i2cTask.NumSend=NumSend;// загрузка кол-во байт для передачи
-	i2cTask.ArrSendReceive=ArrReceive; // загрузка указателя массива на данные 
-	i2cTask.NumSendReceive=NumReceive; // загрузка кол-во данных для передачи
-	I2C_GenerateSTART();  // Генерация старта
-}
-
-
-//uint8_t f;
-void i2cSendAddress(void)
-{
+	lcd.ID_cursorShiftRightLeft=1;
+	lcd.S_ScreenShiftOnOff=0;
+	//---------------
+	lcd.B_BlinkOnOff=1;
+	lcd.C_CursorOnOff=1;
+	lcd.D_DisplayOnOff=1;
+	//------------
+	lcd.SC_shiftScreenCursor=0;
+	lcd.RL_RightLeft=0;
+	//---------------------
+	lcd.F_font=0;
+	lcd.N_lines=1;
+	//---------------
+	lcd.Backlight=1;
+	//-------------
+	// Настройка 8 битного режима
+	b[0].db4=0b0011;
+	b[0].bl=1;
+	b[0].e=1;
+	b[0].rs=0;
+	b[0].rw=0;
+	b[1].data=b[0].data;
+	b[1].e=0;
+	//Предвартельная Настройка 4 битного режима
+	b[2].data=b[0].data;
+	b[2].db4=0b0010;
+	b[3].data=b[2].data;
+	b[3].e=0;
+	//--------------------------
+	i2cMasterSend(0b0111111, &b[0].data, 4);
+	delay_ms(40);
+	//LcdSendByte(0,1);
+	//delay_ms(1600);
+	//LcdSendByte(0,2);
+	//delay_ms(1600);
+	LcdSendByte(0,1<<2|lcd.ID_cursorShiftRightLeft<<1|lcd.S_ScreenShiftOnOff);
+	LcdSendByte(0,1<<3|lcd.D_DisplayOnOff<<2|lcd.C_CursorOnOff<<1|lcd.B_BlinkOnOff);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	LcdSendByte(0,1<<5|lcd.N_lines<<3|lcd.F_font<<2);
+	//delay_ms(2000);
+	//LcdSendByte(1,'a');
+	//LcdSendByte(1,'s');
+	//LcdSendByte(1,'d');
+	//delay_ms(2000);
 	
-	if (i2cTask.DeviceAddrRW&0x01) 
-	{
-			// Если передается адрес на чтение,
-			// то смотрим сколько байт надо отправить
-			switch(i2cTask.NumSendReceive)
-			{
-				case 0:
-						// если у нас нет байт для передачи, то
-						// генерируем отправку бита и стоп бита
-						//I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						I2C->DR=i2cTask.DeviceAddrRW;
-						I2C_GenerateSTOP();
-					break;
-				case 1:
-						// если необходимо принять 1 байт, то
-						// то отправляем адрес и байт не подтверждения
-						I2C->DR=i2cTask.DeviceAddrRW;
-						I2C_AcknowledgeConfig(I2C_ACK_NONE);
-					break;
-				default:
-						// в остальных случаях просто отправляем адрес
-						// и байт подтверждения
-						I2C->DR=i2cTask.DeviceAddrRW;
-						I2C_AcknowledgeConfig(I2C_ACK_CURR);
-					break;
-			}
-	}
-	else
-	{
-		// Отправляем адрес на запись
-		I2C->DR=i2cTask.DeviceAddrRW;
-	}
-	//return i2cTask.DeviceAddrRW;
-}
-
-
-
-// Проверка на продолжение посылки массива
-ErrorStatus i2cNumSendCheck(void)
-{
-	if (i2cTask.NumSend) return SUCCESS;
-									else return ERROR;
-}
-
-
-i2cFunc_t i2cFuncCheck(void)
-{
-	return i2cTask.Func;
-}
-
-void i2cFuncSend(void)
-{
-	switch(i2cTask.NumSend)
-	{
-		case 0:
-			I2C_GenerateSTOP();
-			i2cTask.CurrentIndex=0;
-			i2cTask.Func=i2cIdle;
-			break;
-		default:
-		I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
-		i2cTask.NumSend--;
-	}
-	/*
-	if (i2cTask.NumSend) 
-	{
-	I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
-	i2cTask.NumSend--;
-	}
-	else
-	{
-		i2cTask.CurrentIndex=0;
-		I2C_GenerateSTOP();
-	}
+	//LcdSendByte(1,'v');
+	//LcdSendByte(1,'b');
+	LcdSendByte(0,0x80|0x00);
+	inputstring(st);
+	delay_ms(2000);
+	/*lcd.SC_shiftScreenCursor=1;
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(2000);
+	lcd.RL_RightLeft=1;
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
+	delay_ms(1000);
+	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
 	*/
+	LcdSendByte(0,0x80|0x00);
+	//LcdSendByte(0,0x80|0x05);
 }
 
-
-void i2cFuncSendSend(void)
-{
-	switch(i2cTask.NumSend)
-	{
-		case 0:
-			// отправка данных из второго массива, т.к. первый пустой
-			switch(i2cTask.NumSendReceive)
-			{
-				case 0:
-					I2C_GenerateSTOP();
-					i2cTask.CurrentIndex=0;
-					i2cTask.Func=i2cIdle;
-					break;
-				default:
-					I2C->DR=i2cTask.ArrSendReceive[i2cTask.CurrentIndex++];
-					i2cTask.NumSendReceive--;
-					break;
-			}
-			break;
-		default:
-			// Отправлем данные пока есть что отправлять
-			I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
-			i2cTask.NumSend--;
-			if (i2cTask.NumSend==0)  i2cTask.CurrentIndex=0;
-	}
-	
-	
-	
-	
-	
-	/*
-	// если есть что отправлять из массива для отправки отправляем 
-	if (i2cTask.NumSend) 
-	{
-		I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
-		i2cTask.NumSend--;
-		// Если это последний байт для передачи, то обнулить текущий индекс
-		if (i2cTask.NumSend==0)  i2cTask.CurrentIndex=0;
-	}
-	else
-	{
-		if (i2cTask.NumSendReceive)
-		{
-			I2C->DR=i2cTask.ArrSendReceive[i2cTask.CurrentIndex++];
-			i2cTask.NumSendReceive--;
-		}
-		else
-		{
-			i2cTask.CurrentIndex=0;
-			I2C_GenerateSTOP();
-			i2cTask.Func=i2cIdle;
-		}
-	}
-	*/
-}
-
-void i2cFuncAddressSendReceive(void)
-{
-	switch(i2cTask.NumSendReceive)
-		{
-			case 0:
-				//I2C_GenerateSTOP();
-				//f=I2C->DR;
-				i2cTask.Func=i2cIdle;
-				//I2C_GenerateSTOP();
-				break;
-			
-			case 1:
-						//
-						I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						I2C_GenerateSTOP();
-				break;
-			//case 2:
-			default:
-				I2C_AcknowledgeConfig(I2C_ACK_CURR);
-				break;
-		}
-}
-
-void i2cFuncReceive(void)
-{
-	
-	i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=I2C->DR; // загрузка указателя массива на данные 
-	i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
-	// осталось принять данных 
-	switch(i2cTask.NumSendReceive)
-			{
-				case 0:
-					i2cTask.Func=i2cIdle;
-					i2cTask.CurrentIndex=0;
-					return;
-				break;
-				case 1:
-						//i2cTask.Func=i2cIdle;
-						I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						I2C_GenerateSTOP();
-						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
-						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
-						
-						//i2cTask.Func=i2cIdle;
-						
-					
-					break;
-				//case 1:
-				//		I2C_AcknowledgeConfig(I2C_ACK_NONE);
-				//	break;
-				default:
-						I2C_AcknowledgeConfig(I2C_ACK_CURR);
-						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
-						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
-			}
-	
-}
-
-void i2cFuncSendReceive(void)
-{
-	switch(i2cTask.NumSend)
-	{
-		case 0:
-			i2cTask.DeviceAddrRW=i2cTask.DeviceAddrRW|1;
-			I2C_GenerateSTART();
-			i2cTask.CurrentIndex=0;
-			//i2cTask.Func=i2cIdle;
-			break;
-		default:
-		I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
-		i2cTask.NumSend--;
-	}
-}
-
-uint8_t a[10]={0xFF,2,3,4,5,6,7,8,9,10};
 void Task(void)
 {
+	Init_Delay();
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
 	I2C_SoftwareResetCmd(ENABLE);
@@ -352,7 +203,24 @@ void Task(void)
               I2C_ADDMODE_7BIT, 16 );
 	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
 	I2C_Cmd(ENABLE);
-	i2cMasterSend(0b0111111, a, 1);
+	SettingLcd();
+	/*
+	b[0].db4=0b0010;
+	b[0].bl=1;
+	b[0].e=1;
+	b[0].rs=0;
+	b[0].rw=0;
+	b[1].data=b[0].data;
+	b[1].e=0;
+	//---------------------------------
+	b[2].data=b[0].data;
+	b[2].db4=0b0011;
+	b[3].data=b[2].data;
+	b[3].e=0;
+	//----------------------------------
+	
+	
+	i2cMasterSend(0b0111111, &b[0].data, 2);*/
 //	i2cMasterSend(0b0111111, a+5, 5);
 //	i2cMasterSendSend(0b0111111, a, 1,a+5,5);
 //	i2cMasterSendSend(0b0111111, a, 2,a+5,5);

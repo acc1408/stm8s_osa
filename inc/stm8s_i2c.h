@@ -87,6 +87,18 @@ typedef enum
   I2C_DIRECTION_RX = (uint8_t)0x01   /*!< Reception direction */
 } I2C_Direction_TypeDef;
 //------------------------
+// Показывает какая функция работает
+typedef enum
+{
+	i2cIdle=0,
+	i2cSend=1,
+	i2cSendSend=2,
+	i2cReceive=3,
+	i2cSendReceive=4
+} i2cFunc_t;
+
+
+
 typedef union
 	{
 		uint8_t sr1;       /*!< I2C status register 1 */
@@ -403,6 +415,19 @@ typedef union
 } I2CEventBit_t;
 
 
+typedef struct
+{
+i2cFunc_t Func;
+I2CEventBit_t ItEvent;
+uint8_t	DeviceAddrRW;
+uint8_t *ArraySend;
+uint8_t NumSend;
+uint8_t *ArrSendReceive; 
+uint8_t NumSendReceive;
+uint8_t CurrentIndex;
+}i2cTask_t;
+
+
 /* Exported constants --------------------------------------------------------*/
 /** @addtogroup I2C_Exported_Constants
   * @{
@@ -583,8 +608,20 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
               I2C_AddMode_TypeDef AddMode, uint8_t InputClockFrequencyMHz );
 void I2C_Cmd(FunctionalState NewState);
 void I2C_GeneralCallCmd(FunctionalState NewState);
-void I2C_GenerateSTART(void);
-void I2C_GenerateSTOP(void);
+void I2C_ITConfig(I2C_IT_TypeDef I2C_IT, FunctionalState NewState);
+// Функция передает массив ArraySend длиной NumSend по адресу DeviceAddress
+void i2cMasterSend(uint8_t DeviceAddress,uint8_t *ArraySend, uint8_t NumSend);
+// Функция передает в начале массив адреса регистра, а затем передает данные.
+void i2cMasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend);
+// Функция считывает данные в массив *ArrReceive количеством NumReceive по адресу DeviceAddress
+void i2cMasterReceive(uint8_t DeviceAddress, uint8_t *ArrReceive, uint8_t NumReceive);
+// Функция отправляет в начале массив *ArrSend в количестве NumSend, затем считывает в массив *ArrReceive в количестве NumReceive
+void i2cMasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive);
+// Фукнция показывающая идет ли прием или передача данных,
+// Если передачи или приема нет, тогда результат функции 0
+i2cFunc_t i2cCheckStatusTransfer(void);
+// System function
+
 
 // void I2C_GenerateSTART(FunctionalState NewState);
 // void I2C_GenerateSTOP(FunctionalState NewState);
@@ -592,10 +629,25 @@ void I2C_SoftwareResetCmd(FunctionalState NewState);
 void I2C_StretchClockCmd(FunctionalState NewState);
 void I2C_AcknowledgeConfig(I2C_Ack_TypeDef Ack);
 void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle);
-void I2C_ITConfig(I2C_IT_TypeDef I2C_IT, FunctionalState NewState);
+
 uint8_t I2C_ReceiveData(void);
 void I2C_Send7bitAddress(uint8_t Address, I2C_Direction_TypeDef Direction);
 void I2C_SendData(uint8_t Data);
+//----------------------------------------------------------
+// Function for Interrupt
+void I2C_GenerateSTART(void);
+void I2C_GenerateSTOP(void);
+void i2cSendAddress(void);
+ErrorStatus i2cNumSendCheck(void);
+i2cFunc_t i2cFuncCheck(void);
+void i2cFuncSendSend(void);
+void i2cFuncSend(void);
+I2C_Event_TypeDef i2cEventGet(void);
+void i2cFuncReceive(void);
+void i2cFuncAddressSendReceive(void);
+void i2cFuncSendReceive(void);
+void i2cTaskReset(void);
+
 /**
  * @brief
  ****************************************************************************************

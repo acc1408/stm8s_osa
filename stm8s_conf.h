@@ -35,7 +35,7 @@
 
 /* Uncomment the line below to enable peripheral header file inclusion */
  #include "osa.h"
-// #include "inc/stm8s_delay.h" // программная задержка
+ #include "inc/stm8s_delay.h" // программная задержка
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
 // #include "inc/stm8s_button.h"  // Драйвер для кнопки
  

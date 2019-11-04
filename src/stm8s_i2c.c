@@ -50,6 +50,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -459,6 +460,8 @@ void I2C_Send7bitAddress(uint8_t Address, I2C_Direction_TypeDef Direction)
   /* Send the Address + Direction */
   I2C->DR = (uint8_t)(Address | (uint8_t)Direction);
 }
+
+
 
 /**
   * @brief  Send a byte by writing in the DR register.
@@ -890,6 +893,247 @@ void I2C_ClearITPendingBit(I2C_ITPendingBit_TypeDef I2C_ITPendingBit)
 
   /* Clear the selected I2C flag */
   I2C->SR2 = (uint8_t)((uint16_t)~flagpos);
+}
+//--------------
+I2C_Event_TypeDef i2cEventGet(void)
+{
+	i2cTask.ItEvent.event= I2C_GetLastEvent();
+	return i2cTask.ItEvent.event;
+}
+
+void i2cTaskReset(void)
+{
+	//i2cTask.ArraySend=ArraySend;
+	i2cTask.NumSend=0;
+	//i2cTask.ArrReceive=0;
+	i2cTask.NumSendReceive=0;
+	i2cTask.CurrentIndex=0;
+}
+// Функция передает массив ArraySend длиной NumSend по адресу DeviceAddress
+void i2cMasterSend(uint8_t DeviceAddress,uint8_t *ArraySend, uint8_t NumSend)
+{
+	while(i2cTask.Func);
+	i2cTaskReset(); // Сброс состояния
+	i2cTask.Func=i2cSend; // Загрузка функции
+	i2cTask.DeviceAddrRW=DeviceAddress<<1; //загрузка адреса
+	i2cTask.ArraySend=ArraySend; // загрузка указателя на массив
+	i2cTask.NumSend=NumSend; // загрузка кол-во байт для передачи
+	I2C_GenerateSTART();  // Генерация старта
+}
+
+// Функция передает в начале массив адреса регистра, а затем передает данные.
+void i2cMasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
+{
+	while(i2cTask.Func);
+	i2cTaskReset();	// Сброс состояния
+	i2cTask.Func=i2cSendSend; // Загрузка функции
+	i2cTask.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
+	i2cTask.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
+	i2cTask.NumSend=NumAddress;// загрузка кол-во байт для передачи
+	i2cTask.ArrSendReceive=ArraySend; // загрузка указателя массива на данные 
+	i2cTask.NumSendReceive=NumSend; // загрузка кол-во данных для передачи
+	I2C_GenerateSTART();  // Генерация старта
+}
+
+// Функция считывает данные в массив *ArrReceive количеством NumReceive по адресу DeviceAddress
+void i2cMasterReceive(uint8_t DeviceAddress, uint8_t *ArrReceive, uint8_t NumReceive)
+{
+	while(i2cTask.Func);
+	i2cTaskReset();	// Сброс состояния
+	i2cTask.Func=i2cReceive; // Загрузка функции
+	i2cTask.DeviceAddrRW=DeviceAddress<<1|1;//загрузка адреса на чтение
+	i2cTask.ArrSendReceive=ArrReceive; // загрузка указателя массива на данные 
+	i2cTask.NumSendReceive=NumReceive; // загрузка кол-во данных для принятия
+	I2C_GenerateSTART();  // Генерация старта
+}
+
+// Функция отправляет в начале массив *ArrSend в количестве NumSend, затем считывает в массив *ArrReceive в количестве NumReceive
+void i2cMasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
+{
+	while(i2cTask.Func);
+	i2cTaskReset();	// Сброс состояния
+	i2cTask.Func=i2cSendReceive; // Загрузка функции
+	i2cTask.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
+	i2cTask.ArraySend=ArrSend; // загрузка указателя на адрес массива
+	i2cTask.NumSend=NumSend;// загрузка кол-во байт для передачи
+	i2cTask.ArrSendReceive=ArrReceive; // загрузка указателя массива на данные 
+	i2cTask.NumSendReceive=NumReceive; // загрузка кол-во данных для передачи
+	I2C_GenerateSTART();  // Генерация старта
+}
+
+
+void i2cSendAddress(void)
+{
+	
+	if (i2cTask.DeviceAddrRW&0x01) 
+	{
+			// Если передается адрес на чтение,
+			// то смотрим сколько байт надо отправить
+			switch(i2cTask.NumSendReceive)
+			{
+				case 0:
+						// если у нас нет байт для передачи, то
+						// генерируем отправку бита и стоп бита
+						//I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						I2C->DR=i2cTask.DeviceAddrRW;
+						I2C_GenerateSTOP();
+					break;
+				case 1:
+						// если необходимо принять 1 байт, то
+						// то отправляем адрес и байт не подтверждения
+						I2C->DR=i2cTask.DeviceAddrRW;
+						I2C_AcknowledgeConfig(I2C_ACK_NONE);
+					break;
+				default:
+						// в остальных случаях просто отправляем адрес
+						// и байт подтверждения
+						I2C->DR=i2cTask.DeviceAddrRW;
+						I2C_AcknowledgeConfig(I2C_ACK_CURR);
+					break;
+			}
+	}
+	else
+	{
+		// Отправляем адрес на запись
+		I2C->DR=i2cTask.DeviceAddrRW;
+	}
+}
+
+
+
+// Проверка на продолжение посылки массива
+ErrorStatus i2cNumSendCheck(void)
+{
+	if (i2cTask.NumSend) return SUCCESS;
+									else return ERROR;
+}
+
+
+i2cFunc_t i2cFuncCheck(void)
+{
+	return i2cTask.Func;
+}
+
+void i2cFuncSend(void)
+{
+	switch(i2cTask.NumSend)
+	{
+		case 0:
+			I2C_GenerateSTOP();
+			i2cTask.CurrentIndex=0;
+			i2cTask.Func=i2cIdle;
+			break;
+		default:
+		I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
+		i2cTask.NumSend--;
+	}
+}
+
+
+void i2cFuncSendSend(void)
+{
+	switch(i2cTask.NumSend)
+	{
+		case 0:
+			// отправка данных из второго массива, т.к. первый пустой
+			switch(i2cTask.NumSendReceive)
+			{
+				case 0:
+					I2C_GenerateSTOP();
+					i2cTask.CurrentIndex=0;
+					i2cTask.Func=i2cIdle;
+					break;
+				default:
+					I2C->DR=i2cTask.ArrSendReceive[i2cTask.CurrentIndex++];
+					i2cTask.NumSendReceive--;
+					break;
+			}
+			break;
+		default:
+			// Отправлем данные пока есть что отправлять
+			I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
+			i2cTask.NumSend--;
+			if (i2cTask.NumSend==0)  i2cTask.CurrentIndex=0;
+	}
+}
+
+void i2cFuncAddressSendReceive(void)
+{
+	switch(i2cTask.NumSendReceive)
+		{
+			case 0:
+				//I2C_GenerateSTOP();
+				//f=I2C->DR;
+				i2cTask.Func=i2cIdle;
+				//I2C_GenerateSTOP();
+				break;
+			
+			case 1:
+						//
+						I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						I2C_GenerateSTOP();
+				break;
+			//case 2:
+			default:
+				I2C_AcknowledgeConfig(I2C_ACK_CURR);
+				break;
+		}
+}
+
+void i2cFuncReceive(void)
+{
+	
+	i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=I2C->DR; // загрузка указателя массива на данные 
+	i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
+	// осталось принять данных 
+	switch(i2cTask.NumSendReceive)
+			{
+				case 0:
+					i2cTask.Func=i2cIdle;
+					i2cTask.CurrentIndex=0;
+					return;
+				break;
+				case 1:
+						//i2cTask.Func=i2cIdle;
+						I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						I2C_GenerateSTOP();
+						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
+						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
+						
+						//i2cTask.Func=i2cIdle;
+						
+					
+					break;
+				//case 1:
+				//		I2C_AcknowledgeConfig(I2C_ACK_NONE);
+				//	break;
+				default:
+						I2C_AcknowledgeConfig(I2C_ACK_CURR);
+						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
+						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
+			}
+	
+}
+
+void i2cFuncSendReceive(void)
+{
+	switch(i2cTask.NumSend)
+	{
+		case 0:
+			i2cTask.DeviceAddrRW=i2cTask.DeviceAddrRW|1;
+			I2C_GenerateSTART();
+			i2cTask.CurrentIndex=0;
+			//i2cTask.Func=i2cIdle;
+			break;
+		default:
+		I2C->DR=i2cTask.ArraySend[i2cTask.CurrentIndex++];
+		i2cTask.NumSend--;
+	}
+}
+
+i2cFunc_t i2cCheckStatusTransfer(void)
+{
+	return i2cTask.Func;
 }
 
 /**
