@@ -512,6 +512,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		// Ведомый не прислал подтверждения
 		case I2C_EVENT_SLAVE_ACK_FAILURE:
 		//i2cStateSet(I2C_IDLE);
+		I2C_ClearITPendingBit(I2C_ITPENDINGBIT_TRANSFERFINISHED);
 		I2C_GenerateSTOP();
 		break;
 	}

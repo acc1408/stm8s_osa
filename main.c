@@ -35,168 +35,107 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
-
-
-//i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
-
-
-//uint8_t a[10]={0xFF,2,3,4,5,6,7,8,9,10};
-
-typedef union
+typedef struct
 {
-	uint8_t data;
-	struct
-	{
 		uint8_t rs:1;
 		uint8_t rw:1;
 		uint8_t e:1;
 		uint8_t bl:1; //backlight
 		uint8_t db4:4;
-	};
-}i2cLcd1602_t;
+}LcdData_t;
 
-typedef union												//	*
-{															//	*
-struct														//	*
+typedef enum
+{
+	LcdFont5x8=0,
+	LcdFont5x1=1
+}LcdFont_t;
+
+typedef enum
+{
+	LcdLine1=0,
+	LcdLine2=1
+}LcdLine_t;
+
+typedef enum
+{
+	LcdSubOne=0,
+	LcdAddOne=1
+} LcdInc_t;
+
+typedef enum
+{
+	LcdCom=0,
+	LcdData=1
+} LcdDataCom_t;
+
+
+typedef struct														//	*
 {															//	*
 // Настройка увеличения счетчкиа курсора или экрана
-uint8_t	ID_cursorShiftRightLeft:1;// разрешен=1/запрещен=0*
-uint8_t S_ScreenShiftOnOff:1;// Сдвиг экрана при записи разшереш=1/ запрещен=0*
+LcdInc_t	ID_cursorShiftRightLeft:1;// увеличение счетчки/уменьшение счетчика
+FunctionalState S_ScreenShiftOnOff:1;// Сдвиг экрана при записи разшереш=1/ запрещен=0*
 //--------------------------------------------------------------*
 //Настройка экран и курсора
-uint8_t B_BlinkOnOff:	1; 	// Мигание курсора вкл=1/откл=0	*
-uint8_t C_CursorOnOff:	1; 	// курсор-подчеркивание виден=1/ невиден=0*
-uint8_t D_DisplayOnOff:1; 	// Дисплей включен=1/отключен=0 *
+FunctionalState B_BlinkOnOff:	 1; 	// Мигание курсора вкл=1/откл=0	*
+FunctionalState C_CursorOnOff: 1; 	// курсор-подчеркивание виден=1/ невиден=0*
+FunctionalState D_DisplayOnOff:1; 	// Дисплей включен=1/отключен=0 *
 //--------------------------------------------------------------*
 // прокрутка дисплея влево в право без изменения DDRAM 
-uint8_t SC_shiftScreenCursor:1;
-uint8_t RL_RightLeft:1;
+// uint8_t SC_shiftScreenCursor:1;
+// uint8_t RL_RightLeft:1;
 //--------------------
-uint8_t F_font:	1;	// Ширифт: 5*7px=0/5*10px=1					*
-uint8_t N_lines:	1;	// кол-во строк: строка1=0/строк2=1		*
+LcdFont_t F_font:		1;	// Ширифт: 5*7px=0/5*10px=1					*
+LcdLine_t N_lines:	1;	// кол-во строк: строка1=0/строк2=1		*
 //uint8_t bit:	1;	// битность передачи 4бит=0 8бит=1
-uint8_t Backlight:1;
-//uint8_t Address:7;  // Адрес шины
-//i2cLcd1602_t data[4];
-};															//	*
-uint8_t set;		// доступ ко всем полям		*
+FunctionalState Backlight:1;
+uint8_t Address:	7;  // Адрес шины
+union{
+	uint8_t data[4];
+	LcdData_t bit[4];
+};
 }SetLCD_t;													//	*
 //***************************************************************
-SetLCD_t lcd;
+SetLCD_t lcd1;
 
 
-
-
-i2cLcd1602_t b[4];
-
-void LcdSendByte(uint8_t dc,uint8_t data)
+void LcdSendByte(SetLCD_t *lcd, LcdDataCom_t data1_com0,uint8_t data)
 {
 	while(i2cCheckStatusTransfer());
-	b[0].bl=lcd.Backlight;
-	b[0].e=1;
-	b[0].rs=dc;
-	b[0].rw=0;
-	b[0].db4=data>>4;
-	b[1].data=b[0].data;
-	b[1].e=0;
-	//----------------
-	b[2].data=b[0].data;
-	b[2].db4=data&0x0F;
-	//------------------
-	b[3].data=b[2].data;
-	b[3].e=0;
-	i2cMasterSend(0b0111111, &b[0].data, 4);
+	lcd->bit[0].rs=data1_com0;
+	lcd->bit[0].rw=0;
+	lcd->bit[0].e=1;
+	lcd->bit[0].bl=lcd->Backlight;
+	lcd->bit[0].db4=data>>4;
+	//-------
+	lcd->data[1]=lcd->data[0];
+	lcd->bit[1].e=0;
+	//Предвартельная Настройка 4 битного режима
+	lcd->data[2]=lcd->data[0];
+	lcd->bit[2].db4=data;
+	lcd->data[3]=lcd->data[2];
+	lcd->bit[3].e=0;
+	
+	i2cMasterSend(lcd->Address, lcd->data, 4);
 	delay_ms(50);
 }
 
+
+
 const char st[]="Hello world!!!qwertyuiopasdffghjj";
-void inputstring(char *st)
+
+void Lcdi2cPrint(SetLCD_t *lcd, char *st)
 {
-	//uint8_t i=0;
+	
 	while(*st)
 	{
-		LcdSendByte(1,*st++);
-		//st++;
+		LcdSendByte(lcd,1,*st++);
+		
 	}
 }
 
-void SettingLcd(void)
-{
-	lcd.ID_cursorShiftRightLeft=1;
-	lcd.S_ScreenShiftOnOff=0;
-	//---------------
-	lcd.B_BlinkOnOff=1;
-	lcd.C_CursorOnOff=1;
-	lcd.D_DisplayOnOff=1;
-	//------------
-	lcd.SC_shiftScreenCursor=0;
-	lcd.RL_RightLeft=0;
-	//---------------------
-	lcd.F_font=0;
-	lcd.N_lines=1;
-	//---------------
-	lcd.Backlight=1;
-	//-------------
-	// Настройка 8 битного режима
-	b[0].db4=0b0011;
-	b[0].bl=1;
-	b[0].e=1;
-	b[0].rs=0;
-	b[0].rw=0;
-	b[1].data=b[0].data;
-	b[1].e=0;
-	//Предвартельная Настройка 4 битного режима
-	b[2].data=b[0].data;
-	b[2].db4=0b0010;
-	b[3].data=b[2].data;
-	b[3].e=0;
-	//--------------------------
-	i2cMasterSend(0b0111111, &b[0].data, 4);
-	delay_ms(40);
-	LcdSendByte(0,1);
-	delay_ms(1600);
-	//LcdSendByte(0,2);
-	//delay_ms(1600);
-	LcdSendByte(0,1<<2|lcd.ID_cursorShiftRightLeft<<1|lcd.S_ScreenShiftOnOff);
-	LcdSendByte(0,1<<3|lcd.D_DisplayOnOff<<2|lcd.C_CursorOnOff<<1|lcd.B_BlinkOnOff);
-	//LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	LcdSendByte(0,1<<5|lcd.N_lines<<3|lcd.F_font<<2);
-	//delay_ms(2000);
-	//LcdSendByte(1,'a');
-	//LcdSendByte(1,'s');
-	//LcdSendByte(1,'d');
-	delay_ms(2000);
-	
-	//LcdSendByte(1,'v');
-	//LcdSendByte(1,'b');
-	//LcdSendByte(0,0x80|0x00);
-	//inputstring(st);
-	//delay_ms(2000);
-	/*lcd.SC_shiftScreenCursor=1;
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(2000);
-	lcd.RL_RightLeft=1;
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	delay_ms(1000);
-	LcdSendByte(0,1<<4|lcd.SC_shiftScreenCursor<<3|lcd.RL_RightLeft<<2);
-	*/
-	//LcdSendByte(0,0x80|0x00);
-	//LcdSendByte(0,0x80|0x05);
-}
 
 
+/*
 const char smile[] = 
 {
 	0x7e, 0x11, 0x11, 0x11, 0x7e,//A	0x90
@@ -249,6 +188,8 @@ const char smile[] =
 	0x38, 0x44, 0x44, 0x44, 0x38,//o	0xBE
 	0x7c, 0x04, 0x04, 0x04, 0x7c //Рї	0xBF
 };
+*/
+/*
 bit8_t data;
 uint8_t temp;
 uint8_t i=0,k,y;
@@ -276,56 +217,67 @@ void SetChar(void)
 	//LcdSendByte(1,1);
 	}
 }
-void Task(void)
+*/
+
+void LcdWriteUserChar(SetLCD_t *lcd, uint8_t kod, uint8_t *st)
 {
-	Init_Delay();
-	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	uint8_t i;
+	kod=kod&0b111;
+	LcdSendByte(lcd,0,0x40|kod);
+	for(i=0;i<8;i++)
+	LcdSendByte(lcd,1,*st++);
+	LcdSendByte(lcd,0,0x80);
+}
+
+void Lcdi2cInit(SetLCD_t *lcd, uint8_t Address)
+{
+	uint32_t Clock;
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
-	I2C_SoftwareResetCmd(ENABLE);
-	I2C_SoftwareResetCmd(DISABLE);
+	Clock= CLK_GetClockFreq();
+	Clock=Clock/1000000;
 	I2C_Init(100000, 50, 
               I2C_DUTYCYCLE_2, I2C_ACK_NONE, 
-              I2C_ADDMODE_7BIT, 16 );
+              I2C_ADDMODE_7BIT, Clock );
 	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
-	I2C_Cmd(ENABLE);
-	delay_ms(2000);
-	SettingLcd();
-	delay_ms(2000);
-	SetChar();
-	/*
-	b[0].db4=0b0010;
-	b[0].bl=1;
-	b[0].e=1;
-	b[0].rs=0;
-	b[0].rw=0;
-	b[1].data=b[0].data;
-	b[1].e=0;
-	//---------------------------------
-	b[2].data=b[0].data;
-	b[2].db4=0b0011;
-	b[3].data=b[2].data;
-	b[3].e=0;
-	//----------------------------------
+	I2C_Cmd(ENABLE);						
+	Init_Delay();
 	
-	
-	i2cMasterSend(0b0111111, &b[0].data, 2);*/
-//	i2cMasterSend(0b0111111, a+5, 5);
-//	i2cMasterSendSend(0b0111111, a, 1,a+5,5);
-//	i2cMasterSendSend(0b0111111, a, 2,a+5,5);
-//	i2cMasterSendSend(0b0111111, a, 0,a+5,5);
-//	i2cMasterSendSend(0b0111111, a, 0,a+5,0);
-//	i2cMasterSendSend(0b0111111, a, 0,a+5,1);
-//	i2cMasterSendSend(0b0111111, a, 1,a+5,0);
-//	i2cMasterReceive(0b0111111, a+9, 1);
-// i2cMasterSendReceive(0b0111111, a, 3, a+5, 2);	
+	lcd->Address=Address;
+	lcd->Backlight=ENABLE;
+	lcd->ID_cursorShiftRightLeft=LcdAddOne;
+	lcd->S_ScreenShiftOnOff=DISABLE;
+	//---------------
+	lcd->B_BlinkOnOff=ENABLE;
+	lcd->C_CursorOnOff=DISABLE;
+	lcd->D_DisplayOnOff=ENABLE;
+	lcd->F_font=LcdFont5x8;
+	lcd->N_lines=LcdLine2;
+	LcdSendByte(lcd, 0,0b00110010);
+	LcdSendByte(lcd,0,1<<2|lcd->ID_cursorShiftRightLeft<<1|lcd->S_ScreenShiftOnOff);
+	LcdSendByte(lcd,0,1<<3|lcd->D_DisplayOnOff<<2|lcd->C_CursorOnOff<<1|lcd->B_BlinkOnOff);
+	LcdSendByte(lcd,0,1<<5|lcd->N_lines<<3|lcd->F_font<<2);
+}
 
-// i2cMasterSendReceive(0b0111111, a+3, 3, a+8, 2);	
-	//i2cMasterReceive(0b0111111, a, 0);
-	//i2cMasterSendBuf(0b0111111);	
-	//i2cMasterUploadBuf(102);
+const char char_HH[]=
+{
+	0b10101,
+	0b10101,
+	0b01110,
+	0b01110,
+	0b10101,
+	0b10101,
+	0b10101,
+	0b00000
+};
+
+void Task(void)
+{
 	
-	
-	
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	Lcdi2cInit(&lcd1, 0b0111111);
+	Lcdi2cPrint(&lcd1, st);
+	LcdWriteUserChar(&lcd1, 0, char_HH);
+	LcdSendByte(&lcd1,1,0);
 	while(1)
 	{
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);

@@ -110,7 +110,8 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
   assert_param(IS_I2C_INPUT_CLOCK_FREQ_OK(InputClockFrequencyMHz));
   assert_param(IS_I2C_OUTPUT_CLOCK_FREQ_OK(OutputClockFrequencyHz));
 
-	
+	I2C_SoftwareResetCmd(ENABLE);
+	I2C_SoftwareResetCmd(DISABLE);
   /*------------------------- I2C FREQ Configuration ------------------------*/
   /* Clear frequency bits */
   I2C->FREQR &= (uint8_t)(~I2C_FREQR_FREQ);
@@ -278,6 +279,7 @@ void I2C_GenerateSTART(FunctionalState NewState)
   */
 void I2C_GenerateSTOP(void)
 {
+	i2cTask.Func=i2cIdle;
 	I2C->CR2 |= I2C_CR2_STOP;
 }
 /*
@@ -886,7 +888,7 @@ void I2C_ClearITPendingBit(I2C_ITPendingBit_TypeDef I2C_ITPendingBit)
   uint16_t flagpos = 0;
 
   /* Check the parameters */
-  assert_param(IS_I2C_CLEAR_ITPENDINGBIT_OK(I2C_ITPendingBit));
+  //assert_param(IS_I2C_CLEAR_ITPENDINGBIT_OK(I2C_ITPendingBit));
 
   /* Get the I2C flag position */
   flagpos = (uint16_t)I2C_ITPendingBit & FLAG_Mask;
