@@ -115,6 +115,9 @@
 #ifdef __STM8S_DELAY_H
 #include "src/stm8s_delay.c"
 #endif
+#ifdef __STM8S_I2CLCD1602_H
+#include "src/stm8s_i2clcd1602.c"
+#endif
 #ifdef __STM8S_ENCODER_H
 #include "src/stm8s_encoder.c"
 #endif
