@@ -50,7 +50,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
+ i2cTask_t i2cTask={0,0,0,0,0,0,0,0};
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -94,6 +94,22 @@ void I2C_DeInit(void)
   * @param  InputClockFrequencyMHz : Specifies the input clock frequency in MHz.
   * @retval None
   */
+void I2C_MasterInit(uint32_t OutputClockFrequencyHz)
+{
+	uint32_t Clock;
+	CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
+	Clock= CLK_GetClockFreq();
+	Clock=Clock/1000000;
+	I2C_SoftwareResetCmd(ENABLE);
+	I2C_SoftwareResetCmd(DISABLE);
+	I2C_Init(OutputClockFrequencyHz, 50, 
+              I2C_DUTYCYCLE_2, I2C_ACK_NONE, 
+              I2C_ADDMODE_7BIT, Clock );
+	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
+	
+	I2C_Cmd(ENABLE);
+}
+
 void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress, 
               I2C_DutyCycle_TypeDef I2C_DutyCycle, I2C_Ack_TypeDef Ack, 
               I2C_AddMode_TypeDef AddMode, uint8_t InputClockFrequencyMHz )
@@ -101,7 +117,7 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
   uint16_t result = 0x0004;
   uint16_t tmpval = 0;
   uint8_t tmpccrh = 0;
-
+	
   /* Check the parameters */
   assert_param(IS_I2C_ACK_OK(Ack));
   assert_param(IS_I2C_ADDMODE_OK(AddMode));
@@ -112,7 +128,11 @@ void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress,
 
 	I2C_SoftwareResetCmd(ENABLE);
 	I2C_SoftwareResetCmd(DISABLE);
-  /*------------------------- I2C FREQ Configuration ------------------------*/
+  
+	
+	/*
+	/*						
+	/*------------------------- I2C FREQ Configuration ------------------------*/
   /* Clear frequency bits */
   I2C->FREQR &= (uint8_t)(~I2C_FREQR_FREQ);
   /* Write new value */
@@ -888,7 +908,7 @@ void I2C_ClearITPendingBit(I2C_ITPendingBit_TypeDef I2C_ITPendingBit)
   uint16_t flagpos = 0;
 
   /* Check the parameters */
-  //assert_param(IS_I2C_CLEAR_ITPENDINGBIT_OK(I2C_ITPendingBit));
+  assert_param(IS_I2C_CLEAR_ITPENDINGBIT_OK(I2C_ITPendingBit));
 
   /* Get the I2C flag position */
   flagpos = (uint16_t)I2C_ITPendingBit & FLAG_Mask;
@@ -899,8 +919,8 @@ void I2C_ClearITPendingBit(I2C_ITPendingBit_TypeDef I2C_ITPendingBit)
 //--------------
 I2C_Event_TypeDef i2cEventGet(void)
 {
-	i2cTask.ItEvent.event= I2C_GetLastEvent();
-	return i2cTask.ItEvent.event;
+	i2cTask.ItEvent= I2C_GetLastEvent();
+	return i2cTask.ItEvent;
 }
 
 void i2cTaskReset(void)
@@ -927,7 +947,7 @@ void i2cMasterSend(uint8_t DeviceAddress,uint8_t *ArraySend, uint8_t NumSend)
 void i2cMasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
 	while(i2cTask.Func);
-	i2cTaskReset();	// Сброс состояния
+	//i2cTaskReset();	// Сброс состояния
 	i2cTask.Func=i2cSendSend; // Загрузка функции
 	i2cTask.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
 	i2cTask.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
@@ -964,21 +984,23 @@ void i2cMasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSe
 }
 
 
+
 void i2cSendAddress(void)
 {
 	
 	if (i2cTask.DeviceAddrRW&0x01) 
 	{
 			// Если передается адрес на чтение,
-			// то смотрим сколько байт надо отправить
+			// то смотрим сколько байт надо прочитать
 			switch(i2cTask.NumSendReceive)
 			{
 				case 0:
-						// если у нас нет байт для передачи, то
+						// если у нас нет байт для приема, то
 						// генерируем отправку бита и стоп бита
 						//I2C_AcknowledgeConfig(I2C_ACK_NONE);
 						I2C->DR=i2cTask.DeviceAddrRW;
 						I2C_GenerateSTOP();
+						i2cTask.Func=i2cIdle;
 					break;
 				case 1:
 						// если необходимо принять 1 байт, то
@@ -1085,31 +1107,29 @@ void i2cFuncAddressSendReceive(void)
 void i2cFuncReceive(void)
 {
 	
-	i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=I2C->DR; // загрузка указателя массива на данные 
-	i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
+	
 	// осталось принять данных 
 	switch(i2cTask.NumSendReceive)
 			{
-				case 0:
-					i2cTask.Func=i2cIdle;
-					i2cTask.CurrentIndex=0;
-					return;
-				break;
 				case 1:
 						//i2cTask.Func=i2cIdle;
-						I2C_AcknowledgeConfig(I2C_ACK_NONE);
-						I2C_GenerateSTOP();
-						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
+						i2cTask.ArrSendReceive[i2cTask.CurrentIndex]=I2C->DR; // загрузка указателя массива на данные
+						//I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						//I2C_GenerateSTOP();
+						i2cTask.NumSendReceive--;
+						i2cTask.CurrentIndex=0;
 						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
-						
 						//i2cTask.Func=i2cIdle;
-						
-					
 					break;
-				//case 1:
-				//		I2C_AcknowledgeConfig(I2C_ACK_NONE);
-				//	break;
+				case 2:
+						I2C_AcknowledgeConfig(I2C_ACK_NONE);
+						i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=I2C->DR; // загрузка указателя массива на данные 
+						i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
+						I2C_GenerateSTOP();
+					break;
 				default:
+						i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=I2C->DR; // загрузка указателя массива на данные 
+						i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
 						I2C_AcknowledgeConfig(I2C_ACK_CURR);
 						//i2cTask.ArrSendReceive[i2cTask.CurrentIndex++]=i2cData; // загрузка указателя массива на данные 
 						//i2cTask.NumSendReceive--; // загрузка кол-во данных для передачи
@@ -1135,8 +1155,15 @@ void i2cFuncSendReceive(void)
 
 i2cFunc_t i2cCheckStatusTransfer(void)
 {
-	return i2cTask.Func;
+	return  (i2cTask.Func);
 }
+
+ErrorStatus i2cCheckStatusSendRecieve(void)
+{
+	if (!(i2cTask.NumSend||i2cTask.NumSendReceive)) return SUCCESS;
+	else return ERROR;
+}
+
 
 /**
   * @}

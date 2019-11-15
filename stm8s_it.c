@@ -472,13 +472,18 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
 	//volatile uint8_t data, address=0b01111110;
 	
 	//I2CEventBit_t event;
+//	uint8_t d;
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
-  /* In order to detect unexpected events during development,
+  i2cHandler();
+	
+	/* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-	
-	switch (i2cEventGet())
+	/*
+	I2C_Event_TypeDef kod;
+	kod=i2cEventGet();
+	switch (kod)
 	{	
 		// Мастер
 		// отправлен старт, передача адреса
@@ -508,10 +513,13 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
 			 i2cFuncAddressSendReceive();
 			break;
+		case 0x344:
+		case 0x40:
+		case 0x44:
 		case I2C_EVENT_MASTER_BYTE_RECEIVED:
 				i2cFuncReceive();
 			break;
-		//---------------------------------
+		
 		// Ведомый не прислал подтверждения
 		case I2C_EVENT_SLAVE_ACK_FAILURE:
 		//i2cStateSet(I2C_IDLE);
@@ -519,6 +527,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		I2C_GenerateSTOP();
 		break;
 	}
+	kod=i2cEventGet();*/
 }
 
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)

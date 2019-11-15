@@ -36,21 +36,114 @@
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-//SetLCD_t lcd1;
+SetLCD_t lcd1;
 
 //const char st[]="Hello world!!!qwertyuiopasdffghjj";
 
 
-uint8_t a[10];
+union {
+uint8_t a[30];
+struct{
+uint8_t address;
+uint16_t dig_T1;
+ int16_t dig_T2;
+ int16_t dig_T3;
+uint16_t dig_P1;
+ int16_t dig_P2;
+ int16_t dig_P3;
+ int16_t dig_P4;
+ int16_t dig_P5;
+ int16_t dig_P6;
+ int16_t dig_P7;
+ int16_t dig_P8;
+ int16_t dig_P9;
+ uint8_t dig_H1;
+
+ 
+};
+}bm;
+
+i2cTask_t i2c_Task={0,0,0,0,0,0,0,0};
+
+// Функция передает в начале массив адреса регистра, а затем передает данные.
+void i2c_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
+{
+	while(i2cTask.Func);
+	//i2c_TaskReset();	// Сброс состояния
+	//i2cTask.ArraySend=ArraySend;
+	i2c_Task.NumSend=0;
+	//i2cTask.ArrReceive=0;
+	i2c_Task.NumSendReceive=0;
+	i2c_Task.CurrentIndex=0;
+	
+	i2c_Task.Func=i2cSendSend; // Загрузка функции
+	i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
+	i2c_Task.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
+	i2c_Task.NumSend=NumAddress;// загрузка кол-во байт для передачи
+	i2c_Task.ArrSendReceive=ArraySend; // загрузка указателя массива на данные 
+	i2c_Task.NumSendReceive=NumSend; // загрузка кол-во данных для передачи
+	I2C->sb=1;  // Генерация старта
+}
+
+uint8_t a[]={1,2,3,4,5,6,7,8,9,10};
+void i2cHandler(void)
+{
+	i2c_Task.ItEvent=i2cEventGet();
+	switch(i2c_Task.ItEvent)
+	{
+		case I2C_EVENT_MASTER_MODE_SELECT: /*!< BUSY, MSL and SB flag */ 
+				switch(i2c_Task.Dir)
+				{
+					case I2C_DIRECTION_TX:
+						I2C->DR=i2c_Task.DeviceAddrRW;
+						break;
+					case I2C_DIRECTION_RX:
+						switch(i2c_Task.NumSendReceive)
+						{
+							case 0: 
+								I2C-DR=i2c_Task.DeviceAddrRW;
+								I2C->stop=1;
+								break;
+							case 1:
+								I2C-DR=i2c_Task.DeviceAddrRW;
+								I2C->ack=0;
+								break;
+							default:
+								I2C-DR=i2c_Task.DeviceAddrRW;
+								I2C->ack=1;
+								break;
+						}
+						break;
+				}
+			break;
+		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED: /*!< BUSY, MSL, TRA, ADDR, TXE  				flags */
+		//
+		case I2C_EVENT_MASTER_BYTE_TRANSMITTING:	/*!< 				BUSY, MSL, TRA, 			TXE 				flags */
+		//
+		case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	/*!< EV8_2: 	BUSY, MSL, TRA, 			TXE and BTF flags */
+		
+			
+			break;
+	}
+}
 void Task(void)
 {
-	
+	uint8_t i,temp;
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	//Lcdi2cInit(&lcd1, 0b0111111);
 	// Lcdi2cPrint(&lcd1, st);
-		
-	a[0]=0xD0;
-	i2cMasterSendReceive(0b1110110, a, 1, a+1, 1);
+	I2C_MasterInit(100000);	
+	bm.a[0]=0x88;
+	//bm.a[0]=0xD0;
+	//i2c_MasterSendReceive(0b1110110, bm.a, 1, bm.a+1, 8);
+	while(i2cCheckStatusTransfer());
+	
+	for(i=1;i<24;i=i+2)
+	{
+		temp=bm.a[i];
+		bm.a[i]=bm.a[i+1];
+		bm.a[i+1]=temp;
+	}
 	
 	while(1)
 	{
