@@ -98,21 +98,17 @@ typedef enum
 } i2cFunc_t;
 
 
-
-typedef union
-	{
-		uint8_t sr2;       /*!< I2C status register 2 */
-		struct
-		{
-			uint8_t berr:1; // buss error=1
-			uint8_t arlo:1; // arbitration lost=1
-			uint8_t af:1; // acknowledge failure=1
-			uint8_t ovr:1; // overrun or underrun=1
-			uint8_t reserv_sr2:1; // reserved
-			uint8_t wufh:1;	// wakeup from Halt=1
-			uint8_t reserv2_sr2:2;// reserved
-		};
-	}i2c_sr2_t;
+ /*!< I2C status register 2 */
+typedef  struct
+{
+	uint8_t berr:1; // buss error=1
+	uint8_t arlo:1; // arbitration lost=1
+	uint8_t af:1; // acknowledge failure=1
+	uint8_t ovr:1; // overrun or underrun=1
+	uint8_t reserv_sr2:1; // reserved
+	uint8_t wufh:1;	// wakeup from Halt=1
+	uint8_t reserv2_sr2:2;// reserved
+}i2c_sr2bit_t;
 	
 
 /**
@@ -271,7 +267,7 @@ typedef enum
   /* Master RECEIVER mode -----------------------------*/
   /* --EV7 */
   I2C_EVENT_MASTER_BYTE_RECEIVED             = (uint16_t)0x0340,  /*!< BUSY, MSL and RXNE flags */
-
+	I2C_EVENT_MASTER_2_BYTE_RECEIVED           = (uint16_t)0x0344,  /*!< BUSY, MSL and RXNE BTF flags */
   /* Master TRANSMITTER mode --------------------------*/
   /* --EV8 */
   // 
@@ -398,6 +394,12 @@ union
 		uint8_t	DeviceAddr:7;
 	};
 };
+union
+{
+	uint8_t Error;
+	i2c_sr2bit_t	ErrorBit;
+};
+
 uint8_t *ArraySend;
 uint8_t NumSend;
 uint8_t *ArrSendReceive; 
