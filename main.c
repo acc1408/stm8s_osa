@@ -36,267 +36,117 @@
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-SetLCD_t lcd1;
+//SetLCD_t lcd1;
 
-//const char st[]="Hello world!!!qwertyuiopasdffghjj";
+const char st[]="Hello world!!!qwertyuiopasdffghjj";
+
+typedef enum
+{
+	BME280_NO_OVERSAMPLING=0,		
+	BME280_OVERSAMPLING_1X=1,		
+	BME280_OVERSAMPLING_2X=2,		
+	BME280_OVERSAMPLING_4X=3,		
+	BME280_OVERSAMPLING_8X=4,		
+	BME280_OVERSAMPLING_16X=5		
+} osrs_type;
+
+typedef enum
+{
+	BME280_SLEEP_MODE=0,		
+	BME280_FORCED_MODE=1,		
+	BME280_NORMAL_MODE=3		
+} mode_type;
+
+typedef enum
+{
+	BME280_STANDBY_TIME_1_MS=0,
+  BME280_STANDBY_TIME_62_5_MS=1,
+	BME280_STANDBY_TIME_125_MS=2,
+	BME280_STANDBY_TIME_250_MS=3,
+	BME280_STANDBY_TIME_500_MS=4,
+	BME280_STANDBY_TIME_1000_MS=5,
+	BME280_STANDBY_TIME_10_MS=6,
+	BME280_STANDBY_TIME_20_MS=7
+} standby_type;
+
+typedef enum
+{
+	BME280_FILTER_COEFF_OFF=0,               
+BME280_FILTER_COEFF_2=1,                 
+BME280_FILTER_COEFF_4=2,
+BME280_FILTER_COEFF_8=3, 
+BME280_FILTER_COEFF_16=4  
+} filter_type;
+ 
 
 
 union {
-uint8_t a[30];
+uint8_t a[50];
 struct{
-uint8_t address;
-uint16_t dig_T1;
- int16_t dig_T2;
- int16_t dig_T3;
-uint16_t dig_P1;
- int16_t dig_P2;
- int16_t dig_P3;
- int16_t dig_P4;
- int16_t dig_P5;
- int16_t dig_P6;
- int16_t dig_P7;
- int16_t dig_P8;
- int16_t dig_P9;
- uint8_t dig_H1;
+ uint8_t address; // 0
+ uint16_t dig_T1; // 2
+ int16_t dig_T2;	// 4
+ int16_t dig_T3;	// 6
+ uint16_t dig_P1;	// 8
+ int16_t dig_P2;	// 10
+ int16_t dig_P3;	// 12
+ int16_t dig_P4;	// 14
+ int16_t dig_P5;	// 16
+ int16_t dig_P6;	// 18
+ int16_t dig_P7;	// 20
+ int16_t dig_P8;	// 22
+ int16_t dig_P9;	// 24
+ uint8_t dig_H1;	// 25
+ //-------------
+ int16_t dig_H2;	// 27
+ uint8_t dig_H3;	// 28
+ int16_t dig_H4;	// 30
+ int16_t dig_H5;	// 32
+ int8_t  dig_H6;	// 33
+ 
+ uint32_t uncomp_hum;		// 37
+ uint32_t uncomp_temp; 	// 41
+ uint32_t uncomp_press; // 45
+ 
+union										// 46
+	{
+		uint8_t config;
+		struct
+		{
+			standby_type	t_sb:3;
+			filter_type	filter:3;
+			uint8_t res_con:1;
+			uint8_t spi3w_en:1;
+		};
+	};
+ 
+union										// 47
+	{
+		uint8_t ctrl_hum;
+		struct
+		{
+			osrs_type osrs_h:3;
+			uint8_t res_hum:5;
+		};
+	};
+ 
+union										// 48
+	{
+		uint8_t ctrl_meas;
+		struct
+		{
+			mode_type mode:2;
+			osrs_type osrs_t:3;
+			osrs_type osrs_p:3;
+		};
+	};
 
  
 };
 }bm;
+//uint8_t a[]={1,2,3,4,5,6,7,8,9,10};
+//i2cTask_t i2c_Task={0,0,0,0,0,0,0,0};
 
-i2cTask_t i2c_Task={0,0,0,0,0,0,0,0};
-
-// Функция передает в начале массив адреса регистра, а затем передает данные.
-void i2c_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
-{
-	while(i2c_Task.Func);
-	i2c_Task.Func=i2cSendSend; // Загрузка функции
-	i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
-	i2c_Task.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
-	i2c_Task.NumSend=NumAddress;// загрузка кол-во байт для передачи
-	i2c_Task.ArrSendReceive=ArraySend; // загрузка указателя массива на данные 
-	i2c_Task.NumSendReceive=NumSend; // загрузка кол-во данных для передачи
-	i2c_Task.CurrentIndex=0;
-	i2c_Task.Error=0;
-	I2C->start=1;  // Генерация старта
-}
-
-void i2c_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
-{
-	while(i2c_Task.Func);
-	i2c_Task.Func=i2cSendReceive; // Загрузка функции
-	switch(NumSend)
-	{
-		case 0:
-			i2c_Task.DeviceAddrRW=(DeviceAddress<<1)|1;//загрузка адреса на передачу
-		break;
-		default:
-			i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса на передачу
-	}
-	
-	i2c_Task.ArraySend=ArrSend; // загрузка указателя на адрес массива
-	i2c_Task.NumSend=NumSend;// загрузка кол-во байт для передачи
-	i2c_Task.ArrSendReceive=ArrReceive; // загрузка указателя массива на данные 
-	i2c_Task.NumSendReceive=NumReceive; // загрузка кол-во данных для передачи
-	i2c_Task.Error=0;
-	I2C->start=1;  // Генерация старта
-}
-
-
-uint8_t a[]={1,2,3,4,5,6,7,8,9,10};
-void i2cHandler(void)
-{
-	i2c_Task.ItEvent=i2cEventGet();
-	switch(i2c_Task.ItEvent)
-	{
-		case I2C_EVENT_MASTER_MODE_SELECT: /*!< BUSY, MSL and SB flag */ 
-		{	
-				switch(i2c_Task.Dir)
-				{
-					case I2C_DIRECTION_TX:
-					{	
-						I2C->DR=i2c_Task.DeviceAddrRW;
-					}
-					break;
-					case I2C_DIRECTION_RX:
-					{
-						switch(i2c_Task.NumSend||i2c_Task.NumSendReceive)
-						{
-							case 0: 
-								I2C->DR=i2c_Task.DeviceAddrRW;
-								I2C->stop=1;
-								break;
-							case 1:
-								I2C->DR=i2c_Task.DeviceAddrRW;
-								I2C->ack=0;
-								break;
-							default:
-								I2C->DR=i2c_Task.DeviceAddrRW;
-								I2C->ack=1;
-								break;
-						}
-					}
-					break;
-				}
-		}
-		break;
-		
-		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED: //!< BUSY, MSL, TRA, ADDR, TXE  				flags 
-		//
-		case I2C_EVENT_MASTER_BYTE_TRANSMITTING:	//!< 				BUSY, MSL, TRA, 			TXE 				flags 
-		//
-		case I2C_EVENT_MASTER_BYTE_TRANSMITTED:	//!< EV8_2: 	BUSY, MSL, TRA, 			TXE and BTF flags 
-		{
-			switch(i2c_Task.Func)
-			{
-				case i2cSendSend:
-				{	
-					switch(i2c_Task.NumSend)
-					{
-						case 0:
-						{	
-							switch(i2c_Task.NumSendReceive)
-							{
-								case 0:
-								{
-									I2C->stop=1;
-									i2c_Task.Func=i2cIdle;
-									i2c_Task.CurrentIndex=0;
-								}
-								break;
-								case 1:
-								{
-									I2C->DR=i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex++];
-									i2c_Task.NumSendReceive--;
-									i2c_Task.CurrentIndex=0;
-								}
-								break;
-								default:
-								{
-									I2C->DR=i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex++];
-									i2c_Task.NumSendReceive--;
-								}
-								break;
-							}
-						}
-						break;
-						case 1:
-						{
-							I2C->DR=i2c_Task.ArraySend[i2c_Task.CurrentIndex++];
-							i2c_Task.NumSend--;
-							i2c_Task.CurrentIndex=0;
-						}
-						break;
-						default:
-						{
-							I2C->DR=i2c_Task.ArraySend[i2c_Task.CurrentIndex++];
-							i2c_Task.NumSend--;
-						}
-						break;
-					}
-				}
-				break;
-				// Обработка функции отправить и принять
-				case i2cSendReceive:
-				{
-					switch(i2c_Task.NumSend)
-					{
-						case 0:
-						{
-							switch(i2c_Task.NumSendReceive)
-							{
-								case 0:
-								{
-									I2C->stop=1;
-									i2c_Task.Func=i2cIdle;
-									i2c_Task.CurrentIndex=0;
-								}
-								break;
-								default:
-								{
-									i2c_Task.Dir=I2C_DIRECTION_RX;
-									I2C->start=1;  // Генерация старта
-								}
-							}
-						}
-						break;
-						case 1:
-						{
-							I2C->DR=i2c_Task.ArraySend[i2c_Task.CurrentIndex++];
-							i2c_Task.NumSend--;
-							i2c_Task.CurrentIndex=0;
-						}
-						break;
-						default:
-						I2C->DR=i2c_Task.ArraySend[i2c_Task.CurrentIndex++];
-						i2c_Task.NumSend--;
-					}
-				}
-				break;
-			};
-		}
-		break;
-		
-		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	/*!< BUSY, MSL and ADDR						flags */
-		{
-			switch(i2c_Task.NumSendReceive)
-			{
-				case 1:
-				I2C->ack=0;
-				break;
-				default:
-				I2C->ack=1;
-			}
-		}
-		break;
-		
-		case I2C_EVENT_MASTER_BYTE_RECEIVED:					/*!< BUSY, MSL and 			RXNE 			flags */
-		case I2C_EVENT_MASTER_2_BYTE_RECEIVED:				/*!< BUSY, MSL and 			RXNE BTF 	flags */
-		{
-			//i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex++]=I2C->DR;
-			//i2c_Task.NumSendReceive--;
-
-			switch(i2c_Task.NumSendReceive)
-			{
-				
-				case 1:
-				{
-					i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex]=I2C->DR;
-					i2c_Task.NumSendReceive--;
-					i2c_Task.Func=i2cIdle;
-					i2c_Task.CurrentIndex=0;
-				}
-				break;
-				case 2:
-				{
-					i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex++]=I2C->DR;
-					i2c_Task.NumSendReceive--;
-					I2C->ack=0;
-					I2C->stop=1;
-					
-				}
-				break;
-				default:
-				{
-					i2c_Task.ArrSendReceive[i2c_Task.CurrentIndex++]=I2C->DR;
-					i2c_Task.NumSendReceive--;
-					I2C->ack=1;
-					
-				}
-				break;
-			}
-		}
-		break;
-		case I2C_EVENT_SLAVE_ACK_FAILURE:
-		{
-			I2C->stop=1;
-			i2c_Task.Func=i2cIdle;
-			i2c_Task.Error=I2C->SR2; 
-			I2C->SR2=0;
-		}
-		break;
-	}			
-}
-//uint8_t a[]={1,2,3,4,5,6,7,8,9,10};]
 
 
 void Task(void)
@@ -304,15 +154,30 @@ void Task(void)
 	uint8_t i,temp;
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	//Lcdi2cInit(&lcd1, 0b0111111);
-	// Lcdi2cPrint(&lcd1, st);
-	I2C_MasterInit(100000);	
-	i2c_MasterSendSend(0b0111111, a, 2, a+3, 4);
-	i2c_MasterSendReceive(0b0111111, a, 2, a+5, 3);
-	//bm.a[0]=0x88;
-	//bm.a[0]=0xD0;
-	//i2c_MasterSendReceive(0b1110110, bm.a, 1, bm.a+1, 8);
-	/*
+	//Lcdi2cPrint(&lcd1, st);
+	//LcdCursorRight(&lcd1);
+	//LcdDisplayLeft(&lcd1);
+	
+	
+	I2C_Init_7bit(100000);
+	//I2C_MasterSendSend(0b0111111, a, 1, a+4, 3);
+	//I2C_MasterSendReceive(0b0111111, a, 0, a+1, 4);
+	bm.a[0]=0x88;
+	I2C_MasterSendReceive(0b1110110, bm.a, 1, bm.a+1, 24);
 	while(i2cCheckStatusTransfer());
+	bm.a[0]=0xA1;
+	I2C_MasterSendReceive(0b1110110, bm.a, 1, bm.a+25, 1);
+	while(i2cCheckStatusTransfer());
+	bm.a[0]=0xE1;
+	I2C_MasterSendReceive(0b1110110, bm.a, 1, bm.a+26, 5);
+	while(i2cCheckStatusTransfer());
+	
+	bm.a[0]=0xE5;
+	I2C_MasterSendReceive(0b1110110, bm.a, 1, bm.a+31, 3);
+	while(i2cCheckStatusTransfer());
+	
+	
+	
 	
 	for(i=1;i<24;i=i+2)
 	{
@@ -320,7 +185,36 @@ void Task(void)
 		bm.a[i]=bm.a[i+1];
 		bm.a[i+1]=temp;
 	}
-	*/
+		i=27;
+		temp=bm.a[i];
+		bm.a[i]=bm.a[i+1];
+		bm.a[i+1]=temp;
+	
+	bm.a[30]=bm.a[30]<<4;
+	bm.dig_H4=bm.dig_H4>>4;
+	bm.a[31]=bm.a[31]>>4;
+	bm.dig_H5=bm.dig_H5<<4;
+	
+	
+	bm.t_sb=BME280_STANDBY_TIME_250_MS;
+	bm.filter=BME280_FILTER_COEFF_8;
+	bm.ctrl_hum=BME280_OVERSAMPLING_2X;
+	bm.osrs_t=BME280_OVERSAMPLING_4X;
+	bm.osrs_p=BME280_OVERSAMPLING_16X;
+	bm.mode=BME280_NORMAL_MODE;
+	// Отправка времени и фильтра
+	bm.a[0]=0xF5;
+	I2C_MasterSendSend(0b1110110, bm.a, 1, bm.a+46, 1);
+	while(i2cCheckStatusTransfer());
+	// Отправка настройки влажности
+	bm.a[0]=0xF2;
+	I2C_MasterSendSend(0b1110110, bm.a, 1, bm.a+47, 1);
+	while(i2cCheckStatusTransfer());
+	// Отправка настроки температуры и давления и режима работы
+	bm.a[0]=0xF4;
+	I2C_MasterSendSend(0b1110110, bm.a, 1, bm.a+48, 1);
+	while(i2cCheckStatusTransfer());
+	
 	while(1)
 	{
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);

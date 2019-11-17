@@ -475,59 +475,9 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
 //	uint8_t d;
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
-  i2cHandler();
-	
-	/* In order to detect unexpected events during development,
-     it is recommended to set a breakpoint on the following instruction.
-  */
-	/*
-	I2C_Event_TypeDef kod;
-	kod=i2cEventGet();
-	switch (kod)
-	{	
-		// Мастер
-		// отправлен старт, передача адреса
-		case I2C_EVENT_MASTER_MODE_SELECT:
-			i2cSendAddress();
-			break;
-		// отправка 1 байта после адреса
-		case I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED:
-		//
-		case I2C_EVENT_MASTER_BYTE_TRANSMITTING:
-		//
-		case I2C_EVENT_MASTER_BYTE_TRANSMITTED:
-			switch(i2cFuncCheck())
-			{
-				case i2cSend:
-					i2cFuncSend();
-					break;
-				case i2cSendSend:
-					i2cFuncSendSend();
-					break;
-				case i2cSendReceive:
-					i2cFuncSendReceive();
-					break;
-			}
-			break;	
-		//---------------------------------
-		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:
-			 i2cFuncAddressSendReceive();
-			break;
-		case 0x344:
-		case 0x40:
-		case 0x44:
-		case I2C_EVENT_MASTER_BYTE_RECEIVED:
-				i2cFuncReceive();
-			break;
-		
-		// Ведомый не прислал подтверждения
-		case I2C_EVENT_SLAVE_ACK_FAILURE:
-		//i2cStateSet(I2C_IDLE);
-		I2C_ClearITPendingBit(I2C_ITPENDINGBIT_TRANSFERFINISHED);
-		I2C_GenerateSTOP();
-		break;
-	}
-	kod=i2cEventGet();*/
+	#ifdef __STM8S_I2C_H 
+	i2cHandler();
+	#endif
 }
 
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)

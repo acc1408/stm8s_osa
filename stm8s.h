@@ -252,14 +252,13 @@ typedef union{
 	};
 } bit8_t;
 typedef union{
-	uint16_t byte;
+	uint16_t byte16;
 	struct
 	{
-		uint16_t a:10;
-		uint16_t c:6;
-		
+		uint8_t bytehigh;
+		uint8_t bytelow;
 	};
-} test_t;
+} byte16_t;
 
 
 #define U8_MAX     (255)
@@ -1466,22 +1465,21 @@ typedef struct I2C_struct
 	{
 		__IO uint8_t CCRL;      /*!< I2C clock control register low */
 	
-		__IO uint16_t ccr7_0; 	/*!< I2C clock control register low */
+		__IO uint8_t ccr7_0; 	/*!< I2C clock control register low */
 		
 	};
 	
+	
 	union
 	{
+		__IO uint8_t CCRH;      /*!< I2C clock control register high */
+		
 		struct
 		{
-			__IO uint8_t CCRH;      /*!< I2C clock control register high */
-		};
-		struct
-		{
-			__IO uint16_t ccr11_8:4; // clock control in Master mode
-			__IO uint16_t reserv_ccrh:2;
-			__IO uint16_t duty:1; // 0: tlow/thigh=2; 1:tlow/thigh=16/9 
-			__IO uint16_t fs:1; // mode standard=0 fast=1
+			__IO uint8_t ccr11_8:4; // clock control in Master mode
+			__IO uint8_t reserv_ccrh:2;
+			__IO uint8_t duty:1; // 0: tlow/thigh=2/1; 1:tlow/thigh=16/9 
+			__IO uint8_t fs:1; // mode standard=0 fast=1
 		};
 	};
 	

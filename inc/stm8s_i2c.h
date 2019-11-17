@@ -379,18 +379,17 @@ typedef struct
 typedef struct
 {
 i2cFunc_t Func;
-
-union{
-I2C_Event_TypeDef ItEvent;
-I2C_EventBit_t 		ItEventBit;
+union
+{
+	I2C_Event_TypeDef ItEvent;
+	I2C_EventBit_t 		ItEventBit;
 };
-
 union
 {
 		uint8_t	DeviceAddrRW;
 	struct
 	{	
-		I2C_Direction_TypeDef Dir:1;
+		uint8_t Dir:1;
 		uint8_t	DeviceAddr:7;
 	};
 };
@@ -399,7 +398,6 @@ union
 	uint8_t Error;
 	i2c_sr2bit_t	ErrorBit;
 };
-
 uint8_t *ArraySend;
 uint8_t NumSend;
 uint8_t *ArrSendReceive; 
@@ -407,7 +405,17 @@ uint8_t NumSendReceive;
 uint8_t CurrentIndex;
 }i2cTask_t;
 
-
+typedef union
+	{
+		uint8_t ccrh;      /*!< I2C clock control register high */
+		struct
+		{
+			uint8_t ccr11_8:4; // clock control in Master mode
+			uint8_t reserv_ccrh:2;
+			uint8_t duty:1; // 0: tlow/thigh=2/1; 1:tlow/thigh=16/9 
+			uint8_t fs:1; // mode standard=0 fast=1
+		};
+	}CCRH_t;
 /* Exported constants --------------------------------------------------------*/
 /** @addtogroup I2C_Exported_Constants
   * @{
@@ -584,51 +592,34 @@ uint8_t CurrentIndex;
 
 void I2C_DeInit(void);
 
-void I2C_MasterInit(uint32_t OutputClockFrequencyHz);
-void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress, 
-              I2C_DutyCycle_TypeDef I2C_DutyCycle, I2C_Ack_TypeDef Ack, 
-              I2C_AddMode_TypeDef AddMode, uint8_t InputClockFrequencyMHz );
+void I2C_Init_7bit(uint32_t OutputClockFrequencyHz);
+							
 void I2C_Cmd(FunctionalState NewState);
 void I2C_GeneralCallCmd(FunctionalState NewState);
 void I2C_ITConfig(I2C_IT_TypeDef I2C_IT, FunctionalState NewState);
-// Функция передает массив ArraySend длиной NumSend по адресу DeviceAddress
-void i2cMasterSend(uint8_t DeviceAddress,uint8_t *ArraySend, uint8_t NumSend);
+
 // Функция передает в начале массив адреса регистра, а затем передает данные.
-void i2cMasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend);
-// Функция считывает данные в массив *ArrReceive количеством NumReceive по адресу DeviceAddress
-void i2cMasterReceive(uint8_t DeviceAddress, uint8_t *ArrReceive, uint8_t NumReceive);
+void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend);
+
 // Функция отправляет в начале массив *ArrSend в количестве NumSend, затем считывает в массив *ArrReceive в количестве NumReceive
-void i2cMasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive);
+void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive);
 // Фукнция показывающая идет ли прием или передача данных,
 // Если передачи или приема нет, тогда результат функции 0
+// Ожидание окончания передачи или приема 
+// while(i2cCheckStatusTransfer());
 i2cFunc_t i2cCheckStatusTransfer(void);
+// Проверка ошибки передачи или приема
+// Если ошибок передачи не было, то результат функции 0
+uint8_t i2cCheckErrorTransfer(void);
 // System function
-// Если все байты получены и переданы, то результат Success иначе 
-ErrorStatus i2cCheckStatusSendRecieve(void);
-// void I2C_GenerateSTART(FunctionalState NewState);
-// void I2C_GenerateSTOP(FunctionalState NewState);
-void I2C_SoftwareResetCmd(FunctionalState NewState);
+void I2C_SoftwareResetCmd(void);
 void I2C_StretchClockCmd(FunctionalState NewState);
-void I2C_AcknowledgeConfig(I2C_Ack_TypeDef Ack);
 void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle);
 
-uint8_t I2C_ReceiveData(void);
-void I2C_Send7bitAddress(uint8_t Address, I2C_Direction_TypeDef Direction);
-void I2C_SendData(uint8_t Data);
+void i2cHandler(void);
+
 //----------------------------------------------------------
-// Function for Interrupt
-void I2C_GenerateSTART(void);
-void I2C_GenerateSTOP(void);
-void i2cSendAddress(void);
-ErrorStatus i2cNumSendCheck(void);
-i2cFunc_t i2cFuncCheck(void);
-void i2cFuncSendSend(void);
-void i2cFuncSend(void);
-I2C_Event_TypeDef i2cEventGet(void);
-void i2cFuncReceive(void);
-void i2cFuncAddressSendReceive(void);
-void i2cFuncSendReceive(void);
-void i2cTaskReset(void);
+
 
 /**
  * @brief
