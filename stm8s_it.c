@@ -124,6 +124,9 @@
 #ifdef __STM8S_BUTTON_H
 #include "src/stm8s_button.c"
 #endif
+#ifdef __STM8S_BME280_H
+#include "src/stm8s_bme280.c"
+#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/

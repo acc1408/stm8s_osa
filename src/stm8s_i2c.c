@@ -122,7 +122,7 @@ void I2C_Init_7bit(uint32_t OutputClockFrequencyHz)
 
   /*--------------------------- I2C CCR Configuration ------------------------*/
   /* Disable I2C to configure TRISER */
-  //I2C->pe= (uint8_t)0;
+  I2C->pe= (uint8_t)0;
   /* Detect Fast or Standard mode depending on the Output clock frequency selected */
 	if (OutputClockFrequencyHz > I2C_MAX_STANDARD_FREQ) /* FAST MODE */
   {
