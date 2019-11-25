@@ -517,14 +517,15 @@ void i2cHandler(void)
 			}
 		}
 		break;
-		case I2C_EVENT_SLAVE_ACK_FAILURE:
+		//case I2C_EVENT_SLAVE_ACK_FAILURE:
+		default:
 		{
 			I2C->stop=1;
 			i2c_Task.Func=i2cIdle;
 			i2c_Task.Error=I2C->SR2; 
 			I2C->SR2=0;
 		}
-		break;
+		//break;
 	}			
 }
 
