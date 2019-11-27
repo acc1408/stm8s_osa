@@ -301,6 +301,12 @@ void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle)
 // Функция передает в начале массив адреса регистра, а затем передает данные.
 void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
+	byte16_t evt;
+	evt.bytelow = I2C->SR1;
+	evt.bytehigh = I2C->SR3;
+	i2c_Task.ItEvent=evt.byte16;
+	i2c_Task.Error=I2C->SR2;
+	
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendSend; // Загрузка функции
 	i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
@@ -316,6 +322,12 @@ void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t Nu
 
 void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
 {
+	byte16_t evt;
+	evt.bytelow = I2C->SR1;
+	evt.bytehigh = I2C->SR3;
+	i2c_Task.ItEvent=evt.byte16;
+	i2c_Task.Error=I2C->SR2;
+	
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendReceive; // Загрузка функции
 	switch(NumSend)
@@ -339,7 +351,13 @@ void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumS
 
 void i2cHandler(void)
 {
-	i2c_Task.ItEvent=I2C_GetLastEvent();
+	
+	//i2c_Task.ItEvent=I2C_GetLastEvent();
+	byte16_t evt;
+	evt.bytelow = I2C->SR1;
+	evt.bytehigh = I2C->SR3;
+	i2c_Task.ItEvent=evt.byte16;
+	i2c_Task.Error=I2C->SR2;
 	switch(i2c_Task.ItEvent)
 	{
 		case I2C_EVENT_MASTER_MODE_SELECT: /*!< BUSY, MSL and SB flag */ 
@@ -518,6 +536,14 @@ void i2cHandler(void)
 		}
 		break;
 		//case I2C_EVENT_SLAVE_ACK_FAILURE:
+		case I2C_RXNE_FLAG: // rxne flag
+			I2C->rxne=0;
+		break;
+		case I2C_START_FLAG: // start flag
+			I2C->sb=0;
+		break;
+		
+		
 		default:
 		{
 			I2C->stop=1;
@@ -632,19 +658,20 @@ void i2cHandler(void)
 I2C_Event_TypeDef I2C_GetLastEvent(void)
 {
   __IO uint16_t lastevent = 0;
-  uint16_t flag1 = 0;
+ 
+ uint16_t flag1 = 0;
   uint16_t flag2 = 0;
-
+	/*
   if ((I2C->SR2 & I2C_SR2_AF) != 0x00)
   {
     lastevent = I2C_EVENT_SLAVE_ACK_FAILURE;
   }
   else
-  {
+ */
+	{
     /* Read the I2C status register */
-    flag1 = I2C->SR1;
+		flag1 = I2C->SR1;
     flag2 = I2C->SR3;
-
     /* Get the last event value from I2C status register */
     lastevent = ((uint16_t)((uint16_t)flag2 << 8) | (uint16_t)flag1);
   }

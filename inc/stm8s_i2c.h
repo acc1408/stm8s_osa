@@ -349,7 +349,10 @@ typedef enum
   I2C_EVENT_SLAVE_BYTE_TRANSMITTED           = (uint16_t)0x0684,  /*!< TRA, BUSY, TXE and BTF flags */
   I2C_EVENT_SLAVE_BYTE_TRANSMITTING          = (uint16_t)0x0680,  /*!< TRA, BUSY and TXE flags */
   /* --EV3_2 */
-  I2C_EVENT_SLAVE_ACK_FAILURE                = (uint16_t)0x0004  /*!< AF flag */
+  //I2C_EVENT_SLAVE_ACK_FAILURE                = (uint16_t)0x0004,  /*!< AF flag */
+	I2C_BUS_BUSY															=(uint16_t)0x0200, // BUSY flags
+	I2C_START_FLAG														=(uint16_t)0x0001, // START flags
+	I2C_RXNE_FLAG															=(uint16_t)0x0040 // RXNE flags
 } I2C_Event_TypeDef;
 
 /**
