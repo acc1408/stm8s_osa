@@ -157,12 +157,11 @@ uint8_t BME280_Init(	bme280_t *bme, 			// структура содержащая все значения
 									bme280_osrs_t Humidity, //Влажности
 									bme280_filter_t Filter, // Фильтр
 									bme280_standby_t StandBy, // время между измерениями
-									bme280_mode_t Mode,				// Режим работы
-									FunctionalState spi3w_en // Включение 3 проводного интерфейса
+									bme280_mode_t Mode				// Режим работы
 									);
 // Старт однократного или многократных преобразований
 // Результат функции время преобразования в ms
-uint8_t BME280_StartStop(bme280_t *bme, bme280_mode_t mode);
+uint16_t BME280_StartStop(bme280_t *bme, bme280_mode_t mode);
 // Получить данные измерения
 uint8_t BME280_GetMeasurement(bme280_t *bme);
 // Вычислить Температуру
