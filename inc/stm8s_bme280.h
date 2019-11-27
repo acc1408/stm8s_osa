@@ -16,8 +16,7 @@
 //						BME280_OVERSAMPLING_16X,
 //						BME280_FILTER_COEFF_8,
 //						BME280_STANDBY_TIME_250_MS,
-//						BME280_NORMAL_MODE,
-//						DISABLE
+//						BME280_NORMAL_MODE
 //						);
 // Запрос на чтение регистров из датчика
 // BME280_GetMeasurement(&bm);
@@ -64,10 +63,10 @@ typedef enum
 typedef enum
 {
 	BME280_FILTER_COEFF_OFF=0,               
-BME280_FILTER_COEFF_2=1,                 
-BME280_FILTER_COEFF_4=2,
-BME280_FILTER_COEFF_8=3, 
-BME280_FILTER_COEFF_16=4  
+	BME280_FILTER_COEFF_2=1,                 
+	BME280_FILTER_COEFF_4=2,
+	BME280_FILTER_COEFF_8=3, 
+	BME280_FILTER_COEFF_16=4  
 } bme280_filter_t;
  
 
