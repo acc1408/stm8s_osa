@@ -301,12 +301,7 @@ void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle)
 // Функция передает в начале массив адреса регистра, а затем передает данные.
 void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
-	//byte16_t evt;
-	//evt.bytelow = I2C->SR1;
-	//evt.bytehigh = I2C->SR3;
-	//i2c_Task.ItEvent=evt.byte16;
-	//i2c_Task.Error=I2C->SR2;
-	
+
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendSend; // Загрузка функции
 	i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
@@ -322,11 +317,7 @@ void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t Nu
 
 void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
 {
-	//byte16_t evt;
-	//evt.bytelow = I2C->SR1;
-	//evt.bytehigh = I2C->SR3;
-	//i2c_Task.ItEvent=evt.byte16;
-	//i2c_Task.Error=I2C->SR2;
+
 	
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendReceive; // Загрузка функции
@@ -674,6 +665,7 @@ void i2cHandler(void)
 	/*
 I2C_Event_TypeDef I2C_GetLastEvent(void)
 {
+<<<<<<< HEAD
   __IO uint16_t lastevent = 0;
  
  uint16_t flag1 = 0;
@@ -695,6 +687,13 @@ I2C_Event_TypeDef I2C_GetLastEvent(void)
   }
   // Return status 
   return (I2C_Event_TypeDef)lastevent;
+=======
+  byte16_t evt;
+	evt.bytelow = I2C->SR1;
+	evt.bytehigh = I2C->SR3;
+  Return status 
+  return (I2C_Event_TypeDef)evt.byte16;
+>>>>>>> 8f48970bcb2974f538705e863d351115a376a7c6
 }
 
 */

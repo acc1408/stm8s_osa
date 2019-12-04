@@ -11,7 +11,6 @@ uint8_t BME280_Init(bme280_t *bme,
 									bme280_filter_t Filter,
 									bme280_standby_t StandBy,
 									bme280_mode_t Mode
-									
 									)
 {
 	uint8_t i,temp;
@@ -22,9 +21,10 @@ uint8_t BME280_Init(bme280_t *bme,
 	bme->filter=Filter;
 	bme->t_sb=StandBy;
 	//bme->spi3w_en=spi3w_en;
-	if (Temperature==0) bme->osrs_t=BME280_OVERSAMPLING_16X; 
+
+	if (Temperature==BME280_NO_OVERSAMPLING) bme->osrs_t=BME280_OVERSAMPLING_16X; 
 	// Отправка настроки температуры и давления и режима работы
-	//mode=
+
 	bme->mode=BME280_SLEEP_MODE; // Остановка режима измерения
 	bme->a[0]=0xF4;
 	I2C_MasterSendSend(I2Caddress, bme->a, 1, bme->a+48, 1);
@@ -100,19 +100,52 @@ uint16_t BME280_T_oversample(bme280_osrs_t t)
 	}
 }
 
-uint8_t BME280_StartStop(bme280_t *bme, bme280_mode_t mode)
+
+
+uint16_t BME280_StartStop(bme280_t *bme, bme280_mode_t mode)
 {
 	uint16_t time;
 	bme->mode=mode;
 	// Отправка настройки температуры и давления и режима работы
 	bme->a[0]=0xF4;
 	I2C_MasterSendSend(bme->i2c_address, bme->a, 1, bme->a+48, 1);
-	while(i2cCheckStatusTransfer());
 	time =31+23*(BME280_T_oversample(bme->osrs_t)+
 		BME280_T_oversample(bme->osrs_p)+
 		BME280_T_oversample(bme->osrs_h));
 	time=time/10+1;
-	return (uint8_t)time;
+	if (bme->mode=BME280_NORMAL_MODE)
+	{
+		switch(bme->t_sb)
+		{
+			case BME280_STANDBY_TIME_1_MS:
+			time++;
+			break;
+			case BME280_STANDBY_TIME_10_MS:
+			time+=10;
+			break;
+			case BME280_STANDBY_TIME_20_MS:
+			time+=20;
+			break;
+			case BME280_STANDBY_TIME_62_5_MS:
+			time+=63;
+			break;
+			case BME280_STANDBY_TIME_125_MS:
+			time+=125;
+			break;
+			case BME280_STANDBY_TIME_250_MS:
+			time+=250;
+			break;
+			case BME280_STANDBY_TIME_500_MS:
+			time+=500;
+			break;
+			case BME280_STANDBY_TIME_1000_MS:
+			time+=1000;
+			break;
+		}
+	}
+	
+	while(i2cCheckStatusTransfer());
+	return time;
 }
 
 uint8_t BME280_GetMeasurement(bme280_t *bme)
