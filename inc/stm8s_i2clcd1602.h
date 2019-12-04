@@ -10,6 +10,24 @@
 #ifndef __STM8S_I2CLCD1602_H
 #define __STM8S_I2CLCD1602_H
 
+
+
+/*
+// Объявление стуктуры экрана
+SetLCD_t 1lcd;
+// Пример инициализации
+Lcdi2cInit(&lcd1, 0b0111111, 
+								ENABLE,
+								DISABLE,
+								ENABLE);
+// Перемещение курсора по экрану
+CursorGoTo(&lcd1, 1, 0);
+// Форматирование строки
+sprintf(st,"Press=%d%03d Pa", a,b);
+// Печать строки
+Lcdi2cPrint(&lcd1, st);
+*/
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
 #include "inc/stm8s_delay.h"
@@ -75,7 +93,11 @@ union{
 };
 }SetLCD_t;				
 
-void Lcdi2cInit(SetLCD_t *lcd, uint8_t Address);
+void Lcdi2cInit(SetLCD_t *lcd, // Структура
+								uint8_t Address, // Адрес
+								FunctionalState Backlight, // Подсветка
+								FunctionalState BlinkOnOff, // Мигание
+								FunctionalState CursorOnOff); // Курсор
 void LcdSendByte(SetLCD_t *lcd, LcdDataCom_t data1_com0,uint8_t data);
 void Lcdi2cPrint(SetLCD_t *lcd, char *st);
 void LcdWriteUserChar(SetLCD_t *lcd, uint8_t kod, uint8_t *st);
@@ -84,7 +106,10 @@ void LcdCursorLeft(SetLCD_t *lcd);
 void LcdCursorRight(SetLCD_t *lcd);
 void LcdDisplayLeft(SetLCD_t *lcd);
 void LcdDisplayRight(SetLCD_t *lcd);
+// перемещение курсора по строке
 void LcdCursorSet(SetLCD_t *lcd, uint8_t num);
-// Указать курсор
+// Перемещение курсора по координатам x=0..3 y=0..19
+void CursorGoTo(SetLCD_t *lcd, uint8_t row, uint8_t column);
+
 
 #endif 

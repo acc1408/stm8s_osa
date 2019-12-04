@@ -10,8 +10,8 @@ uint8_t BME280_Init(bme280_t *bme,
 									bme280_osrs_t Humidity,
 									bme280_filter_t Filter,
 									bme280_standby_t StandBy,
-									bme280_mode_t Mode,
-									FunctionalState spi3w_en
+									bme280_mode_t Mode
+									
 									)
 {
 	uint8_t i,temp;
@@ -21,7 +21,7 @@ uint8_t BME280_Init(bme280_t *bme,
 	bme->ctrl_hum=Humidity;
 	bme->filter=Filter;
 	bme->t_sb=StandBy;
-	bme->spi3w_en=spi3w_en;
+	//bme->spi3w_en=spi3w_en;
 	if (Temperature==0) bme->osrs_t=BME280_OVERSAMPLING_16X; 
 	// Отправка настроки температуры и давления и режима работы
 	//mode=

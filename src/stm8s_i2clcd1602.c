@@ -30,47 +30,77 @@ void LcdSendByte(SetLCD_t *lcd, LcdDataCom_t data1_com0,uint8_t data)
 	lcd->bit[2].db4=data;
 	lcd->data[3]=lcd->data[2];
 	lcd->bit[3].e=0;
-	I2C_MasterSendSend(lcd->Address, lcd->data, 4,lcd->data, 0);
-	delay_ms(40);
+	I2C_MasterSendSend(lcd->Address, lcd->data, 4,lcd->data,0); 
+	delay_us(40);
 }
+
 void Lcdi2cPrint(SetLCD_t *lcd, char *st)
 {
 	
 	while(*st)
 	{
 		LcdSendByte(lcd,1,*st++);
-		
 	}
 }
 
 void LcdCursorLeft(SetLCD_t *lcd)
 {
 	LcdSendByte(lcd, LcdCom, 0b10000);
-	delay_ms(40);
+	//delay_ms(40);
 }
 void LcdCursorRight(SetLCD_t *lcd)
 {
 	LcdSendByte(lcd, LcdCom, 0b10100);
-	delay_ms(40);
+	//delay_ms(40);
 }
 
 void LcdCursorSet(SetLCD_t *lcd, uint8_t num)
 {
 	num&=0b01111111;
+	switch(num/40)
+	{
+		case 0:
+		case 2:
+		num=num%40;
+		break;
+		case 1:
+		case 3:
+		num=num%40;
+		num|=0b01000000;
+		break;
+	}
 	num|=0b10000000;
 	LcdSendByte(lcd, LcdCom, num);
-	delay_ms(40);
+	//delay_ms(40);
+}
+
+void CursorGoTo(SetLCD_t *lcd, uint8_t x, uint8_t y)
+{
+uint8_t data=(1<<7);
+switch(x%4)
+{
+case 0: data|=y%20;
+		break;
+case 1: data|=y%20+0x40;
+		break;
+case 2: data|=y%20+0x14;
+		break;
+case 3: data|=y%20+0x54;
+		break;
+}
+LcdSendByte(lcd, LcdCom, data);
+	//delay_ms(40);
 }
 
 void LcdDisplayLeft(SetLCD_t *lcd)
 {
 	LcdSendByte(lcd, LcdCom, 0b11000);
-	delay_ms(40);
+	//delay_ms(40);
 }
 void LcdDisplayRight(SetLCD_t *lcd)
 {
 	LcdSendByte(lcd, LcdCom, 0b11100);
-	delay_ms(40);
+	//delay_ms(40);
 }
 
 void LcdWriteUserChar(SetLCD_t *lcd, uint8_t kod, uint8_t *st)
@@ -84,21 +114,25 @@ void LcdWriteUserChar(SetLCD_t *lcd, uint8_t kod, uint8_t *st)
 }
 
 
-void Lcdi2cInit(SetLCD_t *lcd, uint8_t Address)
+void Lcdi2cInit(SetLCD_t *lcd, 
+								uint8_t Address, 
+								FunctionalState Backlight,
+								FunctionalState BlinkOnOff,
+								FunctionalState CursorOnOff)
 {
-	I2C_Init_7bit(100000);
-	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
-	I2C_Cmd(ENABLE);						
+	//I2C_Init_7bit(100000);
+	//I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
+	//I2C_Cmd(ENABLE);						
 	
 	Init_Delay();
 	
 	lcd->Address=Address;
-	lcd->Backlight=ENABLE;
+	lcd->Backlight=Backlight;
 	lcd->ID_cursorShiftRightLeft=LcdAddOne;
 	lcd->S_ScreenShiftOnOff=DISABLE;
 	//---------------
-	lcd->B_BlinkOnOff=ENABLE;
-	lcd->C_CursorOnOff=DISABLE;
+	lcd->B_BlinkOnOff=BlinkOnOff;
+	lcd->C_CursorOnOff=CursorOnOff;
 	lcd->D_DisplayOnOff=ENABLE;
 	lcd->F_font=LcdFont5x8;
 	lcd->N_lines=LcdLine2;

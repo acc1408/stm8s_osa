@@ -618,9 +618,9 @@ uint8_t i2cCheckErrorTransfer(void);
 void I2C_SoftwareResetCmd(void);
 void I2C_StretchClockCmd(FunctionalState NewState);
 void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle);
-
+/*
 void i2cHandler(void);
-
+*/
 //----------------------------------------------------------
 
 
@@ -718,7 +718,7 @@ I2C_Event_TypeDef I2C_GetLastEvent(void);
  *  3) Flag-based state monitoring
  *******************************************************************************
  */
-FlagStatus I2C_GetFlagStatus(I2C_Flag_TypeDef I2C_Flag);
+//FlagStatus I2C_GetFlagStatus(I2C_Flag_TypeDef I2C_Flag);
 /**
  *
  *******************************************************************************

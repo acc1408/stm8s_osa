@@ -301,11 +301,11 @@ void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle)
 // Функция передает в начале массив адреса регистра, а затем передает данные.
 void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
-	byte16_t evt;
-	evt.bytelow = I2C->SR1;
-	evt.bytehigh = I2C->SR3;
-	i2c_Task.ItEvent=evt.byte16;
-	i2c_Task.Error=I2C->SR2;
+	//byte16_t evt;
+	//evt.bytelow = I2C->SR1;
+	//evt.bytehigh = I2C->SR3;
+	//i2c_Task.ItEvent=evt.byte16;
+	//i2c_Task.Error=I2C->SR2;
 	
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendSend; // Загрузка функции
@@ -322,11 +322,11 @@ void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t Nu
 
 void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive)
 {
-	byte16_t evt;
-	evt.bytelow = I2C->SR1;
-	evt.bytehigh = I2C->SR3;
-	i2c_Task.ItEvent=evt.byte16;
-	i2c_Task.Error=I2C->SR2;
+	//byte16_t evt;
+	//evt.bytelow = I2C->SR1;
+	//evt.bytehigh = I2C->SR3;
+	//i2c_Task.ItEvent=evt.byte16;
+	//i2c_Task.Error=I2C->SR2;
 	
 	while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendReceive; // Загрузка функции
@@ -348,7 +348,7 @@ void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumS
 }
 
 
-
+/*
 void i2cHandler(void)
 {
 	
@@ -358,9 +358,14 @@ void i2cHandler(void)
 	evt.bytehigh = I2C->SR3;
 	i2c_Task.ItEvent=evt.byte16;
 	i2c_Task.Error=I2C->SR2;
+	switch(i2c_Task.Error)
+	{
+		case 0:
+	
 	switch(i2c_Task.ItEvent)
 	{
-		case I2C_EVENT_MASTER_MODE_SELECT: /*!< BUSY, MSL and SB flag */ 
+		//case I2C_START_FLAG:
+		case I2C_EVENT_MASTER_MODE_SELECT: // < BUSY, MSL and SB flag  
 		{	
 				switch(i2c_Task.Dir)
 				{
@@ -489,7 +494,7 @@ void i2cHandler(void)
 		}
 		break;
 		
-		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	/*!< BUSY, MSL and ADDR						flags */
+		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//< BUSY, MSL and ADDR						flags 
 		{
 			switch(i2c_Task.NumSendReceive)
 			{
@@ -503,8 +508,8 @@ void i2cHandler(void)
 		}
 		break;
 		
-		case I2C_EVENT_MASTER_BYTE_RECEIVED:					/*!< BUSY, MSL and 			RXNE 			flags */
-		case I2C_EVENT_MASTER_2_BYTE_RECEIVED:				/*!< BUSY, MSL and 			RXNE BTF 	flags */
+		case I2C_EVENT_MASTER_BYTE_RECEIVED:					//!< BUSY, MSL and 			RXNE 			flags 
+		case I2C_EVENT_MASTER_2_BYTE_RECEIVED:				//!< BUSY, MSL and 			RXNE BTF 	flags 
 		{
 			switch(i2c_Task.NumSendReceive)
 			{
@@ -539,21 +544,32 @@ void i2cHandler(void)
 		case I2C_RXNE_FLAG: // rxne flag
 			I2C->rxne=0;
 		break;
-		case I2C_START_FLAG: // start flag
-			I2C->sb=0;
-		break;
+		//case I2C_START_FLAG: // start flag
+		//	I2C->sb=0;
+		//break;
 		
 		
-		default:
-		{
+		case 0x300:	//< BUSY, MSL 	flags 
+		{ 
 			I2C->stop=1;
 			i2c_Task.Func=i2cIdle;
 			i2c_Task.Error=I2C->SR2; 
 			I2C->SR2=0;
 		}
-		//break;
-	}			
+		
+		break;
+	}	
+	break;
+	case 0b001: // ERROR BUS
+	case 0b100: // ERROR ASK lost
+			I2C->stop=1;
+			i2c_Task.Func=i2cIdle;
+			i2c_Task.Error=I2C->SR2; 
+			I2C->SR2=0;
+	break;
+	}	
 }
+*/
 
 /**
  * @brief
@@ -655,6 +671,7 @@ void i2cHandler(void)
   * @retval The last event
   *   This parameter can be any of the  @ref I2C_Event_TypeDef enumeration.
   */
+	/*
 I2C_Event_TypeDef I2C_GetLastEvent(void)
 {
   __IO uint16_t lastevent = 0;
@@ -668,18 +685,19 @@ I2C_Event_TypeDef I2C_GetLastEvent(void)
   }
   else
  */
+ /*
 	{
-    /* Read the I2C status register */
+    // Read the I2C status register 
 		flag1 = I2C->SR1;
     flag2 = I2C->SR3;
-    /* Get the last event value from I2C status register */
+    // Get the last event value from I2C status register 
     lastevent = ((uint16_t)((uint16_t)flag2 << 8) | (uint16_t)flag1);
   }
-  /* Return status */
+  // Return status 
   return (I2C_Event_TypeDef)lastevent;
 }
 
-
+*/
 
 i2cFunc_t i2cCheckStatusTransfer(void)
 {

@@ -49,7 +49,7 @@
 // #include "inc/stm8s_rst.h"
 // #include "inc/stm8s_spi.h"  
 // #include "inc/stm8s_tim1.h"
-// #include "inc/stm8s_i2clcd1602.h"
+ #include "inc/stm8s_i2clcd1602.h"
 	#include "inc/stm8s_bme280.h"
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)

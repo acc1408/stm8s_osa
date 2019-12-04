@@ -30,6 +30,7 @@
 
 #include "stm8s.h"
 #include "stm8s_it.c"
+#include  <stdio.h>
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
 
@@ -37,10 +38,9 @@
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-//SetLCD_t lcd1;
+SetLCD_t lcd1;
 
-//const char st[]="Hello world!!!qwertyuiopasdffghjj";
-
+ char st[40]="Test";
 
 bme280_t bm;
 uint32_t pres;
@@ -50,20 +50,24 @@ uint8_t rez;
 
 
 
+
+int16_t a,b;
 void Task(void)
 {
 	uint8_t i,temp;
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	I2C_Init_7bit(100000);
 	//Lcdi2cInit(&lcd1, 0b0111111);
-	//Lcdi2cPrint(&lcd1, st);
+	Lcdi2cInit(&lcd1, 0b0111111, 
+								ENABLE,
+								DISABLE,
+								ENABLE);
+	LcdCursorSet(&lcd1, 0);
+	Lcdi2cPrint(&lcd1, st);
 	//LcdCursorRight(&lcd1);
 	//LcdDisplayLeft(&lcd1);
-	
-	
-	I2C_Init_7bit(100000);
 	//I2C_MasterSendSend(0b0111111, a, 1, a+4, 3);
 	//I2C_MasterSendReceive(0b0111111, a, 0, a+1, 4);
-	
 	
 rez=BME280_Init(&bm, 0b1110110,
 						BME280_OVERSAMPLING_16X,
@@ -71,8 +75,7 @@ rez=BME280_Init(&bm, 0b1110110,
 						BME280_OVERSAMPLING_16X,
 						BME280_FILTER_COEFF_8,
 						BME280_STANDBY_TIME_250_MS,
-						BME280_NORMAL_MODE,
-						DISABLE
+						BME280_NORMAL_MODE
 						);
 	//BME280_Reset(&bm);
 	//BME280_StartStop(&bm, BME280_NORMAL_MODE);
@@ -85,6 +88,22 @@ rez=BME280_Init(&bm, 0b1110110,
 		pres=BME280_compensate_P_int32(&bm);
 		t=BME280_compensate_T_int32(&bm);
 		hum=BME280_compensate_H_int32(&bm);
+		a=t/100;
+		b=t%100;
+		CursorGoTo(&lcd1, 1, 0);
+		sprintf(st,"Temp=%d.%02d C   ", a,b);
+		Lcdi2cPrint(&lcd1, st);
+		a=pres/1000;
+		b=pres%1000;
+		LcdCursorSet(&lcd1, 20);
+		sprintf(st,"Press=%d%03d Pa", a,b);
+		Lcdi2cPrint(&lcd1, st);
+		a=hum/1024;
+		b=hum%1024;
+		if (b>999) b=999;
+		LcdCursorSet(&lcd1, 60);
+		sprintf(st,"Hum=%d.%03d%%   ", a,b);
+		Lcdi2cPrint(&lcd1, st);
 	}
 }
 
