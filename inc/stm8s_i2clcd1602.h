@@ -17,9 +17,9 @@
 SetLCD_t 1lcd;
 // Пример инициализации
 Lcdi2cInit(&lcd1, 0b0111111, 
-								ENABLE,
-								DISABLE,
-								ENABLE);
+								ENABLE, // Backlight
+								DISABLE, // Blink cursor
+								ENABLE); // On/off cursor
 // Перемещение курсора по экрану
 CursorGoTo(&lcd1, 1, 0);
 // Форматирование строки
