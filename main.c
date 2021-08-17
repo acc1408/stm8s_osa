@@ -48,17 +48,6 @@ uint32_t hum;
 int32_t t;
 uint8_t rez;
 
-<<<<<<< HEAD
-bit8_t tst;
-//uint8_t ask, sr1,sr2,sr3;
-//test_t r;
-/*
-i2c_sr1_t sr1;
-i2c_sr2_t sr2;
-i2c_sr3_t sr3;
-*/
-=======
->>>>>>> i2c
 
 
 
@@ -67,20 +56,6 @@ void Task(void)
 {
 	uint8_t i,temp;
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
-<<<<<<< HEAD
-	/*
-	CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
-	I2C_SoftwareResetCmd(ENABLE);
-	I2C_SoftwareResetCmd(DISABLE);
-	I2C_Init(100000, 50, 
-              I2C_DUTYCYCLE_2, I2C_ACK_NONE, 
-              I2C_ADDMODE_7BIT, 16 );
-	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
-	I2C_Cmd(ENABLE);
-
-	I2C_GenerateSTART();
-	*/
-=======
 	I2C_Init_7bit(100000);
 	//Lcdi2cInit(&lcd1, 0b0111111);
 	Lcdi2cInit(&lcd1, 0b0111111, 
@@ -104,14 +79,10 @@ rez=BME280_Init(&bm, 0b1110110,
 						);
 	//BME280_Reset(&bm);
 	//BME280_StartStop(&bm, BME280_NORMAL_MODE);
->>>>>>> i2c
 	while(1)
 	{
 		//BME280_StartStop(&bm, BME280_FORCED_MODE);
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-<<<<<<< HEAD
-		//OS_Delay(1000);
-=======
 		OS_Delay(200);
 		rez=BME280_GetMeasurement(&bm);
 		pres=BME280_compensate_P_int32(&bm);
@@ -133,7 +104,6 @@ rez=BME280_Init(&bm, 0b1110110,
 		LcdCursorSet(&lcd1, 60);
 		sprintf(st,"Hum=%d.%03d%%   ", a,b);
 		Lcdi2cPrint(&lcd1, st);
->>>>>>> i2c
 	}
 }
 
