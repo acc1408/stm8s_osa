@@ -31,7 +31,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
-
+#include "inc/stm8s_clk.h" // драйвер тактирования
 /* Exported types ------------------------------------------------------------*/
 
 /** @addtogroup I2C_Exported_Types
@@ -87,51 +87,30 @@ typedef enum
   I2C_DIRECTION_RX = (uint8_t)0x01   /*!< Reception direction */
 } I2C_Direction_TypeDef;
 //------------------------
-typedef union
-	{
-		uint8_t sr1;       /*!< I2C status register 1 */
-		struct
-		{
-			uint8_t sb:1; // start bit generation=1
-			uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
-			uint8_t btf:1;	// byte transfer=1
-			uint8_t add10:1; // master has sent header 10-bit=1 address
-			uint8_t stopf:1; //stop detection=1 (slave)
-			uint8_t reserv_sr1:1; // reserved
-			uint8_t rxne:1; //data register not empty=1 (receiver)
-			uint8_t txe:1; // data register empty=1 (transmitters)
-		};
-	}i2c_sr1_t;
+// Показывает какая функция работает
+typedef enum
+{
+	i2cIdle=0,
+	i2cSend=1,
+	i2cSendSend=2,
+	i2cReceive=3,
+	i2cSendReceive=4
+} i2cFunc_t;
 
-typedef union
-	{
-		uint8_t sr2;       /*!< I2C status register 2 */
-		struct
-		{
-			uint8_t berr:1; // buss error=1
-			uint8_t arlo:1; // arbitration lost=1
-			uint8_t af:1; // acknowledge failure=1
-			uint8_t ovr:1; // overrun or underrun=1
-			uint8_t reserv_sr2:1; // reserved
-			uint8_t wufh:1;	// wakeup from Halt=1
-			uint8_t reserv2_sr2:2;// reserved
-		};
-	}i2c_sr2_t;
+
+ /*!< I2C status register 2 */
+typedef  struct
+{
+	uint8_t berr:1; // buss error=1
+	uint8_t arlo:1; // arbitration lost=1
+	uint8_t af:1; // acknowledge failure=1
+	uint8_t ovr:1; // overrun or underrun=1
+	uint8_t reserv_sr2:1; // reserved
+	uint8_t wufh:1;	// wakeup from Halt=1
+	uint8_t reserv2_sr2:2;// reserved
+}i2c_sr2bit_t;
 	
-typedef union
-	{
-	uint8_t sr3;       /*!< I2C status register 3 */
-	struct
-		{
-			uint8_t msl:1; // master=1 / slave=0
-			uint8_t busy:1; //bus busy =1
-			uint8_t tra:1; // transmitter=1/ reciever=0
-			uint8_t reserv_sr3:1; // reserved
-			uint8_t gencall:1;	// generall call header=1 (slave)
-			uint8_t reserv2_sr3:2; // reserved
-			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
-		};
-	}i2c_sr3_t;	
+
 /**
   * @brief  I2C Flags
   * @brief Elements values convention: 0xXXYY
@@ -207,7 +186,10 @@ typedef enum
 
 typedef enum
 {
-  /*========================================
+  
+	// IDLE bus
+	I2C_IDLE =  (uint16_t)0x0000, // IDLE bus
+	/*========================================
 
                        I2C Master Events (Events grouped in order of communication)
                                                           ==========================================*/
@@ -285,10 +267,11 @@ typedef enum
   /* Master RECEIVER mode -----------------------------*/
   /* --EV7 */
   I2C_EVENT_MASTER_BYTE_RECEIVED             = (uint16_t)0x0340,  /*!< BUSY, MSL and RXNE flags */
-
+	I2C_EVENT_MASTER_2_BYTE_RECEIVED           = (uint16_t)0x0344,  /*!< BUSY, MSL and RXNE BTF flags */
   /* Master TRANSMITTER mode --------------------------*/
   /* --EV8 */
-  I2C_EVENT_MASTER_BYTE_TRANSMITTING         = (uint16_t)0x0780,  /*!< TRA, BUSY, MSL, TXE flags */
+  // 
+	I2C_EVENT_MASTER_BYTE_TRANSMITTING         = (uint16_t)0x0780,  /*!< TRA, BUSY, MSL, TXE flags */
   /* --EV8_2 */
 
   I2C_EVENT_MASTER_BYTE_TRANSMITTED          = (uint16_t)0x0784,  /*!< EV8_2: TRA, BUSY, MSL, TXE and BTF flags */
@@ -366,37 +349,76 @@ typedef enum
   I2C_EVENT_SLAVE_BYTE_TRANSMITTED           = (uint16_t)0x0684,  /*!< TRA, BUSY, TXE and BTF flags */
   I2C_EVENT_SLAVE_BYTE_TRANSMITTING          = (uint16_t)0x0680,  /*!< TRA, BUSY and TXE flags */
   /* --EV3_2 */
-  I2C_EVENT_SLAVE_ACK_FAILURE                = (uint16_t)0x0004  /*!< AF flag */
+  //I2C_EVENT_SLAVE_ACK_FAILURE                = (uint16_t)0x0004,  /*!< AF flag */
+	I2C_BUS_BUSY															=(uint16_t)0x0200, // BUSY flags
+	I2C_START_FLAG														=(uint16_t)0x0001, // START flags
+	I2C_RXNE_FLAG															=(uint16_t)0x0040 // RXNE flags
 } I2C_Event_TypeDef;
 
 /**
   * @}
   */
-typedef union
-{
-	I2C_Event_TypeDef event;
-	struct
+typedef struct
 	{
-			uint8_t sb:1; // start bit generation=1
-			uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
-			uint8_t btf:1;	// byte transfer=1
-			uint8_t add10:1; // master has sent header 10-bit=1 address
-			uint8_t stopf:1; //stop detection=1 (slave)
-			uint8_t reserv_sr1:1; // reserved
-			uint8_t rxne:1; //data register not empty=1 (receiver)
-			uint8_t txe:1; // data register empty=1 (transmitters)
+		uint8_t msl:1; // master=1 / slave=0
+		uint8_t busy:1; //bus busy =1
+		uint8_t tra:1; // transmitter=1/ reciever=0
+		uint8_t reserv_sr3:1; // reserved
+		uint8_t gencall:1;	// generall call header=1 (slave)
+		uint8_t reserv2_sr3:2; // reserved
+		uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
 			//-----------------------
-			uint8_t msl:1; // master=1 / slave=0
-			uint8_t busy:1; //bus busy =1
-			uint8_t tra:1; // transmitter=1/ reciever=0
-			uint8_t reserv_sr3:1; // reserved
-			uint8_t gencall:1;	// generall call header=1 (slave)
-			uint8_t reserv2_sr3:2; // reserved
-			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+		uint8_t sb:1; // start bit generation=1
+		uint8_t addr:1; // address sent=1 (master)/match=1 (slave)
+		uint8_t btf:1;	// byte transfer=1
+		uint8_t add10:1; // master has sent header 10-bit=1 address
+		uint8_t stopf:1; //stop detection=1 (slave)
+		uint8_t reserv_sr1:1; // reserved
+		uint8_t rxne:1; //data register not empty=1 (receiver)
+		uint8_t txe:1; // data register empty=1 (transmitters)
+	} I2C_EventBit_t;
+
+
+typedef struct
+{
+i2cFunc_t Func;
+union
+{
+	I2C_Event_TypeDef ItEvent;
+	I2C_EventBit_t 		ItEventBit;
+};
+union
+{
+		uint8_t	DeviceAddrRW;
+	struct
+	{	
+		uint8_t Dir:1;
+		uint8_t	DeviceAddr:7;
 	};
-} I2CEventBit_t;
+};
+union
+{
+	uint8_t Error;
+	i2c_sr2bit_t	ErrorBit;
+};
+uint8_t *ArraySend;
+uint8_t NumSend;
+uint8_t *ArrSendReceive; 
+uint8_t NumSendReceive;
+uint8_t CurrentIndex;
+}i2cTask_t;
 
-
+typedef union
+	{
+		uint8_t ccrh;      /*!< I2C clock control register high */
+		struct
+		{
+			uint8_t ccr11_8:4; // clock control in Master mode
+			uint8_t reserv_ccrh:2;
+			uint8_t duty:1; // 0: tlow/thigh=2/1; 1:tlow/thigh=16/9 
+			uint8_t fs:1; // mode standard=0 fast=1
+		};
+	}CCRH_t;
 /* Exported constants --------------------------------------------------------*/
 /** @addtogroup I2C_Exported_Constants
   * @{
@@ -572,24 +594,36 @@ typedef union
   */
 
 void I2C_DeInit(void);
-void I2C_Init(uint32_t OutputClockFrequencyHz, uint16_t OwnAddress, 
-              I2C_DutyCycle_TypeDef I2C_DutyCycle, I2C_Ack_TypeDef Ack, 
-              I2C_AddMode_TypeDef AddMode, uint8_t InputClockFrequencyMHz );
+
+void I2C_Init_7bit(uint32_t OutputClockFrequencyHz);
+							
 void I2C_Cmd(FunctionalState NewState);
 void I2C_GeneralCallCmd(FunctionalState NewState);
-void I2C_GenerateSTART(void);
-void I2C_GenerateSTOP(void);
-
-// void I2C_GenerateSTART(FunctionalState NewState);
-// void I2C_GenerateSTOP(FunctionalState NewState);
-void I2C_SoftwareResetCmd(FunctionalState NewState);
-void I2C_StretchClockCmd(FunctionalState NewState);
-void I2C_AcknowledgeConfig(I2C_Ack_TypeDef Ack);
-void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle);
 void I2C_ITConfig(I2C_IT_TypeDef I2C_IT, FunctionalState NewState);
-uint8_t I2C_ReceiveData(void);
-void I2C_Send7bitAddress(uint8_t Address, I2C_Direction_TypeDef Direction);
-void I2C_SendData(uint8_t Data);
+
+// Функция передает в начале массив адреса регистра, а затем передает данные.
+void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend);
+
+// Функция отправляет в начале массив *ArrSend в количестве NumSend, затем считывает в массив *ArrReceive в количестве NumReceive
+void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumSend, uint8_t *ArrReceive, uint8_t NumReceive);
+// Фукнция показывающая идет ли прием или передача данных,
+// Если передачи или приема нет, тогда результат функции 0
+// Ожидание окончания передачи или приема 
+// while(i2cCheckStatusTransfer());
+i2cFunc_t i2cCheckStatusTransfer(void);
+// Проверка ошибки передачи или приема
+// Если ошибок передачи не было, то результат функции 0
+uint8_t i2cCheckErrorTransfer(void);
+// System function
+void I2C_SoftwareResetCmd(void);
+void I2C_StretchClockCmd(FunctionalState NewState);
+void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle);
+/*
+void i2cHandler(void);
+*/
+//----------------------------------------------------------
+
+
 /**
  * @brief
  ****************************************************************************************
@@ -684,7 +718,7 @@ I2C_Event_TypeDef I2C_GetLastEvent(void);
  *  3) Flag-based state monitoring
  *******************************************************************************
  */
-FlagStatus I2C_GetFlagStatus(I2C_Flag_TypeDef I2C_Flag);
+//FlagStatus I2C_GetFlagStatus(I2C_Flag_TypeDef I2C_Flag);
 /**
  *
  *******************************************************************************

@@ -30,12 +30,17 @@
 #define __STM8S_CONF_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
+<<<<<<< HEAD
 // #include "osa.h"
 // #include "inc/stm8s_delay.h" // программная задержка
+=======
+ #include "osa.h"
+ #include "inc/stm8s_delay.h" // программная задержка
+>>>>>>> i2c
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
 // #include "inc/stm8s_button.h"  // Драйвер для кнопки
  
@@ -49,7 +54,8 @@
 // #include "inc/stm8s_rst.h"
 // #include "inc/stm8s_spi.h"  
 // #include "inc/stm8s_tim1.h"
-
+ #include "inc/stm8s_i2clcd1602.h"
+	#include "inc/stm8s_bme280.h"
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
 // #include "inc/stm8s_adc1.h" // драйвер для АЦП1
