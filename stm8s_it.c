@@ -466,14 +466,15 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
-	volatile uint8_t data, address=0b01111110;
+//	volatile uint8_t data, address=0b01111110;
 	
-	I2CEventBit_t event;
+//	I2CEventBit_t event;
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	/*
 	event.event=I2C_GetLastEvent();
 	switch (event.event)
 	{	
@@ -487,6 +488,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 			I2C_GenerateSTOP();
 			break;		
 	}
+	*/
 }
 
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)

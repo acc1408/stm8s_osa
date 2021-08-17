@@ -38,13 +38,16 @@
 bit8_t tst;
 //uint8_t ask, sr1,sr2,sr3;
 //test_t r;
+/*
 i2c_sr1_t sr1;
 i2c_sr2_t sr2;
 i2c_sr3_t sr3;
+*/
 
 void Task(void)
 {
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	/*
 	CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
 	I2C_SoftwareResetCmd(ENABLE);
 	I2C_SoftwareResetCmd(DISABLE);
@@ -55,11 +58,11 @@ void Task(void)
 	I2C_Cmd(ENABLE);
 
 	I2C_GenerateSTART();
-	
+	*/
 	while(1)
 	{
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-		OS_Delay(1000);
+		//OS_Delay(1000);
 	}
 }
 
