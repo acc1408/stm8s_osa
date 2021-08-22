@@ -280,6 +280,24 @@ char putchar(char c)
 	return 0;
 }
 
+uint8_t CondFlag; // Переменная для хранения регистра состояний
+void asm_insert(void)
+{
+	enableInterrupts(); // разрешаем глобальное прерывание
+	// начало критической секции
+	#pragma asm			// начало ассемблерной вставки
+		push CC 			// помещаем регистр состояний в стек
+		pop _CondFlag // извлекаем регистр состояний в созданную переменную
+	#pragma endasm	// конец ассембленой вставки
+	disableInterrupts(); // грантированно запрещаем глобальное прерывание
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST); // тестовый код
+	// еще какой-то который должен гарантированно выполняться без прерываний
+	#pragma asm			// начало ассемблерной вставки
+		push _CondFlag	// помещаем регистра состояния в стек
+		pop CC				// загружаем исходное состояние из стека в регистр состояний
+	#pragma endasm	// конец ассемблерной вставки
+	// конец критической секции
+}
 
 //int16_t a,b;
 #ifdef  __OSA__
@@ -339,6 +357,34 @@ rez=BME280_Init(&bm, 0b1110110,
 }
 #endif
 
+#define cond_flag (((uint8_t *) 0x7f0a))
+
+
+uint8_t *cf_u;
+int16_t sdvig=0xa000;
+uint16_t sdv2=0xF000;
+
+void rotate_left (void)
+{
+uint8_t i;
+for(i=0;i<4;i++) // Повторяем круговой сдвиг влево 4 раза
+		{
+			#pragma asm			// начало ассемблерной вставки
+				LDW X,_sdvig 	// загружаем в регистр Х значение 16-битной переменной по адресу sdvig
+				LDW Y,#$7FFF 	// загружаем число для проверки первого бита на 1 или 0
+				CPW Y,_sdvig 	// если число больше, чем $7FFF, то бит переноса загружается в бит С регистра СС 
+				RLCW X				// производим круговой сдвиг с учем бита С.
+				LDW _sdvig,X	// Загружаем по адресу _sdvig значение из регистра Х
+			#pragma endasm	// конец ассемблерной вставки
+		}
+}
+
+uint8_t ua=0xCD; // беззнаковая переменная 	исходное			205 или 0b11001101
+int8_t  sa=0xCD; // знаковая переменная		 	исходное			-51 или 0b11001101
+uint8_t ua_right; // беззнаковая переменная сдвиг вправо	 51 или 0b00110011
+int8_t  sa_right; // знаковая переменная		сдвиг вправо	-13 или 0b11110011
+uint16_t ua_left; // беззнаковая переменная  сдвиг влево		 52 или 0b00110100
+int16_t  sa_left; // знаковая переменная		  сдвиг влево		 52 или 0b00110100
 void main(void)
 {
  #ifdef  __OSA__
@@ -351,7 +397,8 @@ void main(void)
 	OS_Run(); // Запуск ядра RTOS OSA
 #else
 	/* Infinite loop */
-	
+//	cf_u=&cf;
+	uint8_t i;
 	Init_Delay();
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
   //testf={.name="nvvjhggvn",.func=yui};
@@ -363,9 +410,51 @@ void main(void)
                 UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
 	UART2_SetRxHandler(cmdinputchar);
 	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
-	UART2_Cmd(ENABLE);	
+	UART2_Cmd(ENABLE);
+	
+	
+	ua_right=ua>>2; // результат сдвиг вправо  51 или 0b00110011
+	sa_right=sa>>2; // результат сдвиг вправо -13 или 0b11110011
+	ua_left =ua<<2; // результат сдвиг влево   52 или 0b00110100
+	sa_left =sa<<2; // результат сдвиг влево   52 или 0b00110100
+
+	//cc=	cond_flag;
+	{
+		//_asm(" \n \n");
+		//__cf=_asm("");
+		/*
+		#pragma asm
+			push CC
+			pop _cf
+		#pragma endasm
+		*/
+		for(i=0;i<4;i++) // Повторяем круговой сдвиг влево 4 раза
+		{
+			#pragma asm			// начало ассемблерной вставки
+				LDW X,_sdvig 	// загружаем в регистр Х значение 16-битной переменной по адресу sdvig
+				LDW Y,#$7FFF 	// загружаем число для проверки первого бита на 1 или 0
+				CPW Y,_sdvig 	// если число больше, чем $7FFF, то бит переноса загружается в бит С регистра СС 
+				RLCW X				// производим круговой сдвиг с учем бита С.
+				LDW _sdvig,X	// Загружаем по адресу _sdvig значение из регистра Х
+			#pragma endasm	// конец ассемблерной вставки
+		}
+		
+		sdvig=sdvig>>4;
+		sdv2=sdv2>>4;
+		//cf=_asm("ld cf,a ");
+		//_asm("ld a ");
+	
+	}
 	enableInterrupts();
-	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);	
+	//asm_insert();
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	/*
+	#pragma asm
+		push _cf
+		pop CC
+	#pragma endasm
+	//cc=	cond_flag;
+		*/
 	while (1)
   {
 		cmdmainloop(); // обработка командной строки
