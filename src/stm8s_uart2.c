@@ -24,7 +24,8 @@
   *
   ******************************************************************************
   */
-
+#ifndef __STM8S_UART2_C
+#define __STM8S_UART2_C
 /* Includes ------------------------------------------------------------------*/
 #include "inc/stm8s_uart2.h"
 
@@ -49,6 +50,9 @@
   * @param  None
   * @retval None
   */
+
+volatile static inputchar_t UART2_RxFunc=0;
+//volatile static 
 
 void UART2_DeInit(void)
 {
@@ -870,13 +874,20 @@ void UART2_ClearITPendingBit(UART2_IT_TypeDef UART2_IT)
   }
 }
 
-/**
-  * @}
-  */
+//
+
+void UART2_SetRxHandler(void (*inputchar)(char))
+{
+	UART2_RxFunc=inputchar;
+}
 
 /**
   * @}
   */
 
+/**
+  * @}
+  */
 
+#endif
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

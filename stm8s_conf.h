@@ -34,7 +34,7 @@
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
- #include "osa.h"
+// #include "osa.h"
  #include "inc/stm8s_delay.h" // программная задержка
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
 // #include "inc/stm8s_button.h"  // Драйвер для кнопки
@@ -43,14 +43,14 @@
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
  #include "inc/stm8s_gpio.h" // драйвер для GPIO
- #include "inc/stm8s_i2c.h" // драйвер для шины I2C
+// #include "inc/stm8s_i2c.h" // драйвер для шины I2C
 // #include "inc/stm8s_itc.h"  //
 // #include "inc/stm8s_iwdg.h"
 // #include "inc/stm8s_rst.h"
 // #include "inc/stm8s_spi.h"  
 // #include "inc/stm8s_tim1.h"
- #include "inc/stm8s_i2clcd1602.h"
-	#include "inc/stm8s_bme280.h"
+// #include "inc/stm8s_i2clcd1602.h"
+//	#include "inc/stm8s_bme280.h"
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
 // #include "inc/stm8s_adc1.h" // драйвер для АЦП1
@@ -84,7 +84,7 @@
 // #include "inc/stm8s_uart1.h"
 #endif /* STM8S208 || STM8S207 || STM8S103 || STM8S001 ||STM8S903 || STM8AF52Ax || STM8AF62Ax */
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)
-//#include "inc/stm8s_uart2.h" // driver for UART2
+#include "inc/stm8s_uart2.h" // driver for UART2
 #endif /* STM8S105 || STM8AF626x */
 #if defined(STM8S208) ||defined(STM8S207) || defined(STM8S007) || defined (STM8AF52Ax) ||\
     defined (STM8AF62Ax)

@@ -464,6 +464,8 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+		
+		
  }
 #endif /* (STM8AF622x) */
 
@@ -715,11 +717,15 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
   * @param  None
   * @retval None
   */
+extern inputchar_t UART2_RxFunc; // ссылка на файл uart2.c
+
  INTERRUPT_HANDLER(UART2_RX_IRQHandler, 21)
  {
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+		if (UART2_RxFunc) UART2_RxFunc((char)UART2->DR);
+		else {	UART2_ClearITPendingBit(UART2_IT_RXNE); }
  }
 #endif /* (STM8S105) || (STM8AF626x) */
 

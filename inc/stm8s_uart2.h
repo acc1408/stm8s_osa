@@ -407,6 +407,7 @@ void UART2_Init(uint32_t BaudRate, UART2_WordLength_TypeDef WordLength,
                 UART2_StopBits_TypeDef StopBits, UART2_Parity_TypeDef Parity, 
                 UART2_SyncMode_TypeDef SyncMode, UART2_Mode_TypeDef Mode);
 void UART2_Cmd(FunctionalState NewState);
+// Настройка прерываний
 void UART2_ITConfig(UART2_IT_TypeDef UART2_IT, FunctionalState NewState);
 void UART2_HalfDuplexCmd(FunctionalState NewState);
 void UART2_IrDAConfig(UART2_IrDAMode_TypeDef UART2_IrDAMode);
@@ -433,6 +434,8 @@ void UART2_ClearFlag(UART2_Flag_TypeDef UART2_FLAG);
 ITStatus UART2_GetITStatus(UART2_IT_TypeDef UART2_IT);
 void UART2_ClearITPendingBit(UART2_IT_TypeDef UART2_IT);
 
+// Обработчик приемника данных
+void UART2_SetRxHandler( void (*inputchar)(char)); 
 
 /**
   * @}

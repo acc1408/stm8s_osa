@@ -31,13 +31,18 @@
 #include "stm8s.h"
 #include "stm8s_it.c"
 #include  <stdio.h>
+#include <string.h>
+
+
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
+//void cmdreset(void);
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
+/*
 SetLCD_t lcd1;
 
  char st[40]="Test";
@@ -47,11 +52,237 @@ uint32_t pres;
 uint32_t hum;
 int32_t t;
 uint8_t rez;
+*/
+/*
+char st[50];
+char st_tx[100]; //  буфер для отправки
+static uint8_t num_st=0;
+unsigned short kol_tx=0; // счетчик номера передачи
+unsigned char tx_num=0; // номер байт для передачи
+float tx_float=0; // пример передачи плавающего числа
+bool tx_start=0; // в начальный момент передачи данных нет
+char st_tx2[10];
+
+void putchar_st(char c)
+{
+	st[num_st] = c;
+	num_st = (num_st+1) % 50;
+}
+*/
+// обработчик прерывания передачи данных
+// данная функция вызывается в stm8s_it.c
+/*
+void handler_tx(void)
+{
+	UART2_SendData8(st_tx[tx_num]); // передаем данные в сдвиговый регистр
+	tx_num++; // увеличиваем счетчик
+	if (st_tx[tx_num]=='\0') { 
+														UART2_ITConfig(UART2_IT_TXE, DISABLE); // отключаем  прерывание если последний байт конец строки
+														tx_num=0; // обнуляем счетчик для отпрвленных данных
+														tx_start=0; // сбрасываем флаг передачи,
+														// больше данные в буфере не нужны
+														}
+}
+*/
+
+//uint8_t mass[400];
+// структура функции обработчика
+typedef int16_t (*func_t)(uint8_t argc,char *argv[]);
+
+// структура таблицы соответсия название - функции 
+typedef struct
+{
+	char name[20];	// название функции
+	func_t func;		// указатель на функции
+} tablefunc_t;
+
+// размер входящего буфера
+#define cmdrxnum_max 40
+// максимальное кол-во параметров
+#define cmdargc_max 3
+typedef enum
+{
+	receive=0, 	// прием данных
+	exec=0b01,			// принят стоп-байт
+	error_ovf=0b10, // переполнение входящего буфера
+	exec_error_ovf=0b11 // приннят стоп-бит и было переполнение буфера
+}cmdstate_t;
+
+// тип структуры командной строки
+typedef struct
+{
+	char rx[cmdrxnum_max]; // длина
+	uint8_t rxnum; // номер текущего байта
+	char stopbit; // стоп-бит
+	tablefunc_t *tabfunc; // указатель на массив функций
+	uint8_t numfunc;			// кол-во функций
+	cmdstate_t state; // состояние командной строки
+	uint8_t argc; // кол-во аргументов
+	char *argv[cmdargc_max]; // массив указателей на параметры 
+	//char stpstr[2];
+}cmdline_t;
+
+
+cmdline_t cmd; // структура командной строки
+// инициализаци командной строки
+void cmdinit(	char stopbit, // вводим символ стоп-бит
+							tablefunc_t tabfunc[], //указатель на массив таблицы
+							uint8_t numfunc) // кол-во функций
+{
+	//uint8_t i=0;
+	cmd.stopbit=stopbit; // стоп-бит
+	cmd.rxnum=0;
+	cmd.tabfunc=tabfunc;
+	cmd.numfunc=numfunc;
+	cmd.argc=0;
+	//while(*st && i<2)
+	//cmd.stpstr[i++]=*st++;
+}
+
+void cmdinputchar(char c)
+{
+	switch(cmd.state)
+	{
+		// прием данных
+		case receive:
+				
+				// проверяем место в буфере
+				if (cmd.rxnum<cmdrxnum_max) 
+					cmd.rx[cmd.rxnum++]=c; // заполняем буфер 
+				else 	
+					{
+					cmd.state=error_ovf; // фиксируем ошибку переполнения буфера
+					}
+				//break;
+		// если произошло переполнение ожидаем стоп-бита
+		case error_ovf:
+				if (c==cmd.stopbit) // если получен стоп-бит, 
+						cmd.state|=exec; // ставим бит на обработку
+				break;
+		default:
+					nop();
+				break;
+	}
+}
+// разбор на слова, вместо пробелов вставляем конец строки
+// в массив заносим указатели на начала слов
+void cmdparcer(void)
+{
+	// заменяем все знаки пробелов на конец строки
+	uint8_t i;
+	for( i=0;i<cmd.rxnum;i++)
+	if (cmd.rx[i]==' ') // если символ пробел
+			cmd.rx[i]='\0'; // то заменяем его на конец строки
+	cmd.rx[cmd.rxnum-1]='\0';
+	// определяем начало строк
+	if (cmd.rx[0]) 
+		{
+			cmd.argv[cmd.argc++]=cmd.rx;
+		}
+	for( i=1;i<cmd.rxnum-1;i++)
+		if ((cmd.rx[i-1]=='\0')&&(cmd.rx[i]!='\0')&&(cmd.argc<cmdargc_max))
+			cmd.argv[cmd.argc++]=cmd.rx+i;
+	nop();
+}
+
+// сброс состояния автомата командной строки
+void cmdreset(void)
+{
+	cmd.rxnum=0;
+	cmd.state=receive;
+	cmd.argc=0;
+}
+
+// поиск фукнции для выполнения
+void cmdexec(void)
+{
+	uint8_t i;
+	char *funcfind; // указатель на строку
+	func_t funcexec;// указатель на функцию
+	for(i=0;i<cmd.numfunc;i++)
+	{
+		funcfind=cmd.tabfunc[i].name; // указатель на строку поиска
+		funcexec=cmd.tabfunc[i].func; // указатель на соответствующую строку
+		if (strcmp(cmd.argv[0],funcfind)==0) 
+		{
+			nop();
+			funcexec(cmd.argc,cmd.argv);
+			break; // если функция найдена, то выходим из цикла поиска 
+		}
+	}	
+		cmdreset(); // сброс автомата для сбора символов
+}
 
 
 
+// главный цикл для обработки кондной строки
+void cmdmainloop(void)
+{
+	switch(cmd.state) // проверяем состояние строки
+		{
+			case exec: // 
+					cmdparcer(); 
+					cmdexec();
+				break;
+			case 	exec_error_ovf:
+					cmdreset();
+				break;
+		}
+}
 
-int16_t a,b;
+char st2[40]="test string"; // строка для передачи данных
+
+// отключения и включение светодиода
+int16_t led(uint8_t argc,char *argv[])
+{
+	if (argc=2)  
+	{
+		if (strcmp(argv[1],"on")==0) // включаем светодиод
+			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
+		else 
+			if (strcmp(argv[1],"off")==0)  // отключаем светодиод
+				GPIO_WriteHigh(GPIOE, GPIO_PIN_5);
+		return 0;
+	}
+	else
+		return 1;
+}
+
+
+uint8_t bl=1; // переменная для включения и отключения мигания
+// функция для включения и отключения мигания
+int16_t blink(uint8_t argc,char *argv[])
+{
+	if (argc=2) 
+	{
+		if (strcmp(argv[1],"on")==0) // отключаем светодиод
+			bl=1;
+		else 
+			if (strcmp(argv[1],"off")==0) // включаем светодиод
+				bl=0;
+		return 0;
+	}
+	return 1;
+}
+
+// таблица соответствия название-функция храниться не в ОЗУ,
+// а во FLESH, т.е. можно не беспокопиться за кол-во функций
+// и длину строк
+const tablefunc_t testf[2]={"led", led,
+														"blink", blink	
+														};
+char simvol;														
+char putchar(char c)
+{
+	nop();
+	simvol=c;
+	nop();
+	return 0;
+}
+
+
+//int16_t a,b;
+#ifdef  __OSA__
 void Task(void)
 {
 	uint8_t i,temp;
@@ -106,6 +337,7 @@ rez=BME280_Init(&bm, 0b1110110,
 		Lcdi2cPrint(&lcd1, st);
 	}
 }
+#endif
 
 void main(void)
 {
@@ -120,12 +352,26 @@ void main(void)
 #else
 	/* Infinite loop */
 	
-	//Init_Delay();
+	Init_Delay();
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
-  while (1)
+  //testf={.name="nvvjhggvn",.func=yui};
+	cmdinit('\r', // стоп-символ
+					testf, // указатель на таблицу название-функция
+					2 ); 	// кол-во функций в таблице
+	UART2_Init(9600, UART2_WORDLENGTH_8D, 
+                UART2_STOPBITS_1, UART2_PARITY_NO, 
+                UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
+	UART2_SetRxHandler(cmdinputchar);
+	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
+	UART2_Cmd(ENABLE);	
+	enableInterrupts();
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);	
+	while (1)
   {
-  //GPIO_WriteReverse(GPIOC, GPIO_PIN_1);
-	//delay_ms(1000);
+		cmdmainloop(); // обработка командной строки
+		printf("qwetr %d",0x54);
+	if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
+	delay_ms(1000);
 	}
 #endif
 }
