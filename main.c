@@ -85,7 +85,7 @@ void handler_tx(void)
 }
 */
 
-//uint8_t mass[400];
+
 // структура функции обработчика
 typedef int16_t (*func_t)(uint8_t argc,char *argv[]);
 
@@ -122,7 +122,139 @@ typedef struct
 	//char stpstr[2];
 }cmdline_t;
 
+//====================кольцевой буфер
+// безопасная секция 
+#ifndef CRITICAL_SECTION_START
+char cc_reg; // регистр для хранения регистра состояний
+#define CRITICAL_SECTION_START _asm("push CC \n	pop _cc_reg \n"); disableInterrupts()
+#define CRITICAL_SECTION_END	 _asm("push _cc_reg \n	pop CC \n")
+#endif
 
+//! cBuffer structure
+typedef struct struct_cBuffer
+{
+	uint8_t  *dataptr;		/// указатель на реальный буфер
+	uint16_t size;				/// размер буфера обмена
+	uint16_t datalength;	/// размер занятого буфера обмена
+	uint16_t dataindex;		/// индекс начала буфера
+} cBuffer_t;
+
+// инициализация буфера 
+void bufferInit(cBuffer_t* buffer, uint8_t *start, uint16_t size)
+{
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// set start pointer of the buffer
+	buffer->dataptr = start; // присвоение указателя
+	buffer->size = size;	// присвоение размера
+	// initialize index and length
+	buffer->dataindex = 0;
+	buffer->datalength = 0;
+	// end critical section
+	CRITICAL_SECTION_END;
+}
+
+// добавить данные в буфер 
+uint8_t bufferAddToEnd(cBuffer_t* buffer, uint8_t data)
+{
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// make sure the buffer has room
+	if(buffer->datalength < buffer->size)
+	{
+		// save data byte at end of buffer
+		buffer->dataptr[(buffer->dataindex + buffer->datalength) % buffer->size] = data;
+		// increment the length
+		buffer->datalength++;
+		// end critical section
+		CRITICAL_SECTION_END;
+		// return success
+		return -1;
+	}
+	// end critical section
+	CRITICAL_SECTION_END;
+	// return failure
+	return 0;
+}
+
+
+// получить данные из буфера
+uint8_t  bufferGetFromFront(cBuffer_t* buffer)
+{
+	uint8_t data = 0;
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// check to see if there's data in the buffer
+	if(buffer->datalength)
+	{
+		// get the first character from buffer
+		data = buffer->dataptr[buffer->dataindex];
+		// move index down and decrement length
+		buffer->dataindex++;
+		if(buffer->dataindex >= buffer->size)
+		{
+			buffer->dataindex -= buffer->size;
+		}
+		buffer->datalength--;
+	}
+	// end critical section
+	CRITICAL_SECTION_END;
+	// return
+	return data;
+}
+
+// очистить данные в буфере
+void bufferFlush(cBuffer_t* buffer)
+{
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// flush contents of the buffer
+	buffer->datalength = 0;
+	// end critical section
+	CRITICAL_SECTION_END;
+}
+
+// проверка сколько ячеек буфера свободно
+uint8_t bufferIsNotFull(cBuffer_t* buffer)
+{
+	uint16_t bytesleft;
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// check to see if the buffer has room
+	// return true if there is room
+	bytesleft = (buffer->size - buffer->datalength);
+	// end critical section
+	CRITICAL_SECTION_END;
+	return bytesleft;
+}
+
+// освободить последние numbytes ячеек в буфере от данных
+void bufferDumpFromFront(cBuffer_t* buffer, uint16_t numbytes)
+{
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// dump numbytes from the front of the buffer
+	// are we dumping less than the entire buffer?
+	if(numbytes < buffer->datalength)
+	{
+		// move index down by numbytes and decrement length by numbytes
+		buffer->dataindex += numbytes;
+		if(buffer->dataindex >= buffer->size)
+		{
+			buffer->dataindex -= buffer->size;
+		}
+		buffer->datalength -= numbytes;
+	}
+	else
+	{
+		// flush the whole buffer
+		buffer->datalength = 0;
+	}
+	// end critical section
+	CRITICAL_SECTION_END;
+}
+
+//==================командная строка===================
 cmdline_t cmd; // структура командной строки
 // инициализаци командной строки
 void cmdinit(	char stopbit, // вводим символ стоп-бит
@@ -280,24 +412,6 @@ char putchar(char c)
 	return 0;
 }
 
-uint8_t CondFlag; // Переменная для хранения регистра состояний
-void asm_insert(void)
-{
-	enableInterrupts(); // разрешаем глобальное прерывание
-	// начало критической секции
-	#pragma asm			// начало ассемблерной вставки
-		push CC 			// помещаем регистр состояний в стек
-		pop _CondFlag // извлекаем регистр состояний в созданную переменную
-	#pragma endasm	// конец ассембленой вставки
-	disableInterrupts(); // грантированно запрещаем глобальное прерывание
-	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST); // тестовый код
-	// еще какой-то который должен гарантированно выполняться без прерываний
-	#pragma asm			// начало ассемблерной вставки
-		push _CondFlag	// помещаем регистра состояния в стек
-		pop CC				// загружаем исходное состояние из стека в регистр состояний
-	#pragma endasm	// конец ассемблерной вставки
-	// конец критической секции
-}
 
 //int16_t a,b;
 #ifdef  __OSA__
@@ -305,86 +419,19 @@ void Task(void)
 {
 	uint8_t i,temp;
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
-	I2C_Init_7bit(100000);
-	//Lcdi2cInit(&lcd1, 0b0111111);
-	Lcdi2cInit(&lcd1, 0b0111111, 
-								ENABLE,
-								DISABLE,
-								ENABLE);
-	LcdCursorSet(&lcd1, 0);
-	Lcdi2cPrint(&lcd1, st);
-	//LcdCursorRight(&lcd1);
-	//LcdDisplayLeft(&lcd1);
-	//I2C_MasterSendSend(0b0111111, a, 1, a+4, 3);
-	//I2C_MasterSendReceive(0b0111111, a, 0, a+1, 4);
 	
-rez=BME280_Init(&bm, 0b1110110,
-						BME280_OVERSAMPLING_16X,
-						BME280_OVERSAMPLING_16X,
-						BME280_OVERSAMPLING_16X,
-						BME280_FILTER_COEFF_8,
-						BME280_STANDBY_TIME_250_MS,
-						BME280_NORMAL_MODE
-						);
-	//BME280_Reset(&bm);
-	//BME280_StartStop(&bm, BME280_NORMAL_MODE);
 	while(1)
 	{
 		//BME280_StartStop(&bm, BME280_FORCED_MODE);
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
 		OS_Delay(200);
-		rez=BME280_GetMeasurement(&bm);
-		pres=BME280_compensate_P_int32(&bm);
-		t=BME280_compensate_T_int32(&bm);
-		hum=BME280_compensate_H_int32(&bm);
-		a=t/100;
-		b=t%100;
-		CursorGoTo(&lcd1, 1, 0);
-		sprintf(st,"Temp=%d.%02d C   ", a,b);
-		Lcdi2cPrint(&lcd1, st);
-		a=pres/1000;
-		b=pres%1000;
-		LcdCursorSet(&lcd1, 20);
-		sprintf(st,"Press=%d%03d Pa", a,b);
-		Lcdi2cPrint(&lcd1, st);
-		a=hum/1024;
-		b=hum%1024;
-		if (b>999) b=999;
-		LcdCursorSet(&lcd1, 60);
-		sprintf(st,"Hum=%d.%03d%%   ", a,b);
-		Lcdi2cPrint(&lcd1, st);
 	}
 }
 #endif
 
-#define cond_flag (((uint8_t *) 0x7f0a))
+cBuffer_t buf;
+uint8_t mas[30];
 
-
-uint8_t *cf_u;
-int16_t sdvig=0xa000;
-uint16_t sdv2=0xF000;
-
-void rotate_left (void)
-{
-uint8_t i;
-for(i=0;i<4;i++) // Повторяем круговой сдвиг влево 4 раза
-		{
-			#pragma asm			// начало ассемблерной вставки
-				LDW X,_sdvig 	// загружаем в регистр Х значение 16-битной переменной по адресу sdvig
-				LDW Y,#$7FFF 	// загружаем число для проверки первого бита на 1 или 0
-				CPW Y,_sdvig 	// если число больше, чем $7FFF, то бит переноса загружается в бит С регистра СС 
-				RLCW X				// производим круговой сдвиг с учем бита С.
-				LDW _sdvig,X	// Загружаем по адресу _sdvig значение из регистра Х
-			#pragma endasm	// конец ассемблерной вставки
-		}
-}
-
-uint8_t ua=0xCD; // беззнаковая переменная 	исходное			205 или 0b11001101
-int8_t  sa=0xCD; // знаковая переменная		 	исходное			-51 или 0b11001101
-uint8_t ua_right; // беззнаковая переменная сдвиг вправо	 51 или 0b00110011
-int8_t  sa_right; // знаковая переменная		сдвиг вправо	-13 или 0b11110011
-uint16_t ua_left; // беззнаковая переменная  сдвиг влево		 52 или 0b00110100
-int16_t  sa_left; // знаковая переменная		  сдвиг влево		 52 или 0b00110100
 void main(void)
 {
  #ifdef  __OSA__
@@ -411,49 +458,20 @@ void main(void)
 	UART2_SetRxHandler(cmdinputchar);
 	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
 	UART2_Cmd(ENABLE);
-	
-	
-	ua_right=ua>>2; // результат сдвиг вправо  51 или 0b00110011
-	sa_right=sa>>2; // результат сдвиг вправо -13 или 0b11110011
-	ua_left =ua<<2; // результат сдвиг влево   52 или 0b00110100
-	sa_left =sa<<2; // результат сдвиг влево   52 или 0b00110100
-
-	//cc=	cond_flag;
-	{
-		//_asm(" \n \n");
-		//__cf=_asm("");
 		/*
 		#pragma asm
 			push CC
 			pop _cf
 		#pragma endasm
 		*/
-		for(i=0;i<4;i++) // Повторяем круговой сдвиг влево 4 раза
-		{
-			#pragma asm			// начало ассемблерной вставки
-				LDW X,_sdvig 	// загружаем в регистр Х значение 16-битной переменной по адресу sdvig
-				LDW Y,#$7FFF 	// загружаем число для проверки первого бита на 1 или 0
-				CPW Y,_sdvig 	// если число больше, чем $7FFF, то бит переноса загружается в бит С регистра СС 
-				RLCW X				// производим круговой сдвиг с учем бита С.
-				LDW _sdvig,X	// Загружаем по адресу _sdvig значение из регистра Х
-			#pragma endasm	// конец ассемблерной вставки
-		}
-		
-		sdvig=sdvig>>4;
-		sdv2=sdv2>>4;
-		//cf=_asm("ld cf,a ");
-		//_asm("ld a ");
-	
-	}
 	enableInterrupts();
-	//asm_insert();
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	bufferInit(&buf, mas, 30);
 	/*
 	#pragma asm
 		push _cf
 		pop CC
 	#pragma endasm
-	//cc=	cond_flag;
 		*/
 	while (1)
   {
