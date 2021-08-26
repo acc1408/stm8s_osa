@@ -705,11 +705,13 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
   * @param  None
   * @retval None
   */
+void	uart2_GetFromBuffer(void);
  INTERRUPT_HANDLER(UART2_TX_IRQHandler, 20)
  {
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+		uart2_GetFromBuffer();
  }
 
 /**

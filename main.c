@@ -126,8 +126,8 @@ typedef struct
 // безопасная секция 
 #ifndef CRITICAL_SECTION_START
 char cc_reg; // регистр для хранения регистра состояний
-#define CRITICAL_SECTION_START _asm("push CC \n	pop _cc_reg \n"); disableInterrupts()
-#define CRITICAL_SECTION_END	 _asm("push _cc_reg \n	pop CC \n")
+#define CRITICAL_SECTION_START _asm("push CC"); disableInterrupts(); _asm("pop _cc_reg");
+#define CRITICAL_SECTION_END	 _asm("push _cc_reg \n pop CC"); //; enableInterrupts()
 #endif
 
 //! cBuffer structure
@@ -142,6 +142,7 @@ typedef struct struct_cBuffer
 // инициализация буфера 
 void bufferInit(cBuffer_t* buffer, uint8_t *start, uint16_t size)
 {
+	
 	// begin critical section
 	CRITICAL_SECTION_START;
 	// set start pointer of the buffer
@@ -153,6 +154,9 @@ void bufferInit(cBuffer_t* buffer, uint8_t *start, uint16_t size)
 	// end critical section
 	CRITICAL_SECTION_END;
 }
+
+cBuffer_t buf;
+uint8_t mas[30];
 
 // добавить данные в буфер 
 uint8_t bufferAddToEnd(cBuffer_t* buffer, uint8_t data)
@@ -169,19 +173,19 @@ uint8_t bufferAddToEnd(cBuffer_t* buffer, uint8_t data)
 		// end critical section
 		CRITICAL_SECTION_END;
 		// return success
-		return -1;
+		return 0;
 	}
 	// end critical section
 	CRITICAL_SECTION_END;
 	// return failure
-	return 0;
+	return -1;
 }
 
 
 // получить данные из буфера
 uint8_t  bufferGetFromFront(cBuffer_t* buffer)
 {
-	uint8_t data = 0;
+	uint8_t data = 0; 
 	// begin critical section
 	CRITICAL_SECTION_START;
 	// check to see if there's data in the buffer
@@ -215,7 +219,7 @@ void bufferFlush(cBuffer_t* buffer)
 }
 
 // проверка сколько ячеек буфера свободно
-uint8_t bufferIsNotFull(cBuffer_t* buffer)
+uint16_t bufferIsNotFull(cBuffer_t* buffer)
 {
 	uint16_t bytesleft;
 	// begin critical section
@@ -227,6 +231,21 @@ uint8_t bufferIsNotFull(cBuffer_t* buffer)
 	CRITICAL_SECTION_END;
 	return bytesleft;
 }
+
+// проверка сколько ячеек занято
+uint16_t bufferIsEmpty(cBuffer_t* buffer)
+{
+	uint16_t bytesbusy;
+	// begin critical section
+	CRITICAL_SECTION_START;
+	// check to see if the buffer has room
+	// return true if there is room
+	bytesbusy =  buffer->datalength;
+	// end critical section
+	CRITICAL_SECTION_END;
+	return bytesbusy;
+}
+
 
 // освободить последние numbytes ячеек в буфере от данных
 void bufferDumpFromFront(cBuffer_t* buffer, uint16_t numbytes)
@@ -403,12 +422,33 @@ int16_t blink(uint8_t argc,char *argv[])
 const tablefunc_t testf[2]={"led", led,
 														"blink", blink	
 														};
-char simvol;														
+//char simvol;		
+//============================ вывод данных из UART
+
+void uart2_sendtobuffer(uint8_t chr)
+{
+	while(bufferAddToEnd(&buf,  chr));
+	UART2_ITConfig(UART2_IT_TXE, ENABLE);
+}
+
+void uart2_GetFromBuffer(void)
+{
+	
+	if (bufferIsEmpty(&buf)>1) 
+			UART2->DR=bufferGetFromFront(&buf);
+		else
+			{
+			UART2->DR=bufferGetFromFront(&buf);
+			UART2_ITConfig(UART2_IT_TXE, DISABLE);
+		}
+}
+
 char putchar(char c)
 {
-	nop();
-	simvol=c;
-	nop();
+	//nop();
+	//simvol=c;
+	uart2_sendtobuffer(c);
+	//nop();
 	return 0;
 }
 
@@ -431,7 +471,7 @@ void Task(void)
 
 cBuffer_t buf;
 uint8_t mas[30];
-
+uint16_t nmb=0;
 void main(void)
 {
  #ifdef  __OSA__
@@ -458,27 +498,20 @@ void main(void)
 	UART2_SetRxHandler(cmdinputchar);
 	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
 	UART2_Cmd(ENABLE);
-		/*
-		#pragma asm
-			push CC
-			pop _cf
-		#pragma endasm
-		*/
+	
 	enableInterrupts();
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	bufferInit(&buf, mas, 30);
-	/*
-	#pragma asm
-		push _cf
-		pop CC
-	#pragma endasm
-		*/
+	
 	while (1)
   {
 		cmdmainloop(); // обработка командной строки
-		printf("qwetr %d",0x54);
+		printf("qwetr %d\r\n",nmb);
+		nmb++;
+		if (nmb==12) 
+		nop();
 	if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	delay_ms(1000);
+	//delay_ms(1000);
 	}
 #endif
 }
