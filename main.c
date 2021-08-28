@@ -95,9 +95,15 @@ typedef struct
 	char name[20];	// название функции
 	func_t func;		// указатель на функции
 } tablefunc_t;
+// структура таблицы соответствия номер возврата функции- текст вывода
+typedef struct
+{
+	int16_t retfunc;	// номер возврата 
+	char name[20];		// текст для вывода  
+} tableRet_t;
 
 // размер входящего буфера
-#define cmdrxnum_max 40
+#define cmdrxnum_max 20
 // максимальное кол-во параметров
 #define cmdargc_max 3
 typedef enum
@@ -105,7 +111,11 @@ typedef enum
 	receive=0, 	// прием данных
 	exec=0b01,			// принят стоп-байт
 	error_ovf=0b10, // переполнение входящего буфера
-	exec_error_ovf=0b11 // приннят стоп-бит и было переполнение буфера
+	//error_param=0b100, //переполнение кол-ва параметров
+	//exec_error_param=0b101, //принят стоп-бит и было переполнение параметров
+	//exec_error_ovf_param=0x111, // принят стоп-бит, переполнение параметров и буфера
+	exec_error_ovf=0b011 // приннят стоп-бит и было переполнение буфера
+	
 }cmdstate_t;
 
 // тип структуры командной строки
@@ -113,21 +123,23 @@ typedef struct
 {
 	char rx[cmdrxnum_max]; // длина
 	uint8_t rxnum; // номер текущего байта
-	char stopbit; // стоп-бит
+	char stopbit; // первый стоп-бит обязательный
+	char stopbit2; // второй стоп-бит дополнительный
 	tablefunc_t *tabfunc; // указатель на массив функций
 	uint8_t numfunc;			// кол-во функций
 	cmdstate_t state; // состояние командной строки
 	uint8_t argc; // кол-во аргументов
 	char *argv[cmdargc_max]; // массив указателей на параметры 
-	//char stpstr[2];
+	tableRet_t *TabRet; //указатель-таблица на массив возврата результат функции
+	uint8_t NumTabRet; // размер массива возврат-текст 
 }cmdline_t;
 
 //====================кольцевой буфер
 // безопасная секция 
 #ifndef CRITICAL_SECTION_START
 char cc_reg; // регистр для хранения регистра состояний
-#define CRITICAL_SECTION_START _asm("push CC"); disableInterrupts(); _asm("pop _cc_reg");
-#define CRITICAL_SECTION_END	 _asm("push _cc_reg \n pop CC"); //; enableInterrupts()
+#define CRITICAL_SECTION_START _asm("push CC \n sim \n pop _cc_reg \n");
+#define CRITICAL_SECTION_END	 _asm("push _cc_reg \n pop CC \n") //
 #endif
 
 //! cBuffer structure
@@ -277,15 +289,22 @@ void bufferDumpFromFront(cBuffer_t* buffer, uint16_t numbytes)
 cmdline_t cmd; // структура командной строки
 // инициализаци командной строки
 void cmdinit(	char stopbit, // вводим символ стоп-бит
+							char stopbit2, // вводим символ стоп-бит
 							tablefunc_t tabfunc[], //указатель на массив таблицы
-							uint8_t numfunc) // кол-во функций
+							uint8_t numfunc, // кол-во функций
+							tableRet_t *tabret, //указатель-таблица на массив возврата результат функции
+							uint8_t NumTabRet// размер массива возврат-текст
+							) 
 {
 	//uint8_t i=0;
-	cmd.stopbit=stopbit; // стоп-бит
+	cmd.stopbit=stopbit; //первый стоп-бит
+	cmd.stopbit2=stopbit2; //второй  стоп-бит
 	cmd.rxnum=0;
 	cmd.tabfunc=tabfunc;
 	cmd.numfunc=numfunc;
 	cmd.argc=0;
+	cmd.TabRet=tabret;
+	cmd.NumTabRet=NumTabRet;
 	//while(*st && i<2)
 	//cmd.stpstr[i++]=*st++;
 }
@@ -308,7 +327,7 @@ void cmdinputchar(char c)
 		// если произошло переполнение ожидаем стоп-бита
 		case error_ovf:
 				if (c==cmd.stopbit) // если получен стоп-бит, 
-						cmd.state|=exec; // ставим бит на обработку
+						cmd.state|=exec; // ставим стоп-бит на обработку
 				break;
 		default:
 					nop();
@@ -317,7 +336,9 @@ void cmdinputchar(char c)
 }
 // разбор на слова, вместо пробелов вставляем конец строки
 // в массив заносим указатели на начала слов
-void cmdparcer(void)
+// Если в результате разбора функции больше параметров, чем 
+// допустимо, то результат будет 0, если меньше, то результат 1
+uint8_t cmdparcer(void)
 {
 	// заменяем все знаки пробелов на конец строки
 	uint8_t i;
@@ -325,15 +346,26 @@ void cmdparcer(void)
 	if (cmd.rx[i]==' ') // если символ пробел
 			cmd.rx[i]='\0'; // то заменяем его на конец строки
 	cmd.rx[cmd.rxnum-1]='\0';
+	//фильтруем последний стоп-бит если он станет первым
+	if (cmd.rx[0]==cmd.stopbit2) 
+		cmd.rx[0]='\0'; // заменяем второй стоп-бит на пробел
 	// определяем начало строк
+	// Для первого символа в строке определяем что это начало функции
 	if (cmd.rx[0]) 
 		{
-			cmd.argv[cmd.argc++]=cmd.rx;
+			cmd.argv[cmd.argc++]=cmd.rx; // заменяем все пробелы на знак конец строки
 		}
+	// Для следующих символов определяем начало строк.
 	for( i=1;i<cmd.rxnum-1;i++)
-		if ((cmd.rx[i-1]=='\0')&&(cmd.rx[i]!='\0')&&(cmd.argc<cmdargc_max))
-			cmd.argv[cmd.argc++]=cmd.rx+i;
-	nop();
+		if ((cmd.rx[i-1]=='\0')&&(cmd.rx[i]!='\0'))
+			if (cmd.argc<cmdargc_max)
+				cmd.argv[cmd.argc++]=cmd.rx+i;
+			else
+				return -1; //ошибка кол-во параметров больше, чем допустимо
+	
+	return 0; // кол-во параметров допустимо
+	
+			
 }
 
 // сброс состояния автомата командной строки
@@ -348,20 +380,42 @@ void cmdreset(void)
 void cmdexec(void)
 {
 	uint8_t i;
+	int16_t ret_func; // номер возврата функции
 	char *funcfind; // указатель на строку
 	func_t funcexec;// указатель на функцию
 	for(i=0;i<cmd.numfunc;i++)
 	{
 		funcfind=cmd.tabfunc[i].name; // указатель на строку поиска
 		funcexec=cmd.tabfunc[i].func; // указатель на соответствующую строку
-		if (strcmp(cmd.argv[0],funcfind)==0) 
+		if (strcmp(cmd.argv[0],funcfind)==0) // если нашли соответствующую строчку
 		{
-			nop();
-			funcexec(cmd.argc,cmd.argv);
-			break; // если функция найдена, то выходим из цикла поиска 
+			// выполняем функцию 
+			ret_func=funcexec(cmd.argc,cmd.argv);
+			// выполняем поиск соответвия возврат-текст
+			for(i=0;i<cmd.NumTabRet;i++)
+			{
+				if (ret_func==cmd.TabRet[i].retfunc) 
+				{
+					printf("%s",cmd.TabRet[i].name);
+					cmdreset(); // сброс автомата для сбора символов
+					return;		// выход из функции
+				}
+			}
 		}
 	}	
+		// если не нашли функцию, то производим поиск ошибки на неверную команду
+		for(i=0;i<cmd.NumTabRet;i++)
+			{
+				// -1 - код функции не найдена команда
+				if (-1==cmd.TabRet[i].retfunc) 
+				{
+					printf("%s",cmd.TabRet[i].name); // если найдено совпадение, то печатаем ошибку
+					break; // выходим из цикла
+				}
+			}
 		cmdreset(); // сброс автомата для сбора символов
+		return;		// выход из функции
+		
 }
 
 
@@ -369,13 +423,30 @@ void cmdexec(void)
 // главный цикл для обработки кондной строки
 void cmdmainloop(void)
 {
+	uint8_t i;
 	switch(cmd.state) // проверяем состояние строки
 		{
 			case exec: // 
-					cmdparcer(); 
-					cmdexec();
+					if (!cmdparcer()) 	
+							cmdexec();
+						else
+						{
+							for(i=0;i<cmd.NumTabRet;i++)
+							{
+								// -3 - слишком много параметров
+								if (-3==cmd.TabRet[i].retfunc) 
+								printf("%s",cmd.TabRet[i].name);
+							}
+							cmdreset();
+						}
 				break;
 			case 	exec_error_ovf:
+					for(i=0;i<cmd.NumTabRet;i++)
+					{
+						// -2 - слишком длинная строка
+						if (-2==cmd.TabRet[i].retfunc) 
+							printf("%s",cmd.TabRet[i].name);
+					}
 					cmdreset();
 				break;
 		}
@@ -419,9 +490,17 @@ int16_t blink(uint8_t argc,char *argv[])
 // таблица соответствия название-функция храниться не в ОЗУ,
 // а во FLESH, т.е. можно не беспокопиться за кол-во функций
 // и длину строк
-const tablefunc_t testf[2]={"led", led,
-														"blink", blink	
+const tablefunc_t testf[2]={{"led", led},
+													  {"blink", blink	}
 														};
+// таблица соответсвия возврат-текст для резултататов возврата
+const tableRet_t RetText[4]={ 
+															-3, "too many parametr\r\n",
+															-2, "too long string\r\n",
+															-1, "command not found\r\n",
+															 0, "ok\r\n"
+														};
+
 //char simvol;		
 //============================ вывод данных из UART
 
@@ -490,8 +569,11 @@ void main(void)
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
   //testf={.name="nvvjhggvn",.func=yui};
 	cmdinit('\r', // стоп-символ
+					'\n',
 					testf, // указатель на таблицу название-функция
-					2 ); 	// кол-во функций в таблице
+					2,  	// кол-во функций в таблице
+					RetText,
+					4);
 	UART2_Init(9600, UART2_WORDLENGTH_8D, 
                 UART2_STOPBITS_1, UART2_PARITY_NO, 
                 UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
@@ -506,11 +588,9 @@ void main(void)
 	while (1)
   {
 		cmdmainloop(); // обработка командной строки
-		printf("qwetr %d\r\n",nmb);
+		//printf("qwetr %d\r\n",nmb);
 		nmb++;
-		if (nmb==12) 
-		nop();
-	if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
+	//if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
 	//delay_ms(1000);
 	}
 #endif
