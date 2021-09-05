@@ -36,6 +36,9 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+cBuffer_t buf; // буфер структура 
+uint8_t mas[UART2_TX_buffer_size]; // массив буфера
+inputchar_t UART2_RxFunc=0; // Указатель на функцию для приема данных
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Public functions ----------------------------------------------------------*/
@@ -51,7 +54,7 @@
   * @retval None
   */
 
-volatile static inputchar_t UART2_RxFunc=0;
+
 //volatile static 
 
 void UART2_DeInit(void)
@@ -99,6 +102,10 @@ void UART2_Init(uint32_t BaudRate, UART2_WordLength_TypeDef WordLength, UART2_St
   assert_param(IS_UART2_MODE_OK((uint8_t)Mode));
   assert_param(IS_UART2_SYNCMODE_OK((uint8_t)SyncMode));
   
+	// инициализация буфера для передачи данных
+	bufferInit(&buf, // переменная буфер для передачи
+						mas, // буфер
+						UART2_TX_buffer_size); // размер буфер
   /* Clear the word length bit */
   UART2->CR1 &= (uint8_t)(~UART2_CR1_M);
   /* Set the word length bit according to UART2_WordLength value */
@@ -874,12 +881,38 @@ void UART2_ClearITPendingBit(UART2_IT_TypeDef UART2_IT)
   }
 }
 
-//
+// Функция подставляет в обработчик прерываний
+// функцию для захвата входящего символа
 
 void UART2_SetRxHandler(void (*inputchar)(char))
 {
 	UART2_RxFunc=inputchar;
 }
+
+// функция для передачи символа в буфера обмена
+void uart2_sendtobuffer(uint8_t chr)
+{
+	while(bufferAddToEnd(&buf,  chr));
+	UART2_ITConfig(UART2_IT_TXE, ENABLE);
+//	return chr;
+}
+
+// функция для получения символа из буфера обмена 
+// вызывается в прервании
+void uart2_GetFromBuffer(void)
+{
+	
+	if (bufferIsEmpty(&buf)>1) 
+			UART2->DR=bufferGetFromFront(&buf);
+		else
+		{
+			UART2->DR=bufferGetFromFront(&buf);
+			UART2_ITConfig(UART2_IT_TXE, DISABLE);
+		}
+		
+}
+
+
 
 /**
   * @}

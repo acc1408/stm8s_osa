@@ -38,6 +38,9 @@
  #include "inc/stm8s_delay.h" // программная задержка
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
 // #include "inc/stm8s_button.h"  // Драйвер для кнопки
+ #include "inc/stm8s_buffer.h"
+ #include "inc/stm8s_cmdline.h"
+ #include "inc/stm8s_stdioinit.h"
  
  #include "inc/stm8s_clk.h" // драйвер тактирования
 // #include "inc/stm8s_exti.h" // драйвер внешних прерываний

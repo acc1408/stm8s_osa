@@ -261,8 +261,10 @@ typedef union{
 } byte16_t;
 
 // прототип функции ввода символа
+#ifndef _INPUTCHAR_T
+#define _INPUTCHAR_T
 typedef void (*inputchar_t)(char);
-
+#endif
 
 #define U8_MAX     (255)
 #define S8_MAX     (127)

@@ -32,16 +32,23 @@
 /* Includes ------------------------------------------------------------------*/
 #include "inc/stm8s_clk.h"
 #include "stm8s.h"
-
+#include "inc/stm8s_buffer.h"
 /** @addtogroup STM8S_StdPeriph_Driver
   * @{
   */
-
+	// размер буфера для приема
+#define UART2_TX_buffer_size 30
 /* Exported types ------------------------------------------------------------*/
 
 /** @addtogroup UART2_Exported_Types
   * @{
   */
+// Тип данных функция для захват символа из UART
+#ifndef _INPUTCHAR_T
+#define _INPUTCHAR_T
+typedef void (*inputchar_t)(char);
+#endif
+
 
 /**
   * @brief  UART2 Irda Modes
@@ -434,9 +441,31 @@ void UART2_ClearFlag(UART2_Flag_TypeDef UART2_FLAG);
 ITStatus UART2_GetITStatus(UART2_IT_TypeDef UART2_IT);
 void UART2_ClearITPendingBit(UART2_IT_TypeDef UART2_IT);
 
-// Обработчик приемника данных
-void UART2_SetRxHandler( void (*inputchar)(char)); 
 
+//======= Функции для приемника 
+// Функция подставляет в обработчик прерываний
+// функцию для захвата входящего символа
+void UART2_SetRxHandler( void (*inputchar)(char)); 
+//------------------
+// функция для передачи входящего символа буферу
+// при переполнении более старые данные стираются
+// 
+// ------------------------------------
+// функция для извлечения данных из приемного буфер
+//
+//---------------------------------
+// функция для получения кол-ва байт в приемном буфере 
+//
+//======= Функция для передатчика
+// Функция для передач строки
+// надо описать ее 
+//------
+// функция для передачи символа в буфера обмена
+void uart2_sendtobuffer(uint8_t chr);
+//--------------------------
+// функция для получения символа из буфера обмена 
+// вызывается в прерывании автоматически
+void uart2_GetFromBuffer(void);
 /**
   * @}
   */

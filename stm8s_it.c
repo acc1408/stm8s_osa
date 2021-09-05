@@ -127,6 +127,17 @@
 #ifdef __STM8S_BME280_H
 #include "src/stm8s_bme280.c"
 #endif
+#ifdef __STM8S_BUFFER_H
+#include "src/stm8s_buffer.c"
+#endif
+#ifdef __STM8S_CMDLINE_H
+#include "src/stm8s_cmdline.c"
+#endif
+#ifdef __STM8S_STDIOINIT_H
+#include "src/stm8s_stdioinit.c"
+#endif
+
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -711,7 +722,9 @@ void	uart2_GetFromBuffer(void);
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
+		#ifdef __STM8S_UART2_H
 		uart2_GetFromBuffer();
+		#endif
  }
 
 /**
@@ -719,15 +732,22 @@ void	uart2_GetFromBuffer(void);
   * @param  None
   * @retval None
   */
-extern inputchar_t UART2_RxFunc; // ссылка на файл uart2.c
-
+	#ifdef __STM8S_UART2_H
+extern inputchar_t UART2_RxFunc; // ссылка на переменную в файле uart2.c
+#endif
  INTERRUPT_HANDLER(UART2_RX_IRQHandler, 21)
  {
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */
-		if (UART2_RxFunc) UART2_RxFunc((char)UART2->DR);
-		else {	UART2_ClearITPendingBit(UART2_IT_RXNE); }
+	#ifdef __STM8S_UART2_H
+		if (UART2_RxFunc) 
+			UART2_RxFunc((char)UART2->DR);
+		else 
+		{	
+			UART2_ClearITPendingBit(UART2_IT_RXNE); 
+		}
+	#endif
  }
 #endif /* (STM8S105) || (STM8AF626x) */
 
