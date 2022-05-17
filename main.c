@@ -12,7 +12,7 @@
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
+  * You may obtain a copy of the License at:
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
@@ -25,7 +25,7 @@
   ******************************************************************************
   */ 
 
-
+//
 /* Includes ------------------------------------------------------------------*/
 
 #include "stm8s.h"
