@@ -302,7 +302,8 @@ void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle)
 void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
 
-	while(i2c_Task.Func);
+	//while(i2c_Task.Func);
+	//if (I2C)
 	i2c_Task.Func=i2cSendSend; // Загрузка функции
 	i2c_Task.DeviceAddrRW=DeviceAddress<<1;//загрузка адреса
 	i2c_Task.ArraySend=ArrayAddress; // загрузка указателя на адрес массива
@@ -319,7 +320,7 @@ void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumS
 {
 
 	
-	while(i2c_Task.Func);
+	//while(i2c_Task.Func);
 	i2c_Task.Func=i2cSendReceive; // Загрузка функции
 	switch(NumSend)
 	{

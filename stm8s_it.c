@@ -489,9 +489,12 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
 	
 	//I2CEventBit_t event;
 //	uint8_t d;
+void interrupt_i2c(void);
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
 	#ifdef __STM8S_I2C_H 
+	interrupt_i2c();
+	/*
 	byte16_t evt;
 	evt.bytelow = I2C->SR1;
 	evt.bytehigh = I2C->SR3;
@@ -504,7 +507,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 	switch(i2c_Task.ItEvent)
 	{
 		//case I2C_START_FLAG:
-		case I2C_EVENT_MASTER_MODE_SELECT: /*!< BUSY, MSL and SB flag */ 
+		case I2C_EVENT_MASTER_MODE_SELECT: //!< BUSY, MSL and SB flag 
 		{	
 				switch(i2c_Task.Dir)
 				{
@@ -633,7 +636,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		}
 		break;
 		
-		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	/*!< BUSY, MSL and ADDR						flags */
+		case I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED:	//!< BUSY, MSL and ADDR						flags 
 		{
 			switch(i2c_Task.NumSendReceive)
 			{
@@ -647,8 +650,8 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		}
 		break;
 		
-		case I2C_EVENT_MASTER_BYTE_RECEIVED:					/*!< BUSY, MSL and 			RXNE 			flags */
-		case I2C_EVENT_MASTER_2_BYTE_RECEIVED:				/*!< BUSY, MSL and 			RXNE BTF 	flags */
+		case I2C_EVENT_MASTER_BYTE_RECEIVED:					//!< BUSY, MSL and 			RXNE 			flags 
+		case I2C_EVENT_MASTER_2_BYTE_RECEIVED:				//!< BUSY, MSL and 			RXNE BTF 	flags 
 		{
 			switch(i2c_Task.NumSendReceive)
 			{
@@ -688,7 +691,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 		//break;
 		
 		
-		case 0x300:	/*!< BUSY, MSL 	flags */
+		case 0x300:	//!< BUSY, MSL 	flags 
 		{ 
 			I2C->stop=1;
 			i2c_Task.Func=i2cIdle;
@@ -707,6 +710,7 @@ INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 			I2C->SR2=0;
 	break;
 	}	
+	*/
 	#endif
 }
 
