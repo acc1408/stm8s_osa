@@ -67,6 +67,54 @@ typedef enum
 }i2cResult_t;
 
 
+
+typedef struct
+{
+  union
+	{
+		uint8_t SR1;       /*!< I2C status register 1 */
+		struct
+		{
+			uint8_t sb:1; // start bit generation=1
+			uint8_t addr:1; // addess sent=1 (master)/match=1 (slave)
+			uint8_t btf:1;	// byte transfer=1
+			uint8_t add10:1; // master has sent header 10-bit=1 address
+			uint8_t stopf:1; //stop detection=1 (slave)
+			uint8_t reserv_sr1:1; // reserved
+			uint8_t rxne:1; //data register not empty=1 (receiver)
+			uint8_t txe:1; // data register empty=1 (transmitters)
+		};
+	};
+	union
+	{
+		uint8_t SR2;       /*!< I2C status register 2 */
+		struct
+		{
+			uint8_t berr:1; // buss error=1
+			uint8_t arlo:1; // arbitration lost=1
+			uint8_t af:1; // acknowledge failure=1
+			uint8_t ovr:1; // overrun or underrun=1
+			uint8_t reserv_sr2:1; // reserved
+			uint8_t wufh:1;	// wakeup from Halt=1
+			uint8_t reserv2_sr2:2;// reserved
+		};
+	};
+	union
+	{
+	uint8_t SR3;       /*!< I2C status register 3 */
+	struct
+		{
+			uint8_t msl:1; // master=1 / slave=0
+			uint8_t busy:1; //bus busy =1
+			uint8_t tra:1; // transmitter=1/ reciever=0
+			uint8_t reserv_sr3:1; // reserved
+			uint8_t gencall:1;	// generall call header=1 (slave)
+			uint8_t reserv2_sr3:2; // reserved
+			uint8_t dualf:1; // Dual flag OAR2=0 OAR2=1 (slave)
+		};
+	};
+}i2cStatusReg_t;
+
 typedef struct
 {
 	// адрес запроса для мастера
@@ -241,6 +289,11 @@ uint8_t i2cMaster7BitSendReceive(uint8_t DeviceAddress,
 
 void interrupt_i2c(void)
 {
+	i2cStatusReg_t i2cReg;
+	i2cReg.SR1=I2C->SR1;
+	i2cReg.SR3=I2C->SR3;
+	i2cReg.SR2=I2C->SR2;
+	
 	// Обработка ошибок
 	if (I2C->SR2)
 	{
