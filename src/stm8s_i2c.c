@@ -113,7 +113,11 @@ void I2C_Init_7bit(uint32_t OutputClockFrequencyHz)
 	Clock= CLK_GetClockFreq();
 	ClockMHz=Clock/1000000;
 	// Reset I2C
-	I2C_SoftwareResetCmd();
+	//I2C_SoftwareResetCmd();
+	I2C->pe=0;
+	I2C->swrst=1;
+	nop();
+	I2C->swrst=0;
 	/*
 	/*						
 	/*------------------------- I2C FREQ Configuration ------------------------*/

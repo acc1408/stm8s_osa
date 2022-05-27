@@ -492,8 +492,9 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
 void interrupt_i2c(void);
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
-	#ifdef __STM8S_I2C_H 
 	interrupt_i2c();
+	#ifdef __STM8S_I2C_H 
+	
 	/*
 	byte16_t evt;
 	evt.bytelow = I2C->SR1;
