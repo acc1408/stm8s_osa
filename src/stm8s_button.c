@@ -8,7 +8,7 @@ void ButtonInit(button_t* button,uint8_t PressLongCycleMin, GPIO_TypeDef* GPIOx,
 {
 	GPIO_Init(GPIOx, GPIO_PIN, GPIO_MODE_IN_FL_NO_IT);
 	button->PressLongCycleMin=PressLongCycleMin;
-	button->LevelLast=GPIO_ReadInputPin(GPIOx,GPIO_PIN);;
+	button->LevelLast=GPIO_ReadInputPin(GPIOx,GPIO_PIN);
 	button->CyclePress=0;
 }
 

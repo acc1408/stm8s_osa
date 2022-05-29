@@ -91,17 +91,17 @@ int16_t blink(uint8_t argc,char *argv[])
 // таблица соответствия название-функция храниться не в ОЗУ,
 // а во FLESH, т.е. можно не беспокопиться за кол-во функций
 // и длину строк
-/*
+
 const tablefunc_t testf[2]={{"led", led},
 													  {"blink", blink	}
-														};*/
+														};
 // таблица соответсвия возврат-текст для резултататов возврата
-/*
+
 const tableRet_t RetText[2]={
 															 0, "ok\r\n",
 															 2,"Led error param\r\n"
 														};
-*/
+
 //char simvol;		
 //============================ вывод данных из UART
 #ifndef _INPUTCHAR_T
@@ -131,6 +131,9 @@ void Task(void)
 
 
 uint16_t nmb=0;
+uint8_t cim=0;
+SetLCD_t lcd1;
+char st[40];
 void main(void)
 {
  #ifdef  __OSA__
@@ -149,34 +152,49 @@ void main(void)
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
 
 	// Инициализация командной строки.
-	/*
+	
 	cmdinit('\r', // стоп-символ
 					'\n', // 2 стоп-символ
 					testf, // указатель на таблицу название-функция
 					2,  	// кол-во функций в таблице
 					RetText, // таблица номер-возврат текста
-					2);		// размер массива номер-текст*/
+					2);		// размер массива номер-текст
 	UART2_Init(9600, UART2_WORDLENGTH_8D, 
                 UART2_STOPBITS_1, UART2_PARITY_NO, 
                 UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
 	// настройка приема символов из uart2 в командную строку
-	//UART2_SetRxHandler(cmdinputchar);
+	UART2_SetRxHandler(cmdinputchar);
 	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
 	// Инициализация для вывода printf
 	stdio_InitPrintf(uart2_sendtobuffer);
 	UART2_Cmd(ENABLE);
-	
+	I2C_Init_7bit(100000);
 	enableInterrupts();
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	
 	printf("Check cmdline\r\n");
+	//--------------
+	Lcdi2cInit(&lcd1, 0b0111111, 
+								ENABLE, // Backlight
+								DISABLE, // Blink cursor
+								ENABLE); // On/off cursor
+// Перемещение курсора по экрану
+CursorGoTo(&lcd1, 0, 0);
+// Форматирование строки
+//sprintf(st,"Press=Pa \64");
+// Печать строки
+Lcdi2cPrint(&lcd1, st);
+
 	while (1)
   {
-		//cmdmainloop(); // обработка командной строки
+		cmdmainloop(); // обработка командной строки
 	//	printf("qwe5675089tr %d\r\n",nmb);
-		nmb++;
-	//if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	//delay_ms(1000);
+		nmb=65;
+		//cim=65;
+		sprintf(st,"<>+-");
+		Lcdi2cPrint(&lcd1, st);
+	if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
+	delay_ms(300);
 	}
 #endif
 }

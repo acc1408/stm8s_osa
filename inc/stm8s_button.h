@@ -14,7 +14,7 @@ ret=ButtonRead(&btn,GPIOB, GPIO_PIN_0);
 #define __STM8S_BUTTON_H
 
 #include "stm8s.h"
-
+#include "inc/stm8s_gpio.h"
 typedef enum
 {
 	idle=0b11, // ожидаение события

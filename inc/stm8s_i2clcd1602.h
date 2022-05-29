@@ -14,7 +14,7 @@
 
 /*
 // Объявление стуктуры экрана
-SetLCD_t 1lcd;
+SetLCD_t lcd1;
 // Пример инициализации
 Lcdi2cInit(&lcd1, 0b0111111, 
 								ENABLE, // Backlight
