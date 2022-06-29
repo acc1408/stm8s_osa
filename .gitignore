@@ -7,6 +7,7 @@
 *.pdb
 *.wdb
 *.xml
+*.spy
 TAGS.txt
 TAGS_Filelist.txt
 /stm8l15x_osa

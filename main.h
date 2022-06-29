@@ -2,6 +2,6 @@
 #define __main_H
 
 
-
+void privodline(void);
 
 #endif

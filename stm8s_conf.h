@@ -69,11 +69,11 @@
 #endif /* STM8S208 || STM8AF52Ax */
 
 #ifndef STM8S903
-// #include "inc/stm8s_tim2.h" // הנאיגונ הכÿ Timer2
+ #include "inc/stm8s_tim2.h" // הנאיגונ הכÿ Timer2
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
-// #include "inc/stm8s_tim3.h"
+ #include "inc/stm8s_tim3.h"
 #endif /* (STM8S208) ||defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) */ 
 #ifndef STM8S903
  #include "inc/stm8s_tim4.h"

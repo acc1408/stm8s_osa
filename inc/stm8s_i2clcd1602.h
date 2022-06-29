@@ -101,6 +101,7 @@ void Lcdi2cInit(SetLCD_t *lcd, // Структура
 void LcdSendByte(SetLCD_t *lcd, LcdDataCom_t data1_com0,uint8_t data);
 void Lcdi2cPrint(SetLCD_t *lcd, char *st);
 void LcdWriteUserChar(SetLCD_t *lcd, uint8_t kod, uint8_t *st);
+void LcdClearDisplay(SetLCD_t *lcd);
 // Необходимо реализовать сдвиг экрана на 1 символ и сдвиг курсора 1 символ
 void LcdCursorLeft(SetLCD_t *lcd);
 void LcdCursorRight(SetLCD_t *lcd);

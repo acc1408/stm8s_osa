@@ -36,6 +36,38 @@
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
 
+#define lineEnGpio 	GPIOD, GPIO_PIN_2
+#define lineClkGpio GPIOD, GPIO_PIN_3
+#define lineDirGpio GPIOD, GPIO_PIN_4
+#define btUpGpio 		GPIOB, GPIO_PIN_0 //желтая
+#define btDownGpio 	GPIOB, GPIO_PIN_1 // белая
+
+#define rotEnGpio		GPIOC, GPIO_PIN_3
+#define rotClkGpio 	GPIOC, GPIO_PIN_4
+#define rotDirGpio 	GPIOC, GPIO_PIN_5
+#define btIncGpio 	GPIOB, GPIO_PIN_2 // синяя
+#define btDecGpio 	GPIOB, GPIO_PIN_3 // зеленая
+
+#define btCangaGpio GPIOD, GPIO_PIN_7 // красная
+#define ledCangaGpio GPIOC, GPIO_PIN_2 // красная
+
+
+#define lineStepMax 6400
+int32_t lineStep=0;
+//uint32_t *lineStepPt=&lineStep;
+#define rotStepMax 3200
+uint16_t rotStep=0;
+int16_t length=0;
+button_t btInc,btDec,btUp,btDown,btCanga;
+uint16_t cell=0; // номер источника, если 0 - закрыт
+uint16_t nmb=0,i;
+uint8_t cim=0;
+SetLCD_t lcd1;
+char st[40];
+
+uint8_t rotDir=0, lineDir=0; // направление вращения
+uint8_t rotEn=0,lineEn=0; // флаг работы двигателя
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 									//	*
@@ -130,10 +162,78 @@ void Task(void)
 #endif
 
 
-uint16_t nmb=0;
-uint8_t cim=0;
-SetLCD_t lcd1;
-char st[40];
+
+
+
+//====================================
+
+void privodlineTim2(void)
+{
+	
+	GPIO_WriteReverse(lineClkGpio);
+	
+	if (lineDir)
+	{
+		if (lineStep<lineStepMax)
+		{
+			
+			lineStep++;
+			
+		}
+		else
+		{
+			TIM2_Cmd(DISABLE);
+			GPIO_WriteLow(lineEnGpio);
+		}
+		
+	}
+	else
+	{
+		if (lineStep>0)
+		{
+			lineStep--;
+		}
+		else
+		{
+			TIM2_Cmd(DISABLE);
+			GPIO_WriteLow(lineEnGpio);
+	//		lineEn=0;
+		}
+	}
+	
+	TIM2_ClearFlag(TIM2_FLAG_UPDATE);
+}
+	
+//====================================
+// функции для барабана обработчик прерывания
+/*
+#define kolShag2 3200 //4076
+	uint8_t shag2=0;
+	uint16_t oborot2=kolShag2; //
+	uint8_t dir2;
+	uint8_t en2;	
+	*/
+void baraban_tim3 (void)
+{
+	GPIO_WriteReverse(rotClkGpio);
+	
+	if (rotStep<rotStepMax) 
+		{
+			rotStep++;
+		}
+	else
+		{
+			GPIO_WriteLow(rotEnGpio);
+			TIM3_Cmd(DISABLE);
+			rotStep=0;
+		}
+	
+	
+	TIM3_ClearFlag(TIM3_FLAG_UPDATE);
+	
+}
+//====================================
+
 void main(void)
 {
  #ifdef  __OSA__
@@ -167,34 +267,206 @@ void main(void)
 	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
 	// Инициализация для вывода printf
 	stdio_InitPrintf(uart2_sendtobuffer);
-	UART2_Cmd(ENABLE);
+	//UART2_Cmd(ENABLE);
 	I2C_Init_7bit(100000);
 	enableInterrupts();
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	
 	printf("Check cmdline\r\n");
 	//--------------
+	
 	Lcdi2cInit(&lcd1, 0b0111111, 
 								ENABLE, // Backlight
-								DISABLE, // Blink cursor
+								ENABLE, // Blink cursor
 								ENABLE); // On/off cursor
-// Перемещение курсора по экрану
-CursorGoTo(&lcd1, 0, 0);
-// Форматирование строки
-//sprintf(st,"Press=Pa \64");
-// Печать строки
-Lcdi2cPrint(&lcd1, st);
 
+	//delay_ms(5);							
+	//LcdClearDisplay(&lcd1);
+	//delay_ms(5);	
+	
+//----------
+	CursorGoTo(&lcd1, 0, 0);
+	sprintf(st," +  up");
+	Lcdi2cPrint(&lcd1, st);
+	//-----------
+	CursorGoTo(&lcd1, 1, 0);
+	sprintf(st,"<%d>select    ",cell);
+	Lcdi2cPrint(&lcd1, st);
+	//-----------
+	CursorGoTo(&lcd1, 2, 0);
+	sprintf(st," - down",cell);
+	Lcdi2cPrint(&lcd1, st);
+	
+	//-------------------
+
+	
+	ButtonInit(&btInc,10, btIncGpio);
+	ButtonInit(&btDec,10, btDecGpio);
+	ButtonInit(&btUp,10, btUpGpio);
+	ButtonInit(&btDown,10, btDownGpio);
+	ButtonInit(&btCanga,10, btCangaGpio);
+	
+	//--------------
+	
+	
+	GPIO_Init(lineClkGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(lineEnGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(lineDirGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(rotClkGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(rotEnGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(rotDirGpio, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(btCangaGpio, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(ledCangaGpio, GPIO_MODE_OUT_PP_HIGH_FAST);
+	
+	
+
+	
+	//TIM4_TimeBaseInit(TIM4_PRESCALER_16, 125);
+	//TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
+	TIM3_TimeBaseInit(TIM3_PRESCALER_16, 200);
+	TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
+	TIM2_TimeBaseInit(TIM2_PRESCALER_16, 200);
+	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
+	//TIM3_Cmd(ENABLE);
+	//TIM4_Cmd(ENABLE);
+	
 	while (1)
   {
 		cmdmainloop(); // обработка командной строки
 	//	printf("qwe5675089tr %d\r\n",nmb);
-		nmb=65;
+		//nmb=65;
 		//cim=65;
-		sprintf(st,"<>+-");
-		Lcdi2cPrint(&lcd1, st);
+		//sprintf(st,"<>+-");
+		//Lcdi2cPrint(&lcd1, st);
+	
+	// вращение барабана
+	if (ButtonRead(&btInc, btIncGpio)==pressup )
+	{
+		// Включили обмотки
+		GPIO_WriteHigh(rotEnGpio);
+		// Направление вращения
+		GPIO_WriteHigh(rotDirGpio);
+		
+		if (rotStep )
+		{
+			// двигатель Шагает
+			if (rotDir==0) // Проверяем что он шагал в другую сторону
+			{
+				rotDir=1;
+				rotStep=rotStepMax-rotStep;
+			}	
+		}
+		else
+		{
+			//Двигатель стоит
+			rotDir=1;
+			if (cell==3)
+			{
+				cell=0;
+			}
+			else
+			{
+				cell++;
+			}
+				CursorGoTo(&lcd1, 1, 0);
+				sprintf(st,"<%d>wait    ",cell);
+				Lcdi2cPrint(&lcd1, st);
+			//	dir=0;
+			//	en=1;
+			TIM3_Cmd(ENABLE);
+		}
+		
+	}
+	if (ButtonRead(&btDec, btDecGpio)==pressup )
+	{
+		// Включили обмотки
+		GPIO_WriteHigh(rotEnGpio);
+		// Направление вращения
+		GPIO_WriteLow(rotDirGpio);
+		
+		if (rotStep )
+		{
+			// двигатель Шагает
+			if (rotDir==1) // Проверяем что он шагал в другую сторону
+			{
+				rotDir=0;
+				rotStep=rotStepMax-rotStep;
+			}	
+		}
+		else
+		{
+			//Двигатель стоит
+			rotDir=0;
+			if (cell==0)
+			{
+				cell=3;
+			}
+			else
+			{
+				cell--;
+			}
+				CursorGoTo(&lcd1, 1, 0);
+				sprintf(st,"<%d>wait    ",cell);
+				Lcdi2cPrint(&lcd1, st);
+			//		dir=0;
+			//		en=1;
+			TIM3_Cmd(ENABLE);
+		}
+	}
+	
+	//==============
+	// линейный привод
+	if (ButtonRead(&btUp, btUpGpio)==pressup )
+	{
+		
+		
+			if (lineStep<lineStepMax)
+		{
+			// Включили обмотку
+			GPIO_WriteHigh(lineEnGpio);
+			// Направление вращения
+			GPIO_WriteHigh(lineDirGpio);
+			lineDir=1;
+			TIM2_Cmd(ENABLE);
+		}
+	}
+	if (ButtonRead(&btDown, btDownGpio)==pressup )
+	{
+		
+		
+		if (lineStep>0)
+		{
+		// Включили обмотку
+			GPIO_WriteHigh(lineEnGpio);
+			// Направление вращения
+			GPIO_WriteLow(lineDirGpio);
+			lineDir=0;
+			TIM2_Cmd(ENABLE);
+		}
+	}
+	if (lineStep<0) lineStep=0;
+	length=lineStep/320;
+				CursorGoTo(&lcd1, 3, 0);
+				sprintf(st,"H=%d mm    ",length);
+				Lcdi2cPrint(&lcd1, st);
+	
+	if (rotStep==0)
+		{
+				CursorGoTo(&lcd1, 1, 0);
+				sprintf(st,"<%d>select    ",cell);
+				Lcdi2cPrint(&lcd1, st);
+		}
+	
+	if (GPIO_ReadInputPin(btCangaGpio))
+	{
+		GPIO_WriteLow(ledCangaGpio);
+	}
+	else
+	{
+		GPIO_WriteHigh(ledCangaGpio);
+	}
 	if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	delay_ms(300);
+	delay_ms(100);
 	}
 #endif
 }

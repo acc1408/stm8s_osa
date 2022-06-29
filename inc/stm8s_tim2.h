@@ -449,62 +449,62 @@ void TIM2_SetCompare2(uint16_t Compare2);
 void TIM2_SetCompare3(uint16_t Compare3);
 #endif
 
-//#define TIM2_SetIC1Prescaler_DEF
+#define TIM2_SetIC1Prescaler_DEF
 #ifdef  TIM2_SetIC1Prescaler_DEF
 void TIM2_SetIC1Prescaler(TIM2_ICPSC_TypeDef TIM2_IC1Prescaler);
 #endif
 
-//#define TIM2_SetIC2Prescaler_DEF
+#define TIM2_SetIC2Prescaler_DEF
 #ifdef  TIM2_SetIC2Prescaler_DEF
 void TIM2_SetIC2Prescaler(TIM2_ICPSC_TypeDef TIM2_IC2Prescaler);
 #endif
 
-//#define TIM2_SetIC3Prescaler_DEF
+#define TIM2_SetIC3Prescaler_DEF
 #ifdef  TIM2_SetIC3Prescaler_DEF
 void TIM2_SetIC3Prescaler(TIM2_ICPSC_TypeDef TIM2_IC3Prescaler);
 #endif
 
-//#define TIM2_GetCapture1_DEF
+#define TIM2_GetCapture1_DEF
 #ifdef  TIM2_GetCapture1_DEF
 uint16_t TIM2_GetCapture1(void);
 #endif
 
-//#define TIM2_GetCapture2_DEF
+#define TIM2_GetCapture2_DEF
 #ifdef  TIM2_GetCapture2_DEF
 uint16_t TIM2_GetCapture2(void);
 #endif
 
-//#define TIM2_GetCapture3_DEF
+#define TIM2_GetCapture3_DEF
 #ifdef  TIM2_GetCapture3_DEF
 uint16_t TIM2_GetCapture3(void);
 #endif
 
-//#define TIM2_GetCounter_DEF
+#define TIM2_GetCounter_DEF
 #ifdef  TIM2_GetCounter_DEF
 uint16_t TIM2_GetCounter(void);
 #endif
 
-//#define TIM2_GetPrescaler_DEF
+#define TIM2_GetPrescaler_DEF
 #ifdef  TIM2_GetPrescaler_DEF
 TIM2_Prescaler_TypeDef TIM2_GetPrescaler(void);
 #endif
 
-//#define TIM2_GetFlagStatus_DEF
+#define TIM2_GetFlagStatus_DEF
 #ifdef  TIM2_GetFlagStatus_DEF
 FlagStatus TIM2_GetFlagStatus(TIM2_FLAG_TypeDef TIM2_FLAG);
 #endif
 
-//#define TIM2_ClearFlag_DEF
+#define TIM2_ClearFlag_DEF
 #ifdef  TIM2_ClearFlag_DEF
 void TIM2_ClearFlag(TIM2_FLAG_TypeDef TIM2_FLAG);
 #endif
 
-//#define TIM2_GetITStatus_DEF
+#define TIM2_GetITStatus_DEF
 #ifdef  TIM2_GetITStatus_DEF
 ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
 #endif
 
-//#define TIM2_ClearITPendingBit_DEF
+#define TIM2_ClearITPendingBit_DEF
 #ifdef  TIM2_ClearITPendingBit_DEF
 void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
 #endif

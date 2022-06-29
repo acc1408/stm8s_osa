@@ -43,6 +43,14 @@ void Lcdi2cPrint(SetLCD_t *lcd, char *st)
 	}
 }
 
+
+void LcdClearDisplay(SetLCD_t *lcd)
+{
+	LcdSendByte(lcd, LcdCom, 0b1);
+	//delay_ms(40);
+}
+
+
 void LcdCursorLeft(SetLCD_t *lcd)
 {
 	LcdSendByte(lcd, LcdCom, 0b10000);

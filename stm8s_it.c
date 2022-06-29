@@ -141,6 +141,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
+void baraban_tim3 (void);
+void privodlineTim2(void);
 /* Private functions ---------------------------------------------------------*/
 /* Public functions ----------------------------------------------------------*/
 
@@ -376,11 +378,15 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
- INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
+	
+ @svlreg INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	privodlineTim2();
+	
+	 
  }
 
 /**
@@ -404,11 +410,13 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @retval None
   */
  
+
  INTERRUPT_HANDLER(TIM3_UPD_OVF_BRK_IRQHandler, 15)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	baraban_tim3 ();
 	
  }
 
@@ -432,6 +440,8 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
+	
+	
  INTERRUPT_HANDLER(UART1_TX_IRQHandler, 17)
  {
     /* In order to detect unexpected events during development,
@@ -823,11 +833,16 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   * @param  None
   * @retval None
   */
+
+
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	//------
+
+
 	#ifdef __OSA__ 
 	OS_Timer();
 	TIM4_ClearFlag(TIM4_FLAG_UPDATE);
