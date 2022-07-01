@@ -178,7 +178,7 @@ void I2C_Init_7bit(uint32_t OutputClockFrequencyHz)
   /*--------------------------- I2C OAR Configuration ------------------------*/
   //I2C->OARL = (uint8_t)(OwnAddress);
 	I2C->OARH=1<<6; // enable 7bit Mode
-	I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
+	//I2C_ITConfig(I2C_IT_ERR|I2C_IT_EVT|I2C_IT_BUF, ENABLE);
 	/* Enable I2C */
   I2C->pe=1;
 }
