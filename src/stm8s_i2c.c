@@ -79,7 +79,9 @@ void I2C_DeInit(void)
   I2C->CCRH = I2C_CCRH_RESET_VALUE;
   I2C->TRISER = I2C_TRISER_RESET_VALUE;
 	*/
-	I2C_SoftwareResetCmd();
+	I2C->swrst=1;
+	nop();
+	I2C->swrst=0;
 }
 
 /**
@@ -113,7 +115,9 @@ void I2C_Init_7bit(uint32_t OutputClockFrequencyHz)
 	Clock= CLK_GetClockFreq();
 	ClockMHz=Clock/1000000;
 	// Reset I2C
-	I2C_SoftwareResetCmd();
+	I2C->swrst=1;
+	nop();
+	I2C->swrst=0;
 	/*
 	/*						
 	/*------------------------- I2C FREQ Configuration ------------------------*/
@@ -189,6 +193,83 @@ void I2C_Init_7bit(uint32_t OutputClockFrequencyHz)
   *         This parameter can be any of the @ref FunctionalState enumeration.
   * @retval None
   */
+	
+	
+// Resrart I2C module
+void I2C_restartInit(void)
+{
+	//uint8_t I2C_CR1,I2C_CR2,I2C_FREQR,	I2C_OARL,I2C_OARH,
+	//I2C_ITR,I2C_CCRL,	I2C_CCRH,I2C_TRISER;
+	uint8_t i,i2cSetting[9];
+/* Disable I2C to configure TRISER */
+  I2C->pe= (uint8_t)0;
+	//-- Save config I2C
+	for(i=0;i<5;i++)
+	{
+		i2cSetting[i]=*((uint8_t*)I2C+i);
+	}
+	for(i;i<9;i++)
+	{
+		i2cSetting[i]=*((uint8_t*)I2C+i+5);
+	}
+	//reset I2C
+	I2C->swrst=1;
+	nop();
+	I2C->swrst=0;
+	//-- Download config I2C
+	for(i=0;i<5;i++)
+	{
+		*((uint8_t*)I2C+i)=i2cSetting[i];
+	}
+	for(i;i<9;i++)
+	{
+		*((uint8_t*)I2C+i+5)=i2cSetting[i];
+	}
+	// Enable I2C
+	I2C->pe= (uint8_t)1;
+}	
+// Обработка ошибок
+// Handle error I2C module
+i2cStatus_t I2C_HandlerError(i2cStatusReg_t *sr)
+{
+	if (sr->berr)  //Error 
+			{
+			I2C->berr=0; // na?in oeaaa
+			//i2cStack.busError=1;
+			I2C_restartInit(); 
+			//I2C->stop=1; // aaia?aoey STOP
+			return i2cBusError;
+			}
+			if (sr->af)  //Error 
+			{
+			I2C->af=0;
+			I2C->stop=1;
+			return i2cNack;			
+			}	
+			if (sr->arlo)  //Error 
+			{
+			I2C->arlo=0;
+			//I2C->stop=1;
+			return i2cArbitLost;			
+			}	
+			if (sr->ovr)  //Error 
+			{
+				I2C->ovr=0;
+				//I2C->stop=1;
+				return i2cOverrun;			
+			}	
+			if (sr->wufh)  //Error 
+			{
+				I2C->wufh=0;
+				//I2C->stop=1;
+				return i2cWakeup;			
+			}	
+			return i2cBusError;
+}
+	
+
+
+	
 void I2C_Cmd(FunctionalState NewState)
 {
   /* Check function parameters */
@@ -298,6 +379,577 @@ void I2C_FastModeDutyCycleConfig(I2C_DutyCycle_TypeDef I2C_DutyCycle)
 }
 
 
+
+i2cStatus_t I2C_MasterSend(uint8_t DeviceAddress, void *ArraySend, uint16_t NumSend)
+{
+	uint16_t i=0;
+	//uint8_t stBit=0;
+	i2cStatusReg_t SR;
+	uint8_t *ArSend=(uint8_t *)ArraySend;
+	//------------------------
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//-------------------------
+		// Begin Error I2C
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		// End Error I2C
+		//----------------------
+		if (!SR.busy)
+		{
+			I2C->start=1;  // generation start-bit
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+	//i=0;
+	while(1)
+	{
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//---------
+		//Begin Handle Error
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		//End Handle Error
+		//------------
+		if (SR.sb) 
+		{
+			I2C->DR=DeviceAddress<<1;
+			i=0;
+			continue;
+		}
+		
+		
+		if (SR.addr)
+		{
+			if (NumSend)
+			{
+				I2C->DR=*ArSend++;
+				NumSend--;
+			}
+			else
+			{
+				I2C->stop=1;
+				return i2cSuccess;
+			}
+			i=0;
+			continue;
+		}
+		//-------------
+		if (SR.txe)
+		{
+			if (NumSend)
+			{
+				I2C->DR=*ArSend++;
+				//I2C->ack=1;
+				NumSend--;
+				i=0;
+			}
+			else
+			{
+				if (SR.btf)
+				{
+					I2C->stop=1;
+					return i2cSuccess;
+				}
+			}
+			continue;
+		}
+		//Begin Safe block
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		//End Safe block
+	}
+	//----------------
+}
+
+i2cStatus_t I2C_MasterReceive(uint8_t DeviceAddress, void *ArrayReceive, uint16_t NumReceive)
+{
+	uint16_t i=0;
+	i2cStatusReg_t SR;
+	uint8_t *ArReceive=(uint8_t *)ArrayReceive;
+	//I2C->start=1;  // Генерация старта
+	//if (!SR.busy )
+	//------------------------
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//-------------------------
+		// Begin Error I2C
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		// End Error I2C
+		//----------------------
+		if (!SR.busy)
+		{
+			I2C->start=1;  // generation start-bit
+		}
+		else
+		{
+			//if (SR.msl||SR.busy)
+					I2C_restartInit(); 
+			return i2cBusy;
+		}
+	
+	
+	//i=0;
+	while(1)
+	{
+		//repeat_busy:
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		
+		
+		if (SR.SR2)
+		{
+			//HandlerErrorI2CReceive:
+			return I2C_HandlerError(&SR);
+		}
+		//---Send adress-----
+		if (SR.sb) 
+		{
+			//I2C->DR=DeviceAddress<<1|1;
+			switch(NumReceive)
+			{
+				case 0:
+					//I2C->DR=DeviceAddress<<1|1;
+					//I2C->stop=1;
+					//break;
+				case 1:
+					I2C->DR=DeviceAddress<<1|1;
+					I2C->ack=0;
+					break;
+				default:
+					I2C->DR=DeviceAddress<<1|1;
+					I2C->ack=1;
+					break;
+			}
+			i=0;
+			continue;
+		}
+		if (SR.addr)
+		{
+			switch(NumReceive)
+			{
+				case 0:
+					//I2C->stop=1;
+					//return i2cSuccess;
+				case 1:
+					I2C->stop=1;
+					break;	
+				default:
+					I2C->ack=1;
+			}
+			i=0;
+			continue;
+		}
+		
+		if (SR.rxne)
+		{
+			switch(NumReceive)
+			{
+				case 0:
+					return i2cSuccess;
+				case 1:
+					*ArReceive=I2C->DR;
+					return i2cSuccess;
+				case 2:
+					*ArReceive++=I2C->DR;
+					I2C->ack=0;
+					I2C->stop=1;
+					NumReceive--;
+					break;	
+				default:
+					*ArReceive++=I2C->DR;
+					I2C->ack=1;
+					NumReceive--;
+					
+			}
+			i=0;
+			continue;
+		}
+		
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		
+	}
+	//----------------	
+	
+		
+}
+
+i2cStatus_t I2C_MasterSendPtrSendData(uint8_t DeviceAddress,void *Ptr, uint16_t PtrSize, void *ArraySend, uint16_t NumSend)
+{
+	uint16_t i=0;
+	i2cStatusReg_t SR;
+	uint8_t *ArSend=(uint8_t *)Ptr;
+	//------------------------
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//-------------------------
+		// Begin Error I2C
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		// End Error I2C
+		//----------------------
+		if (!SR.busy)
+		{
+			I2C->start=1;  // generation start-bit
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+	//------------	
+	//Send Adr, Ptr
+	while(1)
+	{
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//---------
+		//Begin Handle Error
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		//End Handle Error
+		//------------
+		//---Begin Send Adress-----
+		if (SR.sb) 
+		{
+			I2C->DR=DeviceAddress<<1;
+			if (!PtrSize)
+				{
+					goto SendData1;
+				}
+			continue;
+		}
+		//---End Send adress-----
+		//----------------------
+		// 
+		if (SR.addr)
+		{
+			I2C->DR=*ArSend++;
+			PtrSize--;
+			if (!PtrSize)
+			{
+				goto SendData1;
+			}
+			continue;
+		}
+		//-------------
+		if (SR.txe)
+		{
+			I2C->DR=*ArSend++;
+			PtrSize--;
+			i=0;
+			if (!PtrSize)
+			{
+				goto SendData1;
+			}
+			continue;
+		}
+		//Begin Safe block
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		//End Safe block
+	}
+	SendData1:
+	i=0;
+	ArSend=(uint8_t *)ArraySend;
+	
+	while(1)
+	{
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//---------
+		//Begin Handle Error
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		//End Handle Error
+		//------------
+		if (SR.addr)
+		{
+			if (NumSend)
+			{
+				I2C->DR=*ArSend++;
+				NumSend--;
+			}
+			else
+			{
+				I2C->stop=1;
+				return i2cSuccess;
+			}
+			i=0;
+			continue;
+		}
+		//-------------
+		if (SR.txe)
+		{
+			if (NumSend)
+			{
+				I2C->DR=*ArSend++;
+				//I2C->ack=1;
+				NumSend--;
+				i=0;
+			}
+			else
+			{
+				if (SR.btf)
+				{
+					I2C->stop=1;
+					return i2cSuccess;
+				}
+			}
+			
+			continue;
+		}
+		//Begin Safe block
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		//End Safe block
+	}
+		
+}
+
+
+i2cStatus_t I2C_MasterSendPtrReceiveData(uint8_t DeviceAddress,void *Ptr, uint16_t PtrSize, void *ArrayReceive, uint16_t NumReceive)
+{
+	uint16_t i=0;
+	i2cStatusReg_t SR;
+	uint8_t *ArSend=(uint8_t *)Ptr;
+	//------------------------
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//-------------------------
+		// Begin Error I2C
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		// End Error I2C
+		//----------------------
+		if (!SR.busy)
+		{
+			if (PtrSize)
+				{
+					I2C->start=1;  // generation start-bit
+				}
+				else
+				{
+					goto ReceiveData1;
+				}
+			
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+	//------------	
+	//Send Adr, Ptr
+	while(1)
+	{
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		//---------
+		//Begin Handle Error
+		if (SR.SR2)
+		{
+			return I2C_HandlerError(&SR);
+		}
+		//End Handle Error
+		//------------
+		//---Begin Send Adress-----
+		if (SR.sb) 
+		{
+			I2C->DR=DeviceAddress<<1;
+			continue;
+		}
+		//---End Send adress-----
+		//----------------------
+		// 
+		if (SR.addr)
+		{
+			I2C->DR=*ArSend++;
+			PtrSize--;
+			if (!PtrSize)
+			{
+				goto ReceiveData1;
+			}
+			continue;
+		}
+		//-------------
+		if (SR.txe)
+		{
+			
+			if (PtrSize)
+			{
+				I2C->DR=*ArSend++;
+				PtrSize--;
+			}
+			else
+			{
+				if (SR.btf)
+					goto ReceiveData1;
+			}
+			i=0;
+			continue;
+		}
+		//Begin Safe block
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		//End Safe block
+	}
+	ReceiveData1:
+	I2C->start=1;  // generation start-bit
+	i=0;
+	ArSend=(uint8_t *)ArrayReceive;
+	while(1)
+	{
+		//repeat_busy:
+		SR.SR1=I2C->SR1;
+		SR.SR3=I2C->SR3;
+		SR.SR2=I2C->SR2;
+		
+		
+		if (SR.SR2)
+		{
+			//HandlerErrorI2CReceive:
+			return I2C_HandlerError(&SR);
+		}
+		//---Send adress-----
+		if (SR.sb) 
+		{
+			switch(NumReceive)
+			{
+				case 0:
+				case 1:
+					I2C->DR=DeviceAddress<<1|1;
+					I2C->ack=0;
+					break;
+				default:
+					I2C->DR=DeviceAddress<<1|1;
+					I2C->ack=1;
+					break;
+			}
+			i=0;
+			continue;
+		}
+		
+		if (SR.addr)
+		{
+			switch(NumReceive)
+			{
+				case 0:
+				case 1:
+					I2C->stop=1;
+					break;	
+				default:
+					I2C->ack=1;
+			}
+			i=0;
+			continue;
+		}
+		
+		if (SR.rxne)
+		{
+			switch(NumReceive)
+			{
+				case 0:
+					return i2cSuccess;
+				case 1:
+					*ArSend=I2C->DR;
+					return i2cSuccess;
+				case 2:
+					I2C->ack=0;
+					*ArSend++=I2C->DR;
+					I2C->stop=1;
+					NumReceive--;
+					break;	
+				default:
+					*ArSend++=I2C->DR;
+					I2C->ack=1;
+					NumReceive--;
+					
+			}
+			i=0;
+			continue;
+		}
+		
+		if (i<10000) 
+		{
+			i++;
+		}
+		else
+		{
+			I2C_restartInit(); 
+			return i2cBusy;
+		}
+		
+	}
+		
+}
+
+
+/*
 // Функция передает в начале массив адреса регистра, а затем передает данные.
 void I2C_MasterSendSend(uint8_t DeviceAddress, uint8_t *ArrayAddress, uint8_t NumAddress, uint8_t *ArraySend, uint8_t NumSend)
 {
@@ -337,7 +989,7 @@ void I2C_MasterSendReceive(uint8_t DeviceAddress, uint8_t *ArrSend, uint8_t NumS
 	//i2c_Task.ItEvent=I2C_GetLastEvent();
 	I2C->start=1;  // Генерация старта
 }
-
+*/
 
 /*
 void i2cHandler(void)

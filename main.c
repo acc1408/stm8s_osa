@@ -40,7 +40,7 @@
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-uint8_t a[]={0x00,0x05,0x42,0x13,0x02};
+uint8_t a[]={0x00,0x45,0x36,0x19,0x02};
 
 uint16_t cnt_on2=0;
 // отключения и включение светодиода
@@ -132,503 +132,66 @@ void Task(void)
 
 uint16_t nmb=0;
 //-----
-typedef enum
-{
-	i2cSuccess=0,
-	i2cBusError=1,
-	i2cArbitLost=2,
-	i2cNack=3,
-	i2cOverrun=4,
-	i2cWakeup=5,
-	i2cBusy=6
-}i2cStatus_t;
 
 i2cStatus_t res;
-void I2C_restartInit(void)
-{
-	//uint8_t I2C_CR1,I2C_CR2,I2C_FREQR,	I2C_OARL,I2C_OARH,
-	//I2C_ITR,I2C_CCRL,	I2C_CCRH,I2C_TRISER;
-	uint8_t i,i2cSetting[9];
-/* Disable I2C to configure TRISER */
-  I2C->pe= (uint8_t)0;
-	//-- Save config I2C
-	for(i=0;i<5;i++)
-	{
-		i2cSetting[i]=*((uint8_t*)I2C+i);
-	}
-	for(i;i<9;i++)
-	{
-		i2cSetting[i]=*((uint8_t*)I2C+i+5);
-	}
-	//reset I2C
-	I2C->swrst=1;
-	nop();
-	I2C->swrst=0;
-	//-- Download config I2C
-	for(i=0;i<5;i++)
-	{
-		*((uint8_t*)I2C+i)=i2cSetting[i];
-	}
-	for(i;i<9;i++)
-	{
-		*((uint8_t*)I2C+i+5)=i2cSetting[i];
-	}
-	// Enable I2C
-	I2C->pe= (uint8_t)1;
-}
 
-i2cStatus_t I2C_MasterSend(uint8_t DeviceAddress, void *ArraySend, uint16_t NumSend)
+typedef struct
 {
-	uint16_t i=0;
-	//uint8_t stBit=0;
+	uint8_t* Map;
+	uint8_t sizeMap;
+	uint8_t SlaveCnt;
+} I2CSlave_t;
+I2CSlave_t I2CSlave;
+
+void I2C_InitSlaveIT(uint8_t address,uint8_t genCall, void* Map, uint8_t sizeMap, void(*HandlerSlaveI2C)(void))
+{
+	I2CSlave.Map=(uint8_t*)Map;
+	I2CSlave.sizeMap=sizeMap;
+	I2CSlave.SlaveCnt=0;
+	I2C->gencall=genCall;
+	I2C->add71=address;
+	I2C->ack=1;
+	I2C->iterren=1;
+	I2C->itevten=1;
+	I2C->itbufen=1;
+	I2C->pe=1;
+}
+//uint8_t SlaveCnt=0;
+void I2C_SlaveIT(void)
+{
 	i2cStatusReg_t SR;
-	uint8_t *ArSend=(uint8_t *)ArraySend;
-	//------------------------
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-		//-------------------------
-		// Begin Error I2C
-		if (SR.SR2)
+	I2CSlave.SlaveCnt%=I2CSlave.sizeMap;
+	SR.SR1=I2C->SR1;
+	SR.SR3=I2C->SR3;
+	SR.SR2=I2C->SR2;
+	if (SR.SR2)
 		{
-			goto HandlerErrorI2CSend;
+			return;
 		}
-		// End Error I2C
-		//----------------------
-		if (!SR.busy)
+	if (SR.msl)
 		{
-			I2C->start=1;  // generation start-bit
+			// master
 		}
 		else
 		{
-			//if (SR.msl||SR.busy)
-					I2C_restartInit(); 
-			return i2cBusy;
-		}
-	//i=0;
-	while(1)
-	{
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-		//Begin Safe block
-		if (i<10000) 
-		{
-			i++;
-		}
-		else
-		{
+			// slave
+			if (SR.addr)
+			{
+				return;
+			}
+			if (SR.rxne)
+			{
+				I2CSlave.Map[I2CSlave.SlaveCnt++]=I2C->DR;
+				return;
+			}
+			if (SR.rxne)
+			{
+				I2CSlave.Map[I2CSlave.SlaveCnt++]=I2C->DR;
+				return;
+			}
 			
-			I2C_restartInit(); 
-			return i2cBusy;
 		}
-		//End Safe block
-		//---------
-		//Begin Handle Error
-		if (SR.SR2)
-		{
-			HandlerErrorI2CSend:
-			if (SR.berr)  //Error 
-			{
-				I2C->berr=0; // na?in oeaaa
-				//i2cStack.busError=1;
-				I2C_restartInit(); 
-				//I2C->stop=1; // aaia?aoey STOP
-				return i2cBusError;
-			}
-			if (SR.af)  //Error 
-			{
-				I2C->af=0;
-				I2C->stop=1;
-				return i2cNack;			
-			}	
-			if (SR.arlo)  //Error 
-			{
-				I2C->arlo=0;
-				//I2C->stop=1;
-				return i2cArbitLost;			
-			}	
-			if (SR.ovr)  //Error 
-			{
-				I2C->ovr=0;
-				//I2C->stop=1;
-				return i2cOverrun;			
-			}	
-			if (SR.wufh)  //Error 
-			{
-				I2C->wufh=0;
-				//I2C->stop=1;
-				return i2cWakeup;			
-			}
-			return i2cBusError;
-		}
-		//End Handle Error
-		//------------
-		//---Begin Send Adress-----
-		if (SR.sb) 
-		{
-			I2C->DR=DeviceAddress<<1;
-			//if (!NumSend)
-				
-		}
-		//---End Send adress-----
-		//----------------------
-		// 
-		if (SR.addr)
-		{
-			switch(NumSend)
-			{
-				case 1:
-					I2C->DR=*ArSend++;
-					NumSend--;
-					break;
-				case 0:	
-					I2C->stop=1;
-					return i2cSuccess;
-					break;	
-				default:
-					I2C->DR=*ArSend++;
-					I2C->DR=*ArSend++;
-					NumSend=NumSend-2;
-					//SR.txe=0;
-			}
-			continue;
-		}
-		//-------------
-		if (SR.txe)
-		{
-			switch(NumSend)
-			{
-				case 0:
-					if (SR.btf)
-					{
-						I2C->stop=1;
-						return i2cSuccess;
-					}
-					break;
-				case 1:
-					I2C->DR=*ArSend++;
-					NumSend--;
-					break;
-					//I2C->stop=1;
-					//return 0;
-				break;
-					default:
-					I2C->DR=*ArSend++;
-					//I2C->ack=1;
-					NumSend--;
-					i=0;
-			}
-		}
-		
-	}
-	//----------------
 }
-
-i2cStatus_t I2C_MasterReceive(uint8_t DeviceAddress, void *ArrayReceive, uint16_t NumReceive)
-{
-	uint16_t i=0;
-	i2cStatusReg_t SR;
-	uint8_t *ArReceive=(uint8_t *)ArrayReceive;
-	//I2C->start=1;  // Генерация старта
-	//if (!SR.busy )
-	//------------------------
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-		//-------------------------
-		// Begin Error I2C
-		if (SR.SR2)
-		{
-			goto HandlerErrorI2CReceive;
-		}
-		// End Error I2C
-		//----------------------
-		if (!SR.busy)
-		{
-			I2C->start=1;  // generation start-bit
-		}
-		else
-		{
-			//if (SR.msl||SR.busy)
-					I2C_restartInit(); 
-			return i2cBusy;
-		}
-	
-	
-	//i=0;
-	while(1)
-	{
-		//repeat_busy:
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-		if (i<10000) 
-		{
-			i++;
-		}
-		else
-		{
-			I2C_restartInit(); 
-			return i2cBusy;
-		}
-		
-		if (SR.SR2)
-		{
-			HandlerErrorI2CReceive:
-			if (SR.berr)  //Error 
-			{
-			I2C->berr=0; // na?in oeaaa
-			//i2cStack.busError=1;
-			I2C_restartInit(); 
-			//I2C->stop=1; // aaia?aoey STOP
-			return i2cBusError;
-			}
-			if (SR.af)  //Error 
-			{
-			I2C->af=0;
-			I2C->stop=1;
-			return i2cNack;			
-			}	
-			if (SR.arlo)  //Error 
-			{
-			I2C->arlo=0;
-			//I2C->stop=1;
-			return i2cArbitLost;			
-			}	
-			if (SR.ovr)  //Error 
-			{
-				I2C->ovr=0;
-				//I2C->stop=1;
-				return i2cOverrun;			
-			}	
-			if (SR.wufh)  //Error 
-			{
-				I2C->wufh=0;
-				//I2C->stop=1;
-				return i2cWakeup;			
-			}	
-			return i2cBusError;
-		}
-		//---Send adress-----
-		if (SR.sb) 
-		{
-			I2C->DR=DeviceAddress<<1|1;
-			switch(NumReceive)
-			{
-				case 0:
-					//I2C->DR=DeviceAddress<<1|1;
-					I2C->stop=1;
-					
-					break;
-				case 1:
-					//I2C->DR=DeviceAddress<<1|1;
-					I2C->ack=0;
-					break;
-				default:
-					//I2C->DR=DeviceAddress<<1|1;
-					I2C->ack=1;
-					break;
-			}
-			
-		}
-		
-		if (SR.addr)
-		{
-			switch(NumReceive)
-			{
-				case 0:
-					return i2cSuccess;
-				case 1:
-					I2C->stop=1;
-					break;	
-				default:
-					I2C->ack=1;
-			}
-		}
-		
-		if (SR.rxne)
-		{
-			switch(NumReceive)
-			{
-				case 0:
-					return i2cSuccess;
-				case 1:
-					*ArReceive=I2C->DR;
-					return i2cSuccess;
-				case 2:
-					*ArReceive++=I2C->DR;
-					I2C->ack=0;
-					I2C->stop=1;
-					NumReceive--;
-					break;	
-				default:
-					*ArReceive++=I2C->DR;
-					I2C->ack=1;
-					NumReceive--;
-					
-			}
-		}
-		
-	}
-	//----------------	
-	
-		
-}
-
-i2cStatus_t I2C_MasterSendPtrSendData(uint8_t DeviceAddress,void *Ptr, uint16_t PtrSize, void *ArraySend, uint16_t NumSend)
-{
-	uint16_t i=0;
-	i2cStatusReg_t SR;
-	uint8_t *ArSend=(uint8_t *)ArraySend;
-	//I2C->start=1;  // Генерация старта
-	//if (!SR.busy )
-	while(1)
-	{
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-			//I2C->ack=0;
-			if (!SR.busy )
-			{
-				I2C->start=1;  // generation start-bit
-				i=0;
-				break;
-			}
-		// Begin Safe Block	
-		if (i<10000) 
-			i++;
-			else
-			{
-				if (SR.SR3==0b00000010)
-				I2C_restartInit(); 
-			return i2cBusy;
-			}
-			
-		if (SR.SR2)
-			break;
-		// End Safe Block	
-	};
-	i=0;
-	while(1)
-	{
-		
-		SR.SR1=I2C->SR1;
-		SR.SR3=I2C->SR3;
-		SR.SR2=I2C->SR2;
-		// Begin Safe Block
-		if (i<10000) 
-		{
-			i++;
-		}
-		else
-		{
-			I2C_restartInit(); 
-			return i2cBusy;
-		}
-		
-		if (SR.SR2)
-		{
-			if (SR.berr)  //Error 
-			{
-				
-			I2C->berr=0; // na?in oeaaa
-			//i2cStack.busError=1;
-			I2C_restartInit(); 
-			//I2C->stop=1; // aaia?aoey STOP
-			return i2cBusError;
-			}
-			if (SR.af)  //Error 
-			{
-			I2C->af=0;
-			I2C->stop=1;
-			return i2cNack;			
-			}	
-			if (SR.arlo)  //Error 
-			{
-			I2C->arlo=0;
-			//I2C->stop=1;
-			return i2cArbitLost;			
-			}	
-			if (SR.ovr)  //Error 
-			{
-				I2C->ovr=0;
-				//I2C->stop=1;
-				return i2cOverrun;			
-			}	
-			if (SR.wufh)  //Error 
-			{
-				I2C->wufh=0;
-				//I2C->stop=1;
-				return i2cWakeup;			
-			}	
-		}
-		// End Safe Block	
-		//-------------------
-		//---Send start-----
-		if (SR.sb) 
-		{
-			I2C->DR=DeviceAddress<<1;
-			continue;
-		}
-		if (SR.addr)
-		{
-			switch(NumSend)
-			{
-				case 1:
-					I2C->DR=*ArSend++;
-					NumSend--;
-				case 0:	
-					SR.txe=0;
-					break;	
-				default:
-					I2C->DR=*ArSend++;
-					I2C->DR=*ArSend++;
-					NumSend--;
-					NumSend--;
-					SR.txe=0;
-			}
-			continue;
-		}
-		if (SR.txe)
-		{
-			switch(NumSend)
-			{
-				case 0:
-				//I2C->ack=0;
-				//NumSend--;
-					break;
-				case 1:
-					I2C->DR=*ArSend++;
-					NumSend--;
-					break;
-			
-				//I2C->stop=1;
-				//return 0;
-				break;
-					default:
-					I2C->DR=*ArSend++;
-					//I2C->ack=1;
-					NumSend--;
-			}
-		}
-	if (!NumSend)
-	{
-		if (SR.btf)
-		{
-			I2C->stop=1;
-			return i2cSuccess;
-		}
-	}
-	
-	
-			
-	}
-	//----------------	
-	
-		
-}
-
 
 
 void main(void)
@@ -673,18 +236,26 @@ void main(void)
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
 	//printf("Check cmdline\r\n");
 	
-	I2C_Init_7bit(100000);
+	//I2C_Init_7bit(100000);
 	//I2C_MasterSend(0x57, a, 1);
+	
+	
 	while (1)
   {
 		//cmdmainloop(); // обработка командной строки
 	//	printf("qwe5675089tr %d\r\n",nmb);
-	res=I2C_MasterSend(0x68, a, 1);
-	res=I2C_MasterReceive(0x68, &a[1],3);
-		nmb++;
+	//res=I2C_MasterSend(0x68, a, 2);
+	//res=I2C_MasterReceive(0x68, &a[1],1);
+	//res=I2C_MasterSend(0x68, a, 2);
+	//	res=I2C_MasterSendPtrSendData(0x68, a, 1, &a[1],0);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],0);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],1);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],2);
+	res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],3);
+	nmb++;
 	//if (bl) 
 	GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	delay_ms(100);
+	delay_ms(50);
 	}
 #endif
 }
