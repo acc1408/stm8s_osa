@@ -1360,6 +1360,128 @@ uint8_t i2cCheckErrorTransfer(void)
 	return  (i2c_Task.Error);
 }
 
+
+// Slave I2C not work
+/*
+typedef struct
+{
+	uint8_t* Map;
+	uint16_t sizeMap; // Размер массива
+	uint16_t SlaveCnt; // Кол-во принятых байт
+	uint16_t SlaveBegin; // Начало в карте регистров
+} I2CSlave_t;
+I2CSlave_t I2CSlave;
+
+void I2C_InitSlaveIT(uint8_t address,uint8_t genCall, void* Map, uint16_t sizeMap, void(*HandlerSlaveI2C)(void))
+{
+	I2CSlave.Map=(uint8_t*)Map;
+	I2CSlave.sizeMap=sizeMap;
+	I2CSlave.SlaveCnt=0;
+	I2CSlave.SlaveBegin=0;
+	I2C->gencall=genCall;
+	I2C->add71=address;
+	I2C->ack=1;
+	//I2C->pos=1;
+	I2C->iterren=1;
+	I2C->itevten=1;
+	I2C->itbufen=1;
+	I2C->pe=1;
+}
+//uint8_t SlaveCnt=0;
+void I2C_SlaveIT(void)
+{
+	uint8_t data;
+	i2cStatusReg_t SR;
+	//I2CSlave.SlaveCnt%=I2CSlave.sizeMap;
+	SR.SR1=I2C->SR1;
+	SR.SR3=I2C->SR3;
+	SR.SR2=I2C->SR2;
+	if (SR.SR2)
+		{
+			if (SR.af)
+			{
+				I2C->af=0;
+				return;
+			}
+			if(SR.berr)
+			{
+				I2C->berr=0;
+				return;
+			}	
+		}
+	if (SR.msl)
+		{
+			// master
+		}
+		else
+		{
+			// slave
+			if (SR.addr)
+			{
+				I2CSlave.SlaveCnt=0;
+				return;
+			}
+			
+			if (SR.stopf)
+			{
+				I2C->ack=1;
+				//I2CSlave.SlaveCnt=0;
+				//I2CSlave.Map[I2CSlave.SlaveCnt++]=I2C->DR;
+				//I2C->stop=1;
+				//I2C->stopf=0;
+				return;
+			}
+			
+			if (SR.txe)
+			{
+				
+				//I2C->DR=I2CSlave.Map[I2CSlave.SlaveBegin++];
+				
+				
+				if(I2CSlave.SlaveBegin<I2CSlave.sizeMap)
+				{
+					I2C->DR=I2CSlave.Map[I2CSlave.SlaveBegin++];
+					I2CSlave.SlaveCnt++;
+				}
+				
+				return;
+			}
+			
+			if (SR.rxne)
+			{
+				//I2C->ack=1;
+				// Если это первый отправленный байт, то
+				if (!I2CSlave.SlaveCnt)
+				{
+					I2CSlave.SlaveBegin=I2C->DR;
+					
+				}
+				else
+				{
+					if (I2CSlave.SlaveBegin<I2CSlave.sizeMap)
+					{					
+						I2CSlave.Map[I2CSlave.SlaveBegin++]=I2C->DR;
+						//I2CSlave.SlaveCnt++;
+					}
+					else
+					{
+						I2C->ack=0;
+					}
+				}
+				I2CSlave.SlaveCnt++;
+				return;
+			}
+				
+		}
+			
+			
+		
+		
+}
+uint8_t mapi2c[10];
+*/
+
+
 /**
   * @}
   */

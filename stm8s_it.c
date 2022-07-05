@@ -489,9 +489,10 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
 	
 	//I2CEventBit_t event;
 //	uint8_t d;
+//void I2C_SlaveIT(void);
 INTERRUPT_HANDLER(I2C_IRQHandler, 19)
 {
-	
+	// I2C_SlaveIT();
 }
 
 #if defined(STM8S105) || defined(STM8S005) ||  defined (STM8AF626x)
