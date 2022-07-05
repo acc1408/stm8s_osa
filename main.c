@@ -12,7 +12,7 @@
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
+  * You may obtain a copy of the License at:
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
@@ -40,7 +40,7 @@
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-
+uint8_t a[]={0x01,0x04,0x02,0x03,0x02};
 
 uint16_t cnt_on2=0;
 // отключения и включение светодиода
@@ -131,6 +131,12 @@ void Task(void)
 
 
 uint16_t nmb=0;
+//-----
+
+i2cStatus_t res;
+
+
+
 void main(void)
 {
  #ifdef  __OSA__
@@ -146,6 +152,7 @@ void main(void)
 //	cf_u=&cf;
 	uint8_t i;
 	Init_Delay();
+	
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
 
 	// Инициализация командной строки.
@@ -156,6 +163,7 @@ void main(void)
 					2,  	// кол-во функций в таблице
 					RetText, // таблица номер-возврат текста
 					2);		// размер массива номер-текст*/
+	/*				
 	UART2_Init(9600, UART2_WORDLENGTH_8D, 
                 UART2_STOPBITS_1, UART2_PARITY_NO, 
                 UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
@@ -167,16 +175,33 @@ void main(void)
 	UART2_Cmd(ENABLE);
 	
 	enableInterrupts();
+	*/
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	//printf("Check cmdline\r\n");
 	
-	printf("Check cmdline\r\n");
+	I2C_Init_7bit(100000);
+	//I2C_InitSlaveIT(0x68,0, mapi2c, 10, 0);
+	//enableInterrupts();
+	//I2C_MasterSend(0x57, a, 1);
+	
+	
 	while (1)
   {
 		//cmdmainloop(); // обработка командной строки
 	//	printf("qwe5675089tr %d\r\n",nmb);
-		nmb++;
-	//if (bl) GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	//delay_ms(1000);
+	//res=I2C_MasterSend(0x68, a, 2);
+	//res=I2C_MasterReceive(0x68, &a[1],1);
+	//res=I2C_MasterSend(0x68, a, 2);
+	//res=I2C_MasterSendPtrSendData(0x68, a, 1, &a[1],3);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],0);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],1);
+	res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],2);
+	//delay_ms(50);
+	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],3);
+	nmb++;
+	//if (bl) 
+	GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
+	delay_ms(50);
 	}
 #endif
 }
