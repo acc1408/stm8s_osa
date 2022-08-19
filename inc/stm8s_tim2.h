@@ -424,7 +424,7 @@ void TIM2_CCxCmd(TIM2_Channel_TypeDef TIM2_Channel, FunctionalState NewState);
 void TIM2_SelectOCxM(TIM2_Channel_TypeDef TIM2_Channel, TIM2_OCMode_TypeDef TIM2_OCMode);
 #endif
 
-//#define TIM2_SetCounter_DEF
+#define TIM2_SetCounter_DEF
 #ifdef  TIM2_SetCounter_DEF
 void TIM2_SetCounter(uint16_t Counter);
 #endif
@@ -494,17 +494,17 @@ TIM2_Prescaler_TypeDef TIM2_GetPrescaler(void);
 FlagStatus TIM2_GetFlagStatus(TIM2_FLAG_TypeDef TIM2_FLAG);
 #endif
 
-//#define TIM2_ClearFlag_DEF
+#define TIM2_ClearFlag_DEF
 #ifdef  TIM2_ClearFlag_DEF
 void TIM2_ClearFlag(TIM2_FLAG_TypeDef TIM2_FLAG);
 #endif
 
-//#define TIM2_GetITStatus_DEF
+#define TIM2_GetITStatus_DEF
 #ifdef  TIM2_GetITStatus_DEF
 ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
 #endif
 
-//#define TIM2_ClearITPendingBit_DEF
+#define TIM2_ClearITPendingBit_DEF
 #ifdef  TIM2_ClearITPendingBit_DEF
 void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
 #endif

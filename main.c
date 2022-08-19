@@ -35,79 +35,17 @@
 
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
-
+#define enStep  GPIOD, GPIO_PIN_5
+#define clkStep GPIOD, GPIO_PIN_0
+#define dirStep GPIOC, GPIO_PIN_5
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
 uint8_t a[]={0x01,0x04,0x02,0x03,0x02};
 
-uint16_t cnt_on2=0;
-// отключения и включение светодиода
-int16_t led(uint8_t argc,char *argv[])
-{
-	if (argc==2)  
-	{
-		if (strcmp(argv[1],"on")==0) // включаем светодиод
-		{
-			cnt_on2++;
-			GPIO_WriteLow(GPIOE, GPIO_PIN_5);
-			printf("Светодиод включен %d\r\n",cnt_on2);
-			return 0;
-		}
-		else 
-			if (strcmp(argv[1],"off")==0)  // отключаем светодиод
-			{
-				GPIO_WriteHigh(GPIOE, GPIO_PIN_5);
-				printf("Светодиод отключен\r\n");
-				return 0;
-			}
-			else
-			{
-				return 2;
-			}
-	}
-	else
-		return 1;
-}
-
-
-uint8_t bl=1; // переменная для включения и отключения мигания
-// функция для включения и отключения мигания
-int16_t blink(uint8_t argc,char *argv[])
-{
-	if (argc==2) 
-	{
-		if (strcmp(argv[1],"on")==0) // отключаем светодиод
-			bl=1;
-		else 
-			if (strcmp(argv[1],"off")==0) // включаем светодиод
-				bl=0;
-		return 0;
-	}
-	return 1;
-}
-
-// таблица соответствия название-функция храниться не в ОЗУ,
-// а во FLESH, т.е. можно не беспокопиться за кол-во функций
-// и длину строк
-/*
-const tablefunc_t testf[2]={{"led", led},
-													  {"blink", blink	}
-														};*/
-// таблица соответсвия возврат-текст для резултататов возврата
-/*
-const tableRet_t RetText[2]={
-															 0, "ok\r\n",
-															 2,"Led error param\r\n"
-														};
-*/
 //char simvol;		
-//============================ вывод данных из UART
-#ifndef _INPUTCHAR_T
-#define _INPUTCHAR_T
-typedef void (*inputchar_t)(char);
-#endif
+
 
 
 
@@ -122,7 +60,6 @@ void Task(void)
 	
 	while(1)
 	{
-		//BME280_StartStop(&bm, BME280_FORCED_MODE);
 		GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
 		OS_Delay(200);
 	}
@@ -130,12 +67,21 @@ void Task(void)
 #endif
 
 
-uint16_t nmb=0;
+uint16_t nmb=0,adc0;
+uint32_t clks;
 //-----
 
 i2cStatus_t res;
 
+FlagStatus adcStatus;
 
+
+void clockStep(void)
+{
+	GPIO_WriteReverse(clkStep);
+	//TIM2_SetAutoreload(10+190*adc0/510);
+	TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
+}
 
 void main(void)
 {
@@ -155,53 +101,90 @@ void main(void)
 	
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
 
-	// Инициализация командной строки.
-	/*
-	cmdinit('\r', // стоп-символ
-					'\n', // 2 стоп-символ
-					testf, // указатель на таблицу название-функция
-					2,  	// кол-во функций в таблице
-					RetText, // таблица номер-возврат текста
-					2);		// размер массива номер-текст*/
-	/*				
-	UART2_Init(9600, UART2_WORDLENGTH_8D, 
-                UART2_STOPBITS_1, UART2_PARITY_NO, 
-                UART2_SYNCMODE_CLOCK_DISABLE, UART2_MODE_TXRX_ENABLE);
-	// настройка приема символов из uart2 в командную строку
-	//UART2_SetRxHandler(cmdinputchar);
-	UART2_ITConfig(UART2_IT_RXNE_OR, ENABLE);
-	// Инициализация для вывода printf
-	stdio_InitPrintf(uart2_sendtobuffer);
-	UART2_Cmd(ENABLE);
 	
-	enableInterrupts();
-	*/
 	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
-	//printf("Check cmdline\r\n");
+	GPIO_Init(enStep, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(clkStep, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(dirStep, GPIO_MODE_OUT_PP_HIGH_FAST);
 	
-	I2C_Init_7bit(100000);
-	//I2C_InitSlaveIT(0x68,0, mapi2c, 10, 0);
-	//enableInterrupts();
-	//I2C_MasterSend(0x57, a, 1);
-	
-	
+	ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, 
+               ADC1_CHANNEL_0,
+               ADC1_PRESSEL_FCPU_D2, 
+               ADC1_EXTTRIG_TIM, 
+               DISABLE, // Trig
+							 ADC1_ALIGN_RIGHT, 
+               ADC1_SCHMITTTRIG_CHANNEL0, 
+               DISABLE);
+	ADC1_StartConversion();
+	TIM2_TimeBaseInit(TIM2_PRESCALER_128, 10);
+	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
+	TIM2_ARRPreloadConfig(ENABLE);
+	//TIM2_Cmd(ENABLE);
+	enableInterrupts()
 	while (1)
   {
-		//cmdmainloop(); // обработка командной строки
-	//	printf("qwe5675089tr %d\r\n",nmb);
-	//res=I2C_MasterSend(0x68, a, 2);
-	//res=I2C_MasterReceive(0x68, &a[1],1);
-	//res=I2C_MasterSend(0x68, a, 2);
-	//res=I2C_MasterSendPtrSendData(0x68, a, 1, &a[1],3);
-	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],0);
-	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],1);
-	res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],2);
-	//delay_ms(50);
-	//res=I2C_MasterSendPtrReceiveData(0x68, a, 1, &a[1],3);
+		
 	nmb++;
 	//if (bl) 
-	GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
-	delay_ms(50);
+	//GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
+	//delay_ms(100);
+	// Анализ конца преобразования
+	adcStatus=ADC1_GetFlagStatus(ADC1_FLAG_EOC);
+	if (adcStatus)
+	{
+		adc0=ADC1_GetConversionValue();
+		ADC1_StartConversion();
+	}
+	/*
+	else
+	{
+		nop();
+	}
+	*/
+	if (adc0<490)
+	{
+		GPIO_WriteLow(dirStep);
+		GPIO_WriteLow(enStep);
+		//TIM2_TimeBaseInit(TIM2_PRESCALER_128, 10+190*adc0/510);
+		clks=9+300*(uint32_t)adc0/510;
+		TIM2_SetAutoreload((uint16_t)clks);
+		//TIM2_SetAutoreload(10);
+		TIM2_Cmd(ENABLE);
+	}
+	/*
+	if ((250<=adc0) &&(adc0<490 ))
+	{
+		GPIO_WriteLow(dirStep);
+		GPIO_WriteLow(enStep);
+		//TIM2_TimeBaseInit(TIM2_PRESCALER_128, 10+190*adc0/510);
+		//TIM2_SetAutoreload(10);
+		TIM2_SetAutoreload(200);
+		TIM2_Cmd(ENABLE);
+	}
+	*/
+	
+	
+	
+	//else
+		if (adc0>520)
+		{
+			GPIO_WriteHigh(dirStep);
+			GPIO_WriteLow(enStep);
+			
+			//TIM2_TimeBaseInit(TIM2_PRESCALER_128, 200-190*(adc0-510)/510);
+			clks=309-((uint32_t)300*(adc0-510))/510;
+			TIM2_SetAutoreload((uint16_t)clks);
+			//TIM2_SetAutoreload(9);
+			TIM2_Cmd(ENABLE);
+		}
+		if ((490<=adc0) &&(adc0<=520))
+		{
+			GPIO_WriteHigh(enStep);
+			TIM2_Cmd(DISABLE);
+			TIM2_SetCounter(0);
+		}
+	
+	
 	}
 #endif
 }

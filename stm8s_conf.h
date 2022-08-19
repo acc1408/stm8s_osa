@@ -56,7 +56,7 @@
 //	#include "inc/stm8s_bme280.h"
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
-// #include "inc/stm8s_adc1.h" // הנאיגונ הכÿ ÀÖÏ1
+ #include "inc/stm8s_adc1.h" // הנאיגונ הכÿ ÀÖÏ1
 #endif /* (STM8S105) ||(STM8S103) || (STM8S001) || (STM8S903) || STM8AF626x*/
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) || defined (STM8AF52Ax) ||\
     defined (STM8AF62Ax)
@@ -69,7 +69,7 @@
 #endif /* STM8S208 || STM8AF52Ax */
 
 #ifndef STM8S903
-// #include "inc/stm8s_tim2.h" // הנאיגונ הכÿ Timer2
+ #include "inc/stm8s_tim2.h" // הנאיגונ הכÿ Timer2
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
