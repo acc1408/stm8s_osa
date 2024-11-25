@@ -35,17 +35,43 @@
 
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
-#define enStep  GPIOD, GPIO_PIN_5
-#define clkStep GPIOD, GPIO_PIN_0
-#define dirStep GPIOC, GPIO_PIN_5
+#define enStep  GPIOD, GPIO_PIN_4
+#define clkStep GPIOD, GPIO_PIN_2
+#define dirStep GPIOC, GPIO_PIN_3
+
+#define butLeft GPIOF, GPIO_PIN_5
+#define butRight GPIOD, GPIO_PIN_5
+#define potLeft GPIOB, GPIO_PIN_1
+#define potRight GPIOB, GPIO_PIN_0
+
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 									//	*
 //***************************************************************
-uint8_t a[]={0x01,0x04,0x02,0x03,0x02};
+//uint8_t a[]={0x01,0x04,0x02,0x03,0x02};
 
 //char simvol;		
+//---------------------
+// ADC_Single
+/*
+void ADC1_Single_Init(F_div);
+uint16_t ADC1_Single_StartSW_getValue(channel);
 
+
+
+void ADC1_Scan_Single(F_div, channels)
+void ADC1_Start(SourceStart);
+void ADC1_waitEndConvertion();
+uint16_t ADC1_Scan_getValue(channel);
+
+void ADC1_Scan_Cont(F_div, channels)
+void ADC1_Start(SourceStart);
+void ADC1_waitEndConvertion();
+uint16_t ADC1_Scan_getValue(channel);
+
+*/
+//---------------------
 
 
 
@@ -97,6 +123,7 @@ void main(void)
 	/* Infinite loop */
 //	cf_u=&cf;
 	uint8_t i;
+	CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV1);
 	Init_Delay();
 	
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
@@ -116,7 +143,7 @@ void main(void)
                ADC1_SCHMITTTRIG_CHANNEL0, 
                DISABLE);
 	ADC1_StartConversion();
-	TIM2_TimeBaseInit(TIM2_PRESCALER_128, 10);
+	TIM2_TimeBaseInit(TIM2_PRESCALER_1, 9600);
 	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
 	TIM2_ARRPreloadConfig(ENABLE);
 	//TIM2_Cmd(ENABLE);
@@ -129,18 +156,21 @@ void main(void)
 	//GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
 	//delay_ms(100);
 	// Анализ конца преобразования
+	/*
 	adcStatus=ADC1_GetFlagStatus(ADC1_FLAG_EOC);
 	if (adcStatus)
 	{
 		adc0=ADC1_GetConversionValue();
 		ADC1_StartConversion();
 	}
+	*/
 	/*
 	else
 	{
 		nop();
 	}
 	*/
+	/*
 	if (adc0<490)
 	{
 		GPIO_WriteLow(dirStep);
@@ -151,6 +181,7 @@ void main(void)
 		//TIM2_SetAutoreload(10);
 		TIM2_Cmd(ENABLE);
 	}
+	*/
 	/*
 	if ((250<=adc0) &&(adc0<490 ))
 	{
@@ -166,6 +197,7 @@ void main(void)
 	
 	
 	//else
+	/*
 		if (adc0>520)
 		{
 			GPIO_WriteHigh(dirStep);
@@ -184,7 +216,7 @@ void main(void)
 			TIM2_SetCounter(0);
 		}
 	
-	
+		*/
 	}
 #endif
 }
