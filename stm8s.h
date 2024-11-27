@@ -326,43 +326,129 @@ GPIO_TypeDef;
   */
  typedef struct ADC1_struct
  {
-  __IO uint8_t DB0RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB0RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB1RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB1RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB2RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB2RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB3RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB3RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB4RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB4RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB5RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB5RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB6RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB6RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB7RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB7RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB8RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB8RL;         /*!< ADC1 Data Buffer Register (LSB)  */
-  __IO uint8_t DB9RH;         /*!< ADC1 Data Buffer Register (MSB)  */
-  __IO uint8_t DB9RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+		union
+		{
+			__IO uint16_t DBR[10];         /*!< ADC1 Data Buffer Register (MSB)  */
+		  struct
+			{
+				__IO uint8_t DB0RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB0RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB1RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB1RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB2RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB2RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB3RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB3RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB4RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB4RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB5RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB5RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB6RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB7RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB8RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB8RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				__IO uint8_t DB9RH;         /*!< ADC1 Data Buffer Register (MSB)  */
+				__IO uint8_t DB9RL;         /*!< ADC1 Data Buffer Register (LSB)  */
+				
+			};
+		};
   uint8_t RESERVED[12];       /*!< Reserved byte */
-  __IO uint8_t CSR;           /*!< ADC1 control status register */
-  __IO uint8_t CR1;           /*!< ADC1 configuration register 1 */
-  __IO uint8_t CR2;           /*!< ADC1 configuration register 2 */
-  __IO uint8_t CR3;           /*!< ADC1 configuration register 3  */
-  __IO uint8_t DRH;           /*!< ADC1 Data high */
-  __IO uint8_t DRL;           /*!< ADC1 Data low */
-  __IO uint8_t TDRH;          /*!< ADC1 Schmitt trigger disable register high */
-  __IO uint8_t TDRL;          /*!< ADC1 Schmitt trigger disable register low */
-  __IO uint8_t HTRH;          /*!< ADC1 high threshold register High*/
-  __IO uint8_t HTRL;          /*!< ADC1 high threshold register Low*/
-  __IO uint8_t LTRH;          /*!< ADC1 low threshold register high */
-  __IO uint8_t LTRL;          /*!< ADC1 low threshold register low */
-  __IO uint8_t AWSRH;         /*!< ADC1 watchdog status register high */
-  __IO uint8_t AWSRL;         /*!< ADC1 watchdog status register low */
-  __IO uint8_t AWCRH;         /*!< ADC1 watchdog control register high */
-  __IO uint8_t AWCRL;         /*!< ADC1 watchdog control register low */
+	union
+		{
+			__IO uint8_t CSR;         /*!< ADC1 Data Buffer Register (MSB)  */
+		  struct
+			{
+				__IO uint8_t ch:4;        /*!< Channel selection bits AIN0*/
+				__IO uint8_t awdie:1;			// Analog watchdog interrupt enable
+				__IO uint8_t eocie:1;			// Interrupt enable for EOC
+				__IO uint8_t awd:1;				// Analog Watchdog flag
+				__IO uint8_t eoc:1;				// End of conversion
+			};
+		};
+  
+	
+	union
+		{
+			__IO uint8_t CR1;           /*!< ADC1 configuration register 1 */
+		  struct
+			{
+				__IO uint8_t adon:1;        // A/D Converter on/off
+				__IO uint8_t cont:1;				// Continuous conversion
+				__IO uint8_t res0:2;				// Reserved
+				__IO uint8_t spsel:3;				// Prescaler selection F_adc
+				__IO uint8_t res1:1;				// Reserved
+			};
+		};
+  
+	union
+		{
+			__IO uint8_t CR2;           /*!< ADC1 configuration register 2 */
+		  struct
+			{
+				__IO uint8_t res2:1;        // Reserved
+				__IO uint8_t scan:1;				// Scan mode enable
+				__IO uint8_t res3:1;				// Reserved
+				__IO uint8_t align:1;				// Data alignment
+				__IO uint8_t extsel:2;			// External event selection
+				__IO uint8_t exttrig:1;			// External trigger enable
+				__IO uint8_t res4:1;				// Reserved
+			};
+		};
+  
+	union
+		{
+			__IO uint8_t CR3;           /*!< ADC1 configuration register 3  */
+		  struct
+			{
+				__IO uint8_t res5:6;        // Reserved
+				__IO uint8_t ovr:1;				// Overrun flag
+				__IO uint8_t dbuf:1;				// Data buffer enable
+			};
+		};
+	union
+		{
+			__IO uint16_t DR;         /*!< ADC1 Data */
+		  struct
+			{
+				__IO uint8_t DRH;           /*!< ADC1 Data high */
+				__IO uint8_t DRL;           /*!< ADC1 Data low */
+			};
+		};
+		
+	union
+		{
+			__IO uint16_t TDR;         /*!< ADC1 Schmitt trigger disable register  */
+			struct
+			{
+				__IO uint8_t TDRH;          /*!< ADC1 Schmitt trigger disable register high */
+				__IO uint8_t TDRL;          /*!< ADC1 Schmitt trigger disable register low */
+			};
+		}; 
+  
+  __IO uint8_t HTRH;          /*!< ADC1 high threshold register High HT[9:2]*/
+  __IO uint8_t HTRL;          /*!< ADC1 high threshold register Low HT[1:0]*/
+  __IO uint8_t LTRH;          /*!< ADC1 low threshold register high LT[9:2]*/
+  __IO uint8_t LTRL;          /*!< ADC1 low threshold register low LT[1:0]*/
+  
+	union
+		{
+			__IO uint16_t AWSR;         /*!< ADC1 watchdog status register */
+			struct
+			{
+				__IO uint8_t AWSRH;         /*!< ADC1 watchdog status register high */
+				__IO uint8_t AWSRL;         /*!< ADC1 watchdog status register low */
+			};
+		};
+	union
+		{
+			__IO uint16_t AWCR;         /*!< ADC1 watchdog control register */
+			struct
+			{
+				__IO uint8_t AWCRH;         /*!< ADC1 watchdog control register high */
+				__IO uint8_t AWCRL;         /*!< ADC1 watchdog control register low */
+			};
+		};	
+ 
  }
  ADC1_TypeDef;
 

@@ -72,11 +72,241 @@ uint16_t ADC1_Scan_getValue(channel);
 
 */
 //---------------------
+uint16_t adcV[10];
+// Инициализация 
+void ADC1_SingleOne_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+												ADC1_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC1_PRESSEL_OK(ADC1_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC1->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC1->CR2 = ADC1_ALIGN_RIGHT;
+	ADC1->CR3 = ADC1_BufferDisable;	// Disable buffer
+	ADC1->eoc=0;
+	ADC1->eocie=Handler;
+	ADC1->CR1 = ADC1_PrescalerSelection;
+}
+
+void ADC1_SingleCont_Init(	ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+													ADC1_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC1_PRESSEL_OK(ADC1_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC1->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC1->CR2 = ADC1_ALIGN_RIGHT;
+	ADC1->CR3 = ADC1_BufferDisable;	// Disable buffer
+	ADC1->eoc=0;
+	ADC1->eocie=Handler;
+	ADC1->CR1 = ADC1_PrescalerSelection|ADC1_CONVERSIONMODE_CONTINUOUS;
+}
+void ADC1_SingleContBuf_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+														ADC1_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC1_PRESSEL_OK(ADC1_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC1->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC1->CR2 = ADC1_ALIGN_RIGHT;
+	ADC1->CR3 = ADC1_BufferEnable;	// Enable buffer
+	ADC1->eoc=0;
+	ADC1->eocie=Handler;
+	ADC1->CR1 = ADC1_PrescalerSelection|ADC1_CONVERSIONMODE_CONTINUOUS;
+}
+
+void ADC1_ScanOne_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+												ADC1_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC1_PRESSEL_OK(ADC1_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC1->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC1->CR2 = ADC1_ALIGN_RIGHT|ADC1_ModeSCAN;
+	ADC1->CR3 = ADC1_BufferDisable;	// Disable buffer
+	ADC1->eoc=0;
+	ADC1->eocie=Handler;
+	ADC1->CR1 = ADC1_PrescalerSelection;
+}
+
+void ADC1_ScanCont_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+												ADC1_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC1_PRESSEL_OK(ADC1_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC1->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC1->CR2 = ADC1_ALIGN_RIGHT|ADC1_ModeSCAN;
+	ADC1->CR3 = ADC1_BufferDisable;	// Disable buffer
+	ADC1->eoc=0;
+	ADC1->eocie=Handler;
+	ADC1->CR1 = ADC1_PrescalerSelection|ADC1_ModeSCAN;
+}
 
 
+void ADC1_SingleAny_Start(ADC1_SourceStart_TypeDef SourceStart, ADC1_Channel_TypeDef ADC1_CHANNEL)
+{
+	assert_param(IS_ADC1_SourceStart_OK(SourceStart));
+	assert_param(IS_ADC1_CHANNEL_OK(ADC1_CHANNEL));
+	//ADC1->TDR=0;
+	ADC1->TDR=(uint16_t)1<<ADC1_CHANNEL;
+	ADC1->ch=ADC1_CHANNEL;
+	ADC1->adon=0;
+	ADC1->adon=1;
+	if (SourceStart!=ADC1_SOFT)
+	{
+		
+		ADC1->extsel=SourceStart;
+		ADC1->exttrig=1;
+	}
+	else
+	{
+		ADC1->exttrig=0;
+		ADC1->adon=1;
+	}
+}
+
+void ADC1_ScanAny_Start(ADC1_SourceStart_TypeDef SourceStart,
+												ADC1_Channel_TypeDef ADC1_CHANNEL)
+{
+	assert_param(IS_ADC1_SourceStart_OK(SourceStart));
+	assert_param(IS_ADC1_CHANNEL_OK(ADC1_CHANNEL));
+	ADC1->TDR=((uint16_t)1<<(ADC1_CHANNEL+1))-1;
+	ADC1->ch=ADC1_CHANNEL;
+	ADC1->adon=0;
+	ADC1->adon=1;
+	if (SourceStart!=ADC1_SOFT)
+	{
+		
+		ADC1->extsel=SourceStart;
+		ADC1->exttrig=1;
+	}
+	else
+	{
+		ADC1->exttrig=0;
+		ADC1->adon=1;
+	}
+}
 
 
+uint16_t ADC1_SingleOne_GetConversion(void)
+{
+	while(!ADC1->eoc);
+	ADC1->eoc=0;
+	ADC1->TDR=0;
+	return ADC1->DR;
+}
 
+uint16_t ADC1_SingleCont_GetConversion(ADC1_ContStop_TypeDef NextConvert)
+{
+	while(!ADC1->eoc);
+	ADC1->eoc=0;
+	if (NextConvert==ADC1_Stop)
+	{
+		ADC1->adon=0;
+	}
+	
+	ADC1->TDR=0;
+	return ADC1->DR;
+}
+
+ADC1_OverrunFlag_t ADC1_SingleContBuf_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10,
+																				ADC1_ContStop_TypeDef NextConvert )
+{
+	uint8_t i;
+	uint16_t adc0,adc1;
+	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
+	while(!ADC1->eoc);
+	ADC1->eoc=0;
+	if (NextConvert==ADC1_Stop)
+	{
+		ADC1->adon=0;
+		ADC1->TDR=0;
+	}
+	for(i=0;i<sizeBuf_1_to_10;i++)
+	{
+		do{
+			adc0=ADC1->DBR[i];
+			adc1=ADC1->DBR[i];
+		}while(adc0!=adc1);
+		adcValue[i]=adc1;
+	}
+		i=ADC1->ovr;
+		ADC1->ovr=0;
+		return i;
+}
+
+ADC1_OverrunFlag_t ADC1_ScanOne_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10)
+{
+	uint8_t i=1;
+	//uint16_t adc0,adc1;
+	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
+	//repeat_ScanOne:
+	while(!ADC1->eoc);
+	//ADC1->ch++;
+	ADC1->eoc=0;
+	ADC1->TDR=0;
+	//if (ADC1->ch== sizeBuf_1_to_10)
+	for(i=0;i<sizeBuf_1_to_10;i++)
+		adcValue[i]=ADC1->DBR[i];
+	i=ADC1->ovr;
+		ADC1->ovr=0;
+		return i;
+}
+
+ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10,
+																				ADC1_ContStop_TypeDef NextConvert)
+{
+	uint8_t i;
+	uint16_t adc0,adc1;
+	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
+	//repeat_ScanOne:
+	while(!ADC1->eoc);
+	//ADC1->ch++;
+	//Подсчет кол-ва каналов
+	i=0;
+	adc0=ADC1->TDR;
+	while(adc0)
+	{
+		adc0=adc0>>1;
+		i++;
+	}
+	i--;
+	ADC1->eoc=0;
+	ADC1->ch=i ;
+	if (NextConvert==ADC1_Stop)
+	{
+		ADC1->adon=0;
+		ADC1->TDR=0;
+	}
+	//if (ADC1->ch== sizeBuf_1_to_10)
+	for(i=0;i<sizeBuf_1_to_10;i++)
+	{
+		do{
+			adc0=ADC1->DBR[i];
+			adc1=ADC1->DBR[i];
+		}while(adc0!=adc1);
+		adcValue[i]=adc1;
+	}
+	i=ADC1->ovr;
+		ADC1->ovr=0;
+		return i;
+}
+void ADC1_AWD_Init(	ADC1_AWD_CH_t AWD_CH, 
+										uint16_t AWD_HTR,
+										uint16_t AWD_LTR, 
+										ADC1_Handler_TypeDef AWD_Handler)
+{
+	ADC1->HTRH=(uint8_t) AWD_HTR>>2;
+	ADC1->HTRL=(uint8_t) AWD_HTR;
+	ADC1->LTRH=(uint8_t) AWD_LTR>>2;
+	ADC1->LTRL=(uint8_t) AWD_LTR;
+	ADC1->awd=0;
+	ADC1->awdie=AWD_Handler;
+}
 //int16_t a,b;
 #ifdef  __OSA__
 void Task(void)
@@ -134,6 +364,7 @@ void main(void)
 	GPIO_Init(clkStep, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(dirStep, GPIO_MODE_OUT_PP_HIGH_FAST);
 	
+	/*
 	ADC1_Init(ADC1_CONVERSIONMODE_SINGLE, 
                ADC1_CHANNEL_0,
                ADC1_PRESSEL_FCPU_D2, 
@@ -142,16 +373,50 @@ void main(void)
 							 ADC1_ALIGN_RIGHT, 
                ADC1_SCHMITTTRIG_CHANNEL0, 
                DISABLE);
-	ADC1_StartConversion();
+	*/
+	//ADC1_StartConversion();
 	TIM2_TimeBaseInit(TIM2_PRESCALER_1, 9600);
 	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
 	TIM2_ARRPreloadConfig(ENABLE);
 	//TIM2_Cmd(ENABLE);
-	enableInterrupts()
+	CLK_PeripheralClockConfig(CLK_PERIPHERAL_ADC, ENABLE);
+	/*
+	ADC1_SingleOne_Init(ADC1_PRESSEL_FCPU_D18, 
+												ADC1_Handler_NoIT);
+	*/
+	/*
+	ADC1_SingleContBuf_Init(ADC1_PRESSEL_FCPU_D18, 
+												ADC1_Handler_NoIT);
+	*/
+	/*
+	ADC1_ScanOne_Init(ADC1_PRESSEL_FCPU_D18, 
+												ADC1_Handler_NoIT);
+	*/
+	ADC1_ScanCont_Init(ADC1_PRESSEL_FCPU_D18, 
+												ADC1_Handler_NoIT);
+	ADC1_ScanAny_Start(ADC1_SOFT,ADC1_CHANNEL_1);
+	ADC1_AWD_Init(	ADC1_AWD_CH_3, 
+										0xFF,
+										0xF, 
+										ADC1_Handler_IT);
+	//enableInterrupts()
 	while (1)
   {
 		
+	
 	nmb++;
+	/*
+	ADC1_SingleAny_Start(ADC1_SOFT, ADC1_CHANNEL_1);
+	ADC1_SingleContBuf_GetConversion(adcV,
+																				10,
+																				ADC1_Continue);
+	*/
+	//ADC1_ScanAny_Start(ADC1_SOFT,ADC1_CHANNEL_2);
+	
+	ADC1_ScanCont_GetConversion(adcV,10,ADC1_Continue);
+	//ADC1_ScanOne_GetConversion(adcV,10);
+	nop();
+	//ADC1_SingleOne_GetConversion();
 	//if (bl) 
 	//GPIO_WriteReverse(GPIOE, GPIO_PIN_5);
 	//delay_ms(100);
