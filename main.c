@@ -218,12 +218,6 @@ ADC1_OverrunFlag_t ADC1_SingleContBuf_GetConversion(uint16_t* adcValue,
 	uint16_t adc0,adc1;
 	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
 	while(!ADC1->eoc);
-	ADC1->eoc=0;
-	if (NextConvert==ADC1_Stop)
-	{
-		ADC1->adon=0;
-		ADC1->TDR=0;
-	}
 	for(i=0;i<sizeBuf_1_to_10;i++)
 	{
 		do{
@@ -232,9 +226,15 @@ ADC1_OverrunFlag_t ADC1_SingleContBuf_GetConversion(uint16_t* adcValue,
 		}while(adc0!=adc1);
 		adcValue[i]=adc1;
 	}
-		i=ADC1->ovr;
-		ADC1->ovr=0;
-		return i;
+	ADC1->eoc=0;
+	if (NextConvert==ADC1_Stop)
+	{
+		ADC1->adon=0;
+		ADC1->TDR=0;
+	}
+	i=ADC1->ovr;
+	ADC1->ovr=0;
+	return i;
 }
 
 ADC1_OverrunFlag_t ADC1_ScanOne_GetConversion(uint16_t* adcValue,
@@ -245,15 +245,17 @@ ADC1_OverrunFlag_t ADC1_ScanOne_GetConversion(uint16_t* adcValue,
 	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
 	//repeat_ScanOne:
 	while(!ADC1->eoc);
-	//ADC1->ch++;
+	for(i=0;i<sizeBuf_1_to_10;i++)
+	{
+		adcValue[i]=ADC1->DBR[i];
+	}
+	// Сброс флага конца преобразования
 	ADC1->eoc=0;
 	ADC1->TDR=0;
-	//if (ADC1->ch== sizeBuf_1_to_10)
-	for(i=0;i<sizeBuf_1_to_10;i++)
-		adcValue[i]=ADC1->DBR[i];
+	// Сброс флага перезаписи
 	i=ADC1->ovr;
-		ADC1->ovr=0;
-		return i;
+	ADC1->ovr=0;
+	return i;
 }
 
 ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
@@ -265,7 +267,14 @@ ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
 	assert_param(sizeBuf_1_to_10>=1&&sizeBuf_1_to_10<=10);
 	//repeat_ScanOne:
 	while(!ADC1->eoc);
-	//ADC1->ch++;
+	for(i=0;i<sizeBuf_1_to_10;i++)
+	{
+		do{
+			adc0=ADC1->DBR[i];
+			adc1=ADC1->DBR[i];
+		}while(adc0!=adc1);
+		adcValue[i]=adc1;
+	}
 	//Подсчет кол-ва каналов
 	i=0;
 	adc0=ADC1->TDR;
@@ -283,17 +292,10 @@ ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
 		ADC1->TDR=0;
 	}
 	//if (ADC1->ch== sizeBuf_1_to_10)
-	for(i=0;i<sizeBuf_1_to_10;i++)
-	{
-		do{
-			adc0=ADC1->DBR[i];
-			adc1=ADC1->DBR[i];
-		}while(adc0!=adc1);
-		adcValue[i]=adc1;
-	}
+	
 	i=ADC1->ovr;
-		ADC1->ovr=0;
-		return i;
+	ADC1->ovr=0;
+	return i;
 }
 void ADC1_AWD_Init(	ADC1_AWD_CH_t AWD_CH, 
 										uint16_t AWD_HTR,
@@ -304,6 +306,8 @@ void ADC1_AWD_Init(	ADC1_AWD_CH_t AWD_CH,
 	ADC1->HTRL=(uint8_t) AWD_HTR;
 	ADC1->LTRH=(uint8_t) AWD_LTR>>2;
 	ADC1->LTRL=(uint8_t) AWD_LTR;
+	ADC1->AWCR=AWD_CH;
+	ADC1->AWSR=0;
 	ADC1->awd=0;
 	ADC1->awdie=AWD_Handler;
 }
