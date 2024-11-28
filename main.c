@@ -297,7 +297,21 @@ ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
 	ADC1->ovr=0;
 	return i;
 }
-void ADC1_AWD_Init(	ADC1_AWD_CH_t AWD_CH, 
+void ADC1_SingleContBuf_AWD_Init(	uint16_t AWD_HTR,
+																	uint16_t AWD_LTR, 
+																	ADC1_Handler_TypeDef AWD_Handler)
+{
+	ADC1->HTRH=(uint8_t) AWD_HTR>>2;
+	ADC1->HTRL=(uint8_t) AWD_HTR;
+	ADC1->LTRH=(uint8_t) AWD_LTR>>2;
+	ADC1->LTRL=(uint8_t) AWD_LTR;
+	ADC1->AWCR=0x03FF;
+	ADC1->AWSR=0; // Сброс флага каналов
+	ADC1->awd=0; //  Сброс флага прерывания
+	ADC1->awdie=AWD_Handler; // Включение прерывания
+}
+
+void ADC1_ScanAny_AWD_Init(	ADC1_AWD_CH_t AWD_CH, 
 										uint16_t AWD_HTR,
 										uint16_t AWD_LTR, 
 										ADC1_Handler_TypeDef AWD_Handler)
@@ -307,10 +321,40 @@ void ADC1_AWD_Init(	ADC1_AWD_CH_t AWD_CH,
 	ADC1->LTRH=(uint8_t) AWD_LTR>>2;
 	ADC1->LTRL=(uint8_t) AWD_LTR;
 	ADC1->AWCR=AWD_CH;
-	ADC1->AWSR=0;
-	ADC1->awd=0;
-	ADC1->awdie=AWD_Handler;
+	ADC1->AWSR=0; // Сброс флага каналов
+	ADC1->awd=0; //  Сброс флага прерывания
+	ADC1->awdie=AWD_Handler; // Включение прерывания
 }
+
+uint8_t ADC1_SingleContBuf_AWD_getFlag(void)
+{
+	uint8_t f,i;
+	f=ADC1->awd;
+	ADC1->awd=0;
+	return f;
+}
+
+uint8_t ADC1_ScanAny_AWD_getFlag(void)
+{
+	uint8_t f,i;
+	f=ADC1->awd;
+	if (f)
+	{
+		//Подсчет кол-ва каналов
+		i=0;
+		adc0=ADC1->TDR;
+		while(adc0)
+		{
+			adc0=adc0>>1;
+			i++;
+		}
+		i--;
+		ADC1->awd=0;
+		ADC1->ch=i ;
+	}
+	return f;
+}
+
 //int16_t a,b;
 #ifdef  __OSA__
 void Task(void)
