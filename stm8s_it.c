@@ -377,6 +377,7 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @retval None
   */
 	void clockStep(void);
+
  INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
  {
   /* In order to detect unexpected events during development,
