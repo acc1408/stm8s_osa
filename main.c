@@ -35,15 +35,27 @@
 
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
-#define enStep  GPIOD, GPIO_PIN_4
-#define clkStep GPIOD, GPIO_PIN_2
-#define dirStep GPIOD, GPIO_PIN_3
+#define enStepH  GPIOC, GPIO_PIN_2
+#define clkStepH GPIOB, GPIO_PIN_2
+#define dirStepH GPIOC, GPIO_PIN_1
+#define endMinH  GPIOB, GPIO_PIN_0
+#define endMaxH  GPIOB, GPIO_PIN_1
+#define ledMinH  GPIOD, GPIO_PIN_6
+#define ledMaxH  GPIOD, GPIO_PIN_7
+#define butLowH GPIOC, GPIO_PIN_7
+#define butHighH GPIOD, GPIO_PIN_0
 
-#define butLeft GPIOD, GPIO_PIN_5
-#define butRight GPIOB, GPIO_PIN_5
-#define potLeft GPIOB, GPIO_PIN_1
-#define potRight GPIOB, GPIO_PIN_0
-#define reset_cnt 10
+
+
+#define enStepK  GPIOF, GPIO_PIN_4
+#define clkStepK GPIOB, GPIO_PIN_4
+#define dirStepK GPIOB, GPIO_PIN_5
+#define endMinK  GPIOB, GPIO_PIN_3
+#define endMaxK  GPIOA, GPIO_PIN_2
+#define ledMinK  GPIOD, GPIO_PIN_4
+#define ledMaxK  GPIOD, GPIO_PIN_5
+#define butMinK 	GPIOD, GPIO_PIN_3
+#define butMaxK GPIOD, GPIO_PIN_2
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -119,7 +131,7 @@ FlagStatus adcStatus;
 
 void clockStep(void)
 {
-	GPIO_WriteReverse(clkStep);
+	//GPIO_WriteReverse(clkStep);
 	//GPIO_WriteLow(clkStep);
 	//GPIO_WriteHigh(clkStep);
 	//TIM2_SetAutoreload(10+190*adc0/510);
@@ -138,7 +150,7 @@ void clockStep(void)
 	GPIO_WriteLow(clkStep);
 	*/
 }
-
+/*
 
 void Tuner_Init(tuner_t *tuner,
 								uint16_t V_pv,// текущее значение
@@ -290,7 +302,7 @@ uint16_t Tuner_getN(void)
 uint16_t n_timer=0;
 uint8_t k=0,btr;
 // 
-
+*/
 void main(void)
 {
  #ifdef  __OSA__
@@ -310,14 +322,42 @@ void main(void)
 	
 	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
 
+	//настройка светодиода на плате
+	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_FAST);
+	// настройка светодиодов
+	GPIO_Init(ledMinH, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(ledMaxH, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(ledMinK, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(ledMaxK, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_WriteLow(ledMinK);
+	GPIO_WriteLow(ledMaxK);
+	GPIO_WriteLow(ledMinH);
+	GPIO_WriteLow(ledMaxH);
 	
-	GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
+	GPIO_Init(clkStepK, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(dirStepK, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(enStepK, GPIO_MODE_OUT_PP_HIGH_FAST);
+	
+	GPIO_Init(clkStepH, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(dirStepH, GPIO_MODE_OUT_PP_HIGH_FAST);
+	GPIO_Init(enStepH, GPIO_MODE_OUT_PP_HIGH_FAST);
+	// кнопки
+	GPIO_Init(butLowH, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(butHighH, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(butMinK, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(butMaxK, GPIO_MODE_IN_PU_NO_IT);
+	// концевики
+	GPIO_Init(endMinH, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(endMaxH, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(endMinK, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(endMaxK, GPIO_MODE_IN_PU_NO_IT);
+	
 	// Отключили двигатель
-	GPIO_Init(enStep, GPIO_MODE_OUT_PP_HIGH_FAST);
-	GPIO_Init(dirStep, GPIO_MODE_OUT_PP_LOW_FAST);
-	GPIO_Init(clkStep, GPIO_MODE_OUT_PP_LOW_FAST);
-	ButtonInit(&btnLeft,5000, butLeft);
-	ButtonInit(&btnRight,5000, butRight);
+	//GPIO_Init(enStep, GPIO_MODE_OUT_PP_HIGH_FAST);
+	//GPIO_Init(dirStep, GPIO_MODE_OUT_PP_LOW_FAST);
+	//GPIO_Init(clkStep, GPIO_MODE_OUT_PP_LOW_FAST);
+//	ButtonInit(&btnLeft,5000, butLeft);/
+//	ButtonInit(&btnRight,5000, butRight);
 	
 	
 	/*
@@ -331,6 +371,7 @@ void main(void)
                DISABLE);
 	*/
 	//ADC1_StartConversion();
+	/*
 	TIM2_TimeBaseInit(TIM2_PRESCALER_1, 9600);
 	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
 	TIM2_ARRPreloadConfig(ENABLE);
@@ -359,8 +400,47 @@ void main(void)
 	//GPIO_WriteHigh(enStep);
 	//
 	btncode=0;
+	*/
+	
 	while (1)
   {
+		if ( !GPIO_ReadInputPin(butLowH))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(butHighH))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(butMinK))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(butMaxK))
+		{
+			nop();
+		}
+		
+		
+		if ( !GPIO_ReadInputPin(endMinH))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(endMaxH))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(endMinK))
+		{
+			nop();
+		}
+			if ( !GPIO_ReadInputPin(endMaxK))
+		{
+			nop();
+		}
+		
+		
+		/*
 	ADC1_SingleAny_Start(ADC1_SOFT,	ADC1_CHANNEL_0);		
 	Vmax=ADC1_SingleOne_GetConversion()*4+10;
 	if (Vmax>4000)
@@ -483,7 +563,7 @@ void main(void)
 			TIM2_Cmd(DISABLE);
 			nop();
 	}
-	
+	*/
 	/*
 	if (==pressup)
 	{
@@ -560,7 +640,7 @@ void main(void)
 	}
 	*/
 	nmb++;
-	
+	// конец цикла
 	}
 #endif
 }
