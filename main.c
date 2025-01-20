@@ -43,6 +43,11 @@
 #define butRight GPIOB, GPIO_PIN_5
 #define potLeft GPIOB, GPIO_PIN_1
 #define potRight GPIOB, GPIO_PIN_0
+
+#define minEnding GPIOD, GPIO_PIN_6
+#define maxEnding GPIOD, GPIO_PIN_7
+
+
 #define reset_cnt 10
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,7 +78,7 @@ uint16_t ADC1_Scan_getValue(channel);
 */
 //---------------------
 uint16_t adcV[10],cnt2,nm, Vmax,accel;
-uint8_t oborot=0, btncode=0,cnt;
+uint8_t oborot=0, btncode=0,cnt,minFlag,maxFlag;
 button_t btnLeft,btnRight;
 buttoncode_t btnLeftCode,btnRightCode; 
 
@@ -316,6 +321,9 @@ void main(void)
 	GPIO_Init(enStep, GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(dirStep, GPIO_MODE_OUT_PP_LOW_FAST);
 	GPIO_Init(clkStep, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(minEnding, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(maxEnding, GPIO_MODE_IN_PU_NO_IT);
+	
 	ButtonInit(&btnLeft,5000, butLeft);
 	ButtonInit(&btnRight,5000, butRight);
 	
@@ -356,7 +364,7 @@ void main(void)
 	for(nm=0;nm<10000;nm++)
 		nop();
 	GPIO_WriteLow(enStep);
-	//GPIO_WriteHigh(enStep);
+	GPIO_WriteHigh(enStep);
 	//
 	btncode=0;
 	while (1)
@@ -375,19 +383,25 @@ void main(void)
 	//	nop();
 	btnLeftCode=ButtonRead(&btnLeft, butLeft);
 	btnRightCode=ButtonRead(&btnRight, butRight);
+	minFlag=GPIO_ReadInputPin(minEnding);
+	maxFlag=GPIO_ReadInputPin(maxEnding);
 	if (btnLeftCode==pressup)
 	{
-		// запуск вращеия по часовой стрелке
+		// запуск движения влево
 		nop();
 		if (btncode==0||btncode==2)
 		{
+			if (minFlag)
+			{
 			GPIO_WriteLow(enStep);
 			btncode=1;
 			cnt=reset_cnt;
-			GPIO_WriteLow(dirStep);
+			GPIO_WriteHigh(dirStep);
 			n_timer=Tuner_computer(&tuner, Vmax);
 			TIM2_SetAutoreload(n_timer);
-			TIM2_Cmd(ENABLE);
+			
+				TIM2_Cmd(ENABLE);
+			}
 		}
 	}
 	if (btnLeftCode==pressdown)
@@ -401,23 +415,49 @@ void main(void)
 	}
 	if (btnRightCode==pressup)
 	{
-		// запуск вращения против часовой стрелке
+		// запуск движения вправо
 		nop();
 		if (btncode==0||btncode==4)
 		{
+			if (maxFlag)
+			{
 			GPIO_WriteLow(enStep);
 			btncode=3;
 			cnt=reset_cnt;
-			GPIO_WriteHigh(dirStep);
+			GPIO_WriteLow(dirStep);
 			n_timer=Tuner_computer(&tuner, Vmax);
 			TIM2_SetAutoreload(n_timer);
-			TIM2_Cmd(ENABLE);
+			
+				TIM2_Cmd(ENABLE);
+			}
 		}
 		
 	}
 	if (btnRightCode==pressdown)
 	{
+		
+		
+		if (btncode==3)
+		{
+			btncode=4;
+		}
+		
+	}
+	
+	if (!minFlag)
+	{
 		nop();
+	
+		if (btncode==1)
+		{
+			btncode=2;
+			
+		}
+	}
+	if(!maxFlag)
+	{
+		nop();
+		
 		if (btncode==3)
 		{
 			btncode=4;
