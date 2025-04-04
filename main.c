@@ -48,6 +48,7 @@
 #define butMaxH 	GPIOD, GPIO_PIN_0
 
 
+
 // Каратка 
 //Caretka
 #define enStepK  	GPIOF, GPIO_PIN_4
@@ -55,12 +56,14 @@
 #define dirStepK 	GPIOB, GPIO_PIN_5
 #define endMinK  	GPIOB, GPIO_PIN_3
 #define endMaxK  	GPIOA, GPIO_PIN_2
-#define ledMinK  	GPIOD, GPIO_PIN_4
-#define ledMaxK  	GPIOD, GPIO_PIN_5
-#define butMinK 	GPIOD, GPIO_PIN_3
-#define butMaxK 	GPIOD, GPIO_PIN_2
+#define ledMinK  	GPIOD, GPIO_PIN_5
+#define ledMaxK  	GPIOD, GPIO_PIN_4
+#define butMinK 	GPIOD, GPIO_PIN_2
+#define butMaxK 	GPIOD, GPIO_PIN_3
 
-#define max_V 1000 // максимальная скорость работы шагового двигателя
+#define max_V 500 // максимальная скорость работы шагового двигателя
+#define max_V_kar 500
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 									//	*
@@ -252,12 +255,12 @@ uint16_t Tuner_computer(tuner_t *tuner)
 		// торможение
 		if (tuner->V_pv <1000)
 		{
-			tuner->V_pv -=35;
+			tuner->V_pv -=10;
 		}
 		else
 		if(tuner->V_pv <1500)
 		{
-				tuner->V_pv -=25;
+				tuner->V_pv -=15;
 		}
 		else
 		if(tuner->V_pv <2000)
@@ -409,7 +412,7 @@ void main(void)
 								800 // кол-во микрошагов на оборот
 								); 
 	Tuner_Init(&tunerK,
-								20, // частота расчета
+								15, // частота расчета
 								16000000, // частота ЦПУ
 								800 // кол-во микрошагов на оборот
 								); 
@@ -460,28 +463,43 @@ void main(void)
 		btnUpCode=ButtonRead(&btnUp, butMaxH);
 		btnDownCode=ButtonRead(&btnDown, butMinH);
 		nop();
-		
+		//
+		lbl_repeatHeight:
 		switch(heightMot)
 		{
 			case stopH:
+				
+				if (GPIO_ReadInputPin(endMinH)==0)
+				{
+					heightMot=stopMinH;
+					goto lbl_repeatHeight;
+				}
+				else
+				if (	GPIO_ReadInputPin(endMaxH)==0)
+				{
+					heightMot=stopMaxH;
+					goto lbl_repeatHeight;
+				}
+				//----------------
 				if (btnUpCode==pressdown)
 				{
+					lbl_UpMove:
 					GPIO_WriteLow(enStepH);
-					GPIO_WriteLow(dirStepH);
+					GPIO_WriteHigh(dirStepH);
 					
 					Tuner_resetCntStep(&tuner);
 					Tuner_setSP(&tuner,max_V);
 					n_timer=Tuner_computer(&tuner);
 					TIM2_SetAutoreload(n_timer);
 					TIM2_Cmd(ENABLE);
-					
 					heightMot=moveUpAccelH;
 				}
 				else
 				if (btnDownCode==pressdown)
 				{
+					lbl_DownMove:
 					GPIO_WriteLow(enStepH);
-					GPIO_WriteHigh(dirStepH);
+					GPIO_WriteLow(dirStepH);
 					
 					Tuner_resetCntStep(&tuner);
 					Tuner_setSP(&tuner,max_V);
@@ -493,33 +511,27 @@ void main(void)
 				}
 				break;
 			case	stopMinH:
+				if (GPIO_ReadInputPin(endMinH)==1)
+				{
+					heightMot=stopH;
+					goto lbl_repeatHeight;
+				}
+				
 				if (btnUpCode==pressdown)
 				{
-					GPIO_WriteLow(enStepH);
-					GPIO_WriteLow(dirStepH);
-					Tuner_resetCntStep(&tuner);
-					Tuner_setSP(&tuner,max_V);
-					n_timer=Tuner_computer(&tuner);
-					TIM2_SetAutoreload(n_timer);
-					
-					TIM2_Cmd(ENABLE);
-					GPIO_WriteLow(ledMinH);
-					heightMot=moveUpAccelH;
+					goto lbl_UpMove;
 				}
 				break;	
 			case stopMaxH:
+				if (GPIO_ReadInputPin(endMaxH)==1)
+				{
+					heightMot=stopH;
+					goto lbl_repeatHeight;
+				}
+				
 				if (btnDownCode==pressdown)
 					{
-						GPIO_WriteLow(enStepH);
-						GPIO_WriteHigh(dirStepH);
-						
-						Tuner_setSP(&tuner,max_V);
-						n_timer=Tuner_computer(&tuner);
-						TIM2_SetAutoreload(n_timer);
-						
-						TIM2_Cmd(ENABLE);
-						GPIO_WriteLow(ledMaxH);
-						heightMot=moveDownAccelH;
+						goto lbl_DownMove;
 					}
 				break;
 			
@@ -556,7 +568,7 @@ void main(void)
 				if (GPIO_ReadInputPin(endMinH)==0)
 					{
 						//TIM2_Cmd(DISABLE);
-						//GPIO_WriteHigh(ledMinH);
+						GPIO_WriteHigh(ledMinH);
 						heightMot=moveDownBrakeH;
 						Tuner_setSP(&tuner,0);	
 						//break;
@@ -577,7 +589,7 @@ void main(void)
 					if (GPIO_ReadInputPin(endMaxH)==0)
 					{
 						heightMot=stopMaxH;
-						//GPIO_WriteHigh(ledMaxH);
+						GPIO_WriteHigh(ledMaxH);
 					}
 					else
 					{
@@ -621,7 +633,7 @@ void main(void)
 				break;
 		}
 		
-	if (heightMot==stopH||	heightMot==stopMinH||heightMot==stopMaxH )
+	//if (heightMot==stopH||	heightMot==stopMinH||heightMot==stopMaxH )
 	{
 		if (GPIO_ReadInputPin(endMinH)==0)
 		{
@@ -641,7 +653,213 @@ void main(void)
 			GPIO_WriteLow(ledMaxH);
 		}
 	}	
+	
+		repeat_karetka:
+		switch(karetMot)
+		{
+			case stopK:
+				
+				if (GPIO_ReadInputPin(endMinK)==0)
+				{
+					karetMot=stopMinK;
+					goto repeat_karetka;
+				}
+				else
+				if (	GPIO_ReadInputPin(endMaxK)==0)
+				{
+					karetMot=stopMaxK;
+					goto repeat_karetka;
+				}
+				else
+				{
+					karetMot=stopK;
+				}
+				
+				
+				
+				if (btnRightCode==pressdown)
+				{
+					// переброс из крайнего состояния
+					lbl_RightMove:
+					// включили двигатель
+					GPIO_WriteLow(enStepK);
+					// выбрали направление
+					GPIO_WriteLow(dirStepK);
+					
+					Tuner_resetCntStep(&tunerK);
+					Tuner_setSP(&tunerK,max_V_kar);
+					n_timer=Tuner_computer(&tunerK);
+					TIM3_SetAutoreload(n_timer);
+					TIM3_Cmd(ENABLE);
+					
+					karetMot=moveRightAccelK;
+				}
+				else
+				if (btnLeftCode==pressdown)
+				{
+					// переброс из крайнего состояния
+					lbl_LeftMove:
+					// обозначаем вид нового состояния
+					
+					
+					
+					GPIO_WriteLow(enStepK);
+					GPIO_WriteHigh(dirStepK);
+					
+					Tuner_resetCntStep(&tuner);
+					Tuner_setSP(&tunerK,max_V_kar);
+					n_timer=Tuner_computer(&tunerK);
+					TIM3_SetAutoreload(n_timer);
+					TIM3_Cmd(ENABLE);
+					karetMot=moveLeftAccelK;
+				}
+				break;
+			case	stopMinK:
+			
+			
+				if (GPIO_ReadInputPin(endMinK)==1)
+				{
+					karetMot=stopK;
+					goto repeat_karetka;
+				}
+				
+				
+				if (btnRightCode==pressdown)
+				{
+					goto lbl_RightMove;
+				}
+				break;	
+			case stopMaxK:
+				if (GPIO_ReadInputPin(endMaxK)==1)
+				{
+					karetMot=stopK;
+					goto repeat_karetka;
+				}
+				
+				if (btnLeftCode==pressdown)
+					{
+						goto lbl_LeftMove;
+					}
+				break;
+		// дейстия при движении каретки
+			case moveRightAccelK:
+				if (btnLeftCode==pressdown)
+				{
+					karetMot=moveRightBrakeK;
+					Tuner_setSP(&tunerK,0);
+				}
+			
+				if (GPIO_ReadInputPin(endMaxK)==0)
+					{
+						//TIM2_Cmd(DISABLE);
+						GPIO_WriteHigh(ledMaxK);
+						karetMot=moveRightBrakeK;
+						Tuner_setSP(&tunerK,0);	
+						//break;
+					}
+				
+				n_timer=Tuner_computer(&tunerK);
+				TIM3_SetAutoreload(n_timer);	
+				break;
+				
+			case moveLeftAccelK:
+				if (btnRightCode==pressdown)
+				{
+					karetMot=moveLeftBrakeK;
+					Tuner_setSP(&tunerK,0);	
+				}
+				
+				if (GPIO_ReadInputPin(endMinK)==0)
+					{
+						//TIM2_Cmd(DISABLE);
+						GPIO_WriteHigh(ledMinH);
+						karetMot=moveLeftBrakeK;
+						Tuner_setSP(&tunerK,0);	
+						//break;
+					}
+				//else
+				n_timer=Tuner_computer(&tunerK);
+				TIM3_SetAutoreload(n_timer);	
+				break;
+				
+			case moveRightBrakeK:
+				n_timer=Tuner_computer(&tunerK);
+					
+				if (n_timer==0)
+				{
+					GPIO_WriteHigh(enStepK);
+					TIM3_Cmd(DISABLE);
+					karetMot=stopMaxK;
+					if (GPIO_ReadInputPin(endMaxK)==0)
+					{
+						karetMot=stopMaxK;
+						//GPIO_WriteHigh(ledMaxH);
+					}
+					else
+					{
+						karetMot=stopK;
+					}
+				}
+				else
+				{
+					TIM3_SetAutoreload(n_timer);
+				}
+				break;
+				
+			case moveLeftBrakeK:
+				n_timer=Tuner_computer(&tunerK);
+					
+				if (n_timer==0)
+				{
+					GPIO_WriteHigh(enStepK);
+					TIM3_Cmd(DISABLE);
+					
+					if (GPIO_ReadInputPin(endMinK)==0)
+					{
+						karetMot=stopMinK;
+						//GPIO_WriteHigh(ledMinH);
+					}
+					else
+					{
+						karetMot=stopK;
+					}
+					
+					
+				}
+				else
+				{
+					TIM3_SetAutoreload(n_timer);
+				}
+				break;
+				
+			case errorK:
+			
+				break;
+		}
 		
+	//if (karetMot==stopK||	karetMot==stopMinK||karetMot==stopMaxK )
+	{
+		if (GPIO_ReadInputPin(endMinK)==0)
+		{
+			GPIO_WriteHigh(ledMinK);
+		}
+		else
+		{
+			GPIO_WriteLow(ledMinK);
+		}
+		
+		if (GPIO_ReadInputPin(endMaxK)==0)
+		{
+			GPIO_WriteHigh(ledMaxK);
+		}
+		else
+		{
+			GPIO_WriteLow(ledMaxK);
+		}
+	}	
+	
+	// end shtorka
+	/*	
 	switch(karetMot)
 		{
 			case stopK:
@@ -650,7 +868,7 @@ void main(void)
 					GPIO_WriteLow(enStepK);
 					GPIO_WriteLow(dirStepK);
 					Tuner_resetCntStep(&tunerK);
-					Tuner_setSP(&tunerK,max_V);
+					Tuner_setSP(&tunerK,max_V_kar);
 					n_timer=Tuner_computer(&tunerK);
 					TIM3_SetAutoreload(n_timer);
 					TIM3_Cmd(ENABLE);
@@ -668,7 +886,7 @@ void main(void)
 					GPIO_WriteHigh(dirStepK);
 					
 					Tuner_resetCntStep(&tunerK);
-					Tuner_setSP(&tunerK,max_V);
+					Tuner_setSP(&tunerK,max_V_kar);
 					n_timer=Tuner_computer(&tunerK);
 					TIM3_SetAutoreload(n_timer);
 					TIM3_Cmd(ENABLE);
@@ -685,7 +903,7 @@ void main(void)
 					GPIO_WriteLow(enStepK);
 					GPIO_WriteLow(dirStepK);
 					Tuner_resetCntStep(&tunerK);
-					Tuner_setSP(&tunerK,max_V);
+					Tuner_setSP(&tunerK,max_V_kar);
 					n_timer=Tuner_computer(&tunerK);
 					TIM3_SetAutoreload(n_timer);
 					TIM3_Cmd(ENABLE);
@@ -704,7 +922,7 @@ void main(void)
 					GPIO_WriteHigh(dirStepK);
 					
 					Tuner_resetCntStep(&tunerK);
-					Tuner_setSP(&tunerK,max_V);
+					Tuner_setSP(&tunerK,max_V_kar);
 					n_timer=Tuner_computer(&tunerK);
 					TIM3_SetAutoreload(n_timer);
 					TIM3_Cmd(ENABLE);
@@ -814,7 +1032,7 @@ void main(void)
 			GPIO_WriteLow(ledMaxK);
 		}
 	}
-		
+		*/
 		
 		/*
 	ADC1_SingleAny_Start(ADC1_SOFT,	ADC1_CHANNEL_0);		
