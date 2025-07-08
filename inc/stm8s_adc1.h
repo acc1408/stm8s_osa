@@ -62,6 +62,13 @@ typedef enum
   ADC1_EXTTRIG_GPIO  = (uint8_t)0x10  /**< Conversion from External interrupt on ADC_ETR pin*/
 } ADC1_ExtTrig_TypeDef;
 
+typedef enum 
+{
+	ADC1_SOFT = (uint8_t)0x00,
+  ADC1_TRIG_TIM1   = (uint8_t)0x04, /**< Conversion from Internal TIM1 TRGO event */
+  ADC1_TRIG_ETR  = (uint8_t)0x05  /**< Conversion from External interrupt on ADC_ETR pin*/
+} ADC1_SourceStart_TypeDef;
+
 /**
   * @brief  ADC1 data alignment
   */
@@ -71,6 +78,68 @@ typedef enum
   ADC1_ALIGN_RIGHT = (uint8_t)0x08  /**< Data alignment right */
 } ADC1_Align_TypeDef;
 
+/**
+  * @brief  ADC1 data alignment
+  */
+typedef enum 
+{
+  ADC1_ModeSINGLE  = (uint8_t)0x00, /**< Data alignment left */
+  ADC1_ModeSCAN = (uint8_t)0x02  /**< Data alignment right */
+} ADC1_Mode_TypeDef;
+
+
+/**
+  * @brief  ADC1 data alignment
+  */
+typedef enum 
+{
+  ADC1_Handler_NoIT  = (uint8_t)0x00, /**< Data alignment left */
+  ADC1_Handler_IT = (uint8_t)0x01  /**< Data alignment right */
+} ADC1_Handler_TypeDef;
+
+/**
+  * @brief  ADC1 data alignment
+  */
+typedef enum 
+{
+  ADC1_NoOverunFlag  = (uint8_t)0x00, /**< Data alignment left */
+  ADC1_OverunFlag = (uint8_t)0x01  /**< Data alignment right */
+} ADC1_OverrunFlag_t;
+
+/**
+  * @brief  ADC1 On_Off
+  */
+typedef enum 
+{
+	ADC1_Stop = (uint8_t)0x01,  /**< Data alignment right */
+  ADC1_Continue  = (uint8_t)0x00 /**< Data alignment left */
+} ADC1_ContStop_TypeDef;
+
+/**
+  * @brief  ADC1 On_Off
+  */
+typedef enum 
+{
+	ADC1_Off = (uint8_t)0x00,  /**< Data alignment right */
+  ADC1_On  = (uint8_t)0x01 /**< Data alignment left */
+} ADC1_OnOff_TypeDef;
+
+/**
+  * @brief  ADC1 On_Off
+  */
+typedef enum 
+{
+	AWD_Flag_clear = (uint8_t)0x00,  /**< Data alignment right */
+  AWD_Flag_set  = (uint8_t)0x01 /**< Data alignment left */
+} ADC1_AWD_Flag_t;
+/**
+  * @brief  ADC1 Buffer
+  */
+typedef enum 
+{
+  ADC1_BufferEnable  = (uint8_t)0x80, /**< Data alignment left */
+  ADC1_BufferDisable = (uint8_t)0x00  /**< Data alignment right */
+} ADC1_Buffer_TypeDef;
 /**
   * @brief  ADC1 Interrupt source
   */
@@ -117,7 +186,27 @@ typedef enum
   ADC1_FLAG_EOC   = (uint8_t)0x80  /**< EOC falg */
 }ADC1_Flag_TypeDef;
 
-
+/**
+  * @brief  ADC1 Flags
+  */
+typedef enum 
+{
+  //ADC1_FLAG_OVR   = (uint8_t)0x41, /**< Overrun status flag */
+  //ADC1_FLAG_AWD   = (uint8_t)0x40, /**< Analog WDG status */
+  ADC1_AWD_CH_0  = (uint16_t)1, /**< Analog channel 0 status */
+  ADC1_AWD_CH_1  = (uint16_t)2, /**< Analog channel 1 status */
+  ADC1_AWD_CH_2  = (uint16_t)4, /**< Analog channel 2 status */
+  ADC1_AWD_CH_3  = (uint16_t)8, /**< Analog channel 3 status */
+  ADC1_AWD_CH_4  = (uint16_t)16, /**< Analog channel 4 status */
+  ADC1_AWD_CH_5  = (uint16_t)32, /**< Analog channel 5 status */
+  ADC1_AWD_CH_6  = (uint16_t)64, /**< Analog channel 6 status */
+  ADC1_AWD_CH_7  = (uint16_t)128, /**< Analog channel 7 status */
+  ADC1_AWD_CH_8  = (uint16_t)256, /**< Analog channel 8  status*/
+  ADC1_AWD_CH_9  = (uint16_t)512 /**< Analog channel 9 status */
+  //ADC1_AWD_CH_12 = (uint16_t)4096 /**< Analog channel 12 status */
+                                  /* refer to product datasheet for channel 12 availability */
+//  ADC1_FLAG_EOC   = (uint8_t)0x80  /**< EOC falg */
+}ADC1_AWD_CH_t;
 /**
   * @brief  ADC1 schmitt Trigger
   */
@@ -145,7 +234,7 @@ typedef enum
 typedef enum 
 {
   ADC1_CONVERSIONMODE_SINGLE     = (uint8_t)0x00, /**< Single conversion mode */
-  ADC1_CONVERSIONMODE_CONTINUOUS = (uint8_t)0x01  /**< Continuous conversion mode */
+  ADC1_CONVERSIONMODE_CONTINUOUS = (uint8_t)0x02  /**< Continuous conversion mode */
 } ADC1_ConvMode_TypeDef;
 
 /**
@@ -168,6 +257,26 @@ typedef enum
                  /* refer to product datasheet for channel 12 availability */
 } ADC1_Channel_TypeDef;
 
+
+typedef union
+		{
+			uint16_t AIN_All;         /*!< ADC1 watchdog status register */
+			struct
+			{
+				uint8_t AIN0:1;         /*!< ADC1 watchdog status register high */
+				uint8_t AIN1:1;         /*!< ADC1 watchdog status register low */
+				uint8_t AIN2:1;
+				uint8_t AIN3:1;
+				uint8_t AIN4:1;
+				uint8_t AIN5:1;
+				uint8_t AIN6:1;
+				uint8_t AIN7:1;
+				uint8_t AIN8:1;
+				uint8_t AIN9:1;
+			};
+			
+		}AWSR_AIN_t ;
+
 /**
   * @}
   */
@@ -182,7 +291,15 @@ typedef enum
   * @brief  Macros used by the assert function to check the different functions parameters.
   * @{
   */
+/**
+  * @brief  Macro used by the assert function to check the different prescaler's values.
+  */
 
+
+#define IS_ADC1_SourceStart_OK(SrcSt) (((SrcSt) == ADC1_SOFT) || \
+                                      ((SrcSt) == ADC1_TRIG_TIM1) || \
+                                      ((SrcSt) == ADC1_TRIG_ETR))
+                                      
 /**
   * @brief  Macro used by the assert function to check the different prescaler's values.
   */
@@ -298,36 +415,109 @@ typedef enum
 /** @addtogroup ADC1_Exported_Functions
   * @{
   */
-void ADC1_DeInit(void);
+	
+	
+//----------- Мой Драйвер
+// Инициализация Режим Преобразования для Одного канала
+void ADC1_SingleOne_Init(	ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+													ADC1_Handler_TypeDef Handler);
+void ADC1_SingleCont_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+													ADC1_Handler_TypeDef Handler);
+void ADC1_SingleContBuf_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+														ADC1_Handler_TypeDef Handler);
+///------------------------------------------------------
+// Запуск преобразования для любого для Одного канала
+void ADC1_SingleAny_Start(ADC1_SourceStart_TypeDef SourceStart, 
+													ADC1_Channel_TypeDef ADC1_CHANNEL);														
+//--------------------------------------------------
+// Получение результатов преобразования для Одного канала
+uint16_t ADC1_SingleOne_GetConversion(void);
+uint16_t ADC1_SingleCont_GetConversion(ADC1_ContStop_TypeDef NextConvert);
+ADC1_OverrunFlag_t ADC1_ScanCont_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10,
+																				ADC1_ContStop_TypeDef NextConvert);
+///-------------------------------------------
+// Настройка режима сторожевого аналогового модуля для Одного канала
+void ADC1_SingleContBuf_AWD_Init(	uint16_t AWD_HTR,
+																	uint16_t AWD_LTR, 
+																	ADC1_Handler_TypeDef AWD_Handler);
+// Получение результата флага
+// Сброс флага осуществляется автоматически
+ADC1_AWD_Flag_t ADC1_SingleContBuf_AWD_getFlag(void);
+//==================================================
+//================================================================
+//Инициализация режима Сканирования для Нескольких каналов 
+
+void ADC1_ScanOne_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+												ADC1_Handler_TypeDef Handler);
+void ADC1_ScanCont_Init(ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
+												ADC1_Handler_TypeDef Handler);
+//---------------------------------------
+// Запуск преобразования для любого режим для Нескольких каналов
+void ADC1_ScanAny_Start(ADC1_SourceStart_TypeDef SourceStart,
+												ADC1_Channel_TypeDef ADC1_CHANNEL);
+// Получение данных из буфера
+ADC1_OverrunFlag_t ADC1_ScanOne_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10);
+																				
+ADC1_OverrunFlag_t ADC1_SingleContBuf_GetConversion(uint16_t* adcValue,
+																				uint8_t sizeBuf_1_to_10,
+																				ADC1_ContStop_TypeDef NextConvert );	
+// Инициализация сторожевого аналогового модуля
+void ADC1_ScanAny_AWD_Init(	ADC1_AWD_CH_t AWD_CH, 
+														uint16_t AWD_HTR,
+														uint16_t AWD_LTR, 
+														ADC1_Handler_TypeDef AWD_Handler);
+// 
+ADC1_AWD_Flag_t ADC1_ScanAny_AWD_getFlag(void);
+AWSR_AIN_t ADC1_ScanAny_AWD_getFlagAIN(void);
+
+//-----------Конец мой драйвер
+/*
 void ADC1_Init(ADC1_ConvMode_TypeDef ADC1_ConversionMode, 
                ADC1_Channel_TypeDef ADC1_Channel,
                ADC1_PresSel_TypeDef ADC1_PrescalerSelection, 
                ADC1_ExtTrig_TypeDef ADC1_ExtTrigger, 
-               FunctionalState ADC1_ExtTriggerState, ADC1_Align_TypeDef ADC1_Align, 
+               FunctionalState ADC1_ExtTriggerState, 
+							 ADC1_Align_TypeDef ADC1_Align, 
                ADC1_SchmittTrigg_TypeDef ADC1_SchmittTriggerChannel, 
                FunctionalState ADC1_SchmittTriggerState);
-void ADC1_Cmd(FunctionalState NewState);
+
 void ADC1_ScanModeCmd(FunctionalState NewState);
 void ADC1_DataBufferCmd(FunctionalState NewState);
-void ADC1_ITConfig(ADC1_IT_TypeDef ADC1_IT, FunctionalState NewState);
-void ADC1_PrescalerConfig(ADC1_PresSel_TypeDef ADC1_Prescaler);
-void ADC1_SchmittTriggerConfig(ADC1_SchmittTrigg_TypeDef ADC1_SchmittTriggerChannel,
-                              FunctionalState NewState);
-void ADC1_ConversionConfig(ADC1_ConvMode_TypeDef ADC1_ConversionMode, 
-                           ADC1_Channel_TypeDef ADC1_Channel, 
-                           ADC1_Align_TypeDef ADC1_Align);
-void ADC1_ExternalTriggerConfig(ADC1_ExtTrig_TypeDef ADC1_ExtTrigger, FunctionalState NewState);
+
+
+
+
 void ADC1_AWDChannelConfig(ADC1_Channel_TypeDef Channel, FunctionalState NewState);
 void ADC1_StartConversion(void);
 uint16_t ADC1_GetConversionValue(void);
-void ADC1_SetHighThreshold(uint16_t Threshold);
-void ADC1_SetLowThreshold(uint16_t Threshold);
+
 uint16_t ADC1_GetBufferValue(uint8_t Buffer);
 FlagStatus ADC1_GetAWDChannelStatus(ADC1_Channel_TypeDef Channel);
 FlagStatus ADC1_GetFlagStatus(ADC1_Flag_TypeDef Flag);
-void ADC1_ClearFlag(ADC1_Flag_TypeDef Flag);
+
 ITStatus ADC1_GetITStatus(ADC1_IT_TypeDef ITPendingBit);
+*/
+
+
+
+
+void ADC1_DeInit(void);
+void ADC1_Cmd(FunctionalState NewState);
+void ADC1_SchmittTriggerConfig(ADC1_SchmittTrigg_TypeDef ADC1_SchmittTriggerChannel,
+                              FunctionalState NewState);
+void ADC1_ClearFlag(ADC1_Flag_TypeDef Flag);
+void ADC1_ITConfig(ADC1_IT_TypeDef ADC1_IT, FunctionalState NewState);
+void ADC1_PrescalerConfig(ADC1_PresSel_TypeDef ADC1_Prescaler);
+void ADC1_SetHighThreshold(uint16_t Threshold);
+void ADC1_SetLowThreshold(uint16_t Threshold);
 void ADC1_ClearITPendingBit(ADC1_IT_TypeDef ITPendingBit);
+void ADC1_ConversionConfig(ADC1_ConvMode_TypeDef ADC1_ConversionMode, 
+                           ADC1_Channel_TypeDef ADC1_Channel, 
+                           ADC1_Align_TypeDef ADC1_Align);
+
+void ADC1_ExternalTriggerConfig(ADC1_ExtTrig_TypeDef ADC1_ExtTrigger, FunctionalState NewState);
 /**
   * @}
   */

@@ -236,6 +236,9 @@ typedef enum
   TIM2_EVENTSOURCE_CC3               = ((uint8_t)0x08)
 }TIM2_EventSource_TypeDef;
 
+
+
+
 #define IS_TIM2_EVENT_SOURCE_OK(SOURCE) (((SOURCE) != 0x00))
 
 /** TIM2 Update Source */
@@ -259,6 +262,16 @@ typedef enum
   TIM2_FLAG_CC2OF                    = ((uint16_t)0x0400),
   TIM2_FLAG_CC3OF                    = ((uint16_t)0x0800)
 }TIM2_FLAG_TypeDef;
+
+
+
+
+typedef struct
+{
+	uint16_t cnt;
+	TIM2_Prescaler_TypeDef prescaler;
+}Tim2_InitSet_t;
+
 
 #define IS_TIM2_GET_FLAG_OK(FLAG) (((FLAG) == TIM2_FLAG_UPDATE) || \
                                    ((FLAG) == TIM2_FLAG_CC1) || \
@@ -289,7 +302,11 @@ void TIM2_DeInit(void);
 #define TIM2_TimeBaseInit_DEF
 #ifdef TIM2_DeInit_DEF
 void TIM2_TimeBaseInit(TIM2_Prescaler_TypeDef TIM2_Prescaler, uint16_t TIM2_Period);
+// Расчет коэффициентов таймера
+Tim2_InitSet_t CalcSetTim(uint32_t f_tact, uint32_t f_treb);
 #endif
+
+
 
 #define TIM2_Cmd_DEF
 #ifdef TIM2_Cmd_DEF
@@ -508,6 +525,7 @@ ITStatus TIM2_GetITStatus(TIM2_IT_TypeDef TIM2_IT);
 #ifdef  TIM2_ClearITPendingBit_DEF
 void TIM2_ClearITPendingBit(TIM2_IT_TypeDef TIM2_IT);
 #endif
+
 
 
 /**

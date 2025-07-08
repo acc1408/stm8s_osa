@@ -54,6 +54,28 @@ typedef enum {
   ADC2_PRESSEL_FCPU_D18 = (uint8_t)0x70  /**< Prescaler selection fADC2 = fcpu/18 */
 } ADC2_PresSel_TypeDef;
 
+
+
+/**
+  * @brief  ADC1_Handler_TypeDef
+  */
+
+
+typedef enum 
+{
+  ADC2_Handler_NoIT  = (uint8_t)0x00, /**< Считывание данных в основном цикле программы*/
+  ADC2_Handler_IT = (uint8_t)0x01  /**< читывание данных в прерываниии */
+} ADC2_Handler_TypeDef;
+
+
+
+typedef enum 
+{
+	ADC2_SOFT = (uint8_t)0x00,
+  ADC2_TRIG_TIM1   = (uint8_t)0x04, /**< Conversion from Internal TIM1 TRGO event */
+  ADC2_TRIG_ETR  = (uint8_t)0x05  /**< Conversion from External interrupt on ADC_ETR pin*/
+} ADC2_SourceStart_TypeDef;
+
 /**
   * @brief   ADC2 External conversion trigger event selection
   */
@@ -100,7 +122,7 @@ typedef enum {
 
 typedef enum {
   ADC2_CONVERSIONMODE_SINGLE     = (uint8_t)0x00, /**< Single conversion mode */
-  ADC2_CONVERSIONMODE_CONTINUOUS = (uint8_t)0x01  /**< Continuous conversion mode */
+  ADC2_CONVERSIONMODE_CONTINUOUS = (uint8_t)0x02  /**< Continuous conversion mode */
 } ADC2_ConvMode_TypeDef;
 
 /**
@@ -140,6 +162,12 @@ typedef enum {
   * @brief  Macros used by the assert function to check the different functions parameters.
   * @{
   */
+
+#define IS_ADC2_SourceStart_OK(SrcSt) (((SrcSt) == ADC2_SOFT) || \
+                                      ((SrcSt) == ADC2_TRIG_TIM1) || \
+                                      ((SrcSt) == ADC2_TRIG_ETR))
+                                      
+
 
 /**
   * @brief  Macro used by the assert function to check the different prescaler's values.
@@ -216,12 +244,48 @@ typedef enum {
 /**
   * @}
   */
-
+/**
+  * @brief  ADC1 On_Off
+  */
+typedef enum 
+{
+	ADC2_Stop = (uint8_t)0x01,  /**< Data alignment right */
+  ADC2_Continue  = (uint8_t)0x00 /**< Data alignment left */
+} ADC2_ContStop_TypeDef;
 /* Exported functions ------------------------------------------------------- */
 
 /** @addtogroup ADC2_Exported_Functions
   * @{
   */
+	
+//----------- Мой Драйвер
+// Инициализация Режим Преобразования для Одного канала
+void ADC2_SingleOne_Init(	ADC2_PresSel_TypeDef ADC2_PrescalerSelection, 
+													ADC2_Handler_TypeDef Handler);
+void ADC2_SingleCont_Init(ADC2_PresSel_TypeDef ADC2_PrescalerSelection, 
+													ADC2_Handler_TypeDef Handler);
+												
+///------------------------------------------------------
+// Запуск преобразования для любого для Одного канала
+
+void ADC2_SingleAny_Start(ADC2_SourceStart_TypeDef SourceStart, 
+													ADC2_Channel_TypeDef ADC2_CHANNEL);														
+
+//--------------------------------------------------
+// Получение результатов преобразования для Одного канала
+
+uint16_t ADC2_SingleOne_GetConversion(void);
+
+uint16_t ADC2_SingleCont_GetConversion(ADC2_ContStop_TypeDef NextConvert);
+
+///-------------------------------------------
+
+//==================================================	
+	
+	
+	
+	
+	
 void ADC2_DeInit(void);
 void ADC2_Init(ADC2_ConvMode_TypeDef ADC2_ConversionMode, 
                ADC2_Channel_TypeDef ADC2_Channel, 

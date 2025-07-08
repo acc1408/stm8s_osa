@@ -34,7 +34,7 @@
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
-// #include "osa.h"
+ #include "osa.h"
  #include "inc/stm8s_delay.h" // программная задержка
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
 // #include "inc/stm8s_button.h"  // Драйвер для кнопки
@@ -54,13 +54,15 @@
 // #include "inc/stm8s_tim1.h"
 // #include "inc/stm8s_i2clcd1602.h"
 //	#include "inc/stm8s_bme280.h"
+ #include "inc/stm8s_tm1637.h"
+
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
  #include "inc/stm8s_adc1.h" // драйвер для АЦП1
 #endif /* (STM8S105) ||(STM8S103) || (STM8S001) || (STM8S903) || STM8AF626x*/
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) || defined (STM8AF52Ax) ||\
     defined (STM8AF62Ax)
-//  #include "inc/stm8s_adc2.h" // драйвер для АЦП2
+  #include "inc/stm8s_adc2.h" // драйвер для АЦП2
 #endif /* (STM8S208) || (STM8S207) || (STM8AF62Ax) || (STM8AF52Ax) */
 // #include "inc/stm8s_awu.h"
 // #include "inc/stm8s_beep.h"

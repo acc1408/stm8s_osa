@@ -100,6 +100,39 @@ void TIM2_TimeBaseInit( TIM2_Prescaler_TypeDef TIM2_Prescaler,
   TIM2->ARRH = (uint8_t)(TIM2_Period >> 8);
   TIM2->ARRL = (uint8_t)(TIM2_Period);
 }
+
+
+
+Tim2_InitSet_t CalcSetTim(uint32_t f_tact, uint32_t f_treb)
+{
+	Tim2_InitSet_t ret;
+	uint32_t Fmintim;
+	uint8_t pred=0;
+	uint32_t Tcnt;
+	pred=0;
+	Fmintim=f_tact>>16;
+	do
+	{		
+		if (f_treb> Fmintim>>pred )
+		{
+			break;
+		}
+		else
+		{
+			pred++;
+			if (pred>15)
+			{
+				while(1); // Ниже нельзя опуститься
+			}
+		}
+	}while(1);
+	
+	ret.cnt=(f_tact>>pred)/f_treb - 1;
+	ret.prescaler=(TIM2_Prescaler_TypeDef)pred;
+	return ret;
+}
+
+
 #endif
 
 #ifdef TIM2_OC1Init_DEF
@@ -1373,6 +1406,10 @@ static void TIM2_TI3_Config(uint8_t TIM2_ICPolarity, uint8_t TIM2_ICSelection,
   /* Set the CCE Bit */
   TIM2->CCER2 |= TIM2_CCER2_CC3E;
 }
+
+
+
+
 #endif
 /**
   * @}

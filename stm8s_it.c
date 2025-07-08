@@ -137,6 +137,10 @@
 #include "src/stm8s_stdioinit.c"
 #endif
 
+#ifdef __STM8S_TM1637_H
+#include "src/stm8s_tm1637.c"
+#endif
+
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -377,7 +381,7 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @retval None
   */
 	void clockStep(void);
- INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
+@svlreg INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.

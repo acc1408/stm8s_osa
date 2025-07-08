@@ -51,6 +51,94 @@
   * @param  None
   * @retval None
   */
+	
+//---------Начало моего драйвера
+// Инициализация 
+void ADC2_SingleOne_Init(ADC2_PresSel_TypeDef ADC2_PrescalerSelection, 
+												ADC2_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC2_PRESSEL_OK(ADC2_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC2->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC2->CR2 = ADC2_ALIGN_RIGHT;
+	
+	ADC2->eoc=0;
+	ADC2->eocie=Handler;
+	ADC2->CR1 = ADC2_PrescalerSelection;
+}
+
+void ADC2_SingleCont_Init(	ADC2_PresSel_TypeDef ADC2_PrescalerSelection, 
+													ADC2_Handler_TypeDef Handler)
+{
+	assert_param(IS_ADC2_PRESSEL_OK(ADC2_PrescalerSelection));
+	/* Reset the ADC1 peripheral */
+  ADC2->CR1 = 0;
+	// Set the ADC1 peripheral
+	ADC2->CR2 = ADC2_ALIGN_RIGHT;
+	
+	ADC2->eoc=0;
+	ADC2->eocie=Handler;
+	ADC2->CR1 = ADC2_PrescalerSelection|ADC2_CONVERSIONMODE_CONTINUOUS;
+}	
+	
+
+void ADC2_SingleAny_Start(ADC2_SourceStart_TypeDef SourceStart, 
+													ADC2_Channel_TypeDef ADC2_CHANNEL)
+{
+	
+	assert_param(IS_ADC2_SourceStart_OK(SourceStart));
+	
+	assert_param(IS_ADC2_CHANNEL_OK(ADC2_CHANNEL));
+	
+	ADC2->TDR=0;
+	
+	ADC2->TDR=(uint16_t)1<<ADC2_CHANNEL;
+	ADC2->ch=ADC2_CHANNEL;
+	ADC2->adon=0;
+	ADC2->adon=1;
+	if (SourceStart!=ADC2_SOFT)
+	{
+		
+		ADC2->extsel=SourceStart;
+		ADC2->exttrig=1;
+	}
+	else
+	{
+		ADC2->exttrig=0;
+		ADC2->adon=1;
+	}
+	
+}
+
+
+uint16_t ADC2_SingleOne_GetConversion(void)
+{
+	while(!ADC2->eoc);
+	ADC2->eoc=0;
+	ADC2->TDR=0;
+	return ADC2->DR;
+}
+
+uint16_t ADC2_SingleCont_GetConversion(ADC2_ContStop_TypeDef NextConvert)
+{
+	while(!ADC2->eoc);
+	ADC2->eoc=0;
+	if (NextConvert==ADC2_Stop)
+	{
+		ADC2->adon=0;
+	}
+	
+	ADC2->TDR=0;
+	return ADC2->DR;
+}
+	
+// -----------------------------
+// ----------------------------------
+	
+	
+	
+	
 void ADC2_DeInit(void)
 {
   ADC2->CSR  = ADC2_CSR_RESET_VALUE;
