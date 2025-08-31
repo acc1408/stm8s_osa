@@ -142,6 +142,21 @@
 #endif
 
 
+
+#ifdef __STM8S_STEPMOTOR_H
+#include "src/stm8s_stepmotor.c"
+#endif
+
+
+#ifdef __STM8S_SOFTTIMER_H
+#include "src/stm8s_softtimer.c"
+#endif
+
+
+#ifdef __STM8S_I2C_SW_H
+#include "src/stm8s_i2c_sw.c"
+#endif
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -218,11 +233,14 @@ INTERRUPT_HANDLER(CLK_IRQHandler, 2)
   * @param  None
   * @retval None
   */
+	//void endKaretKalibPV(void);
 INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	//endKaretKalibPV();
+	
 }
 
 /**
@@ -253,12 +271,13 @@ INTERRUPT_HANDLER(EXTI_PORTC_IRQHandler, 5)
   * @brief External Interrupt PORTD Interrupt routine.
   * @param  None
   * @retval None
-  */
+*/
 INTERRUPT_HANDLER(EXTI_PORTD_IRQHandler, 6)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	
 }
 
 /**
@@ -330,11 +349,14 @@ INTERRUPT_HANDLER(SPI_IRQHandler, 10)
   * @param  None
   * @retval None
   */
-INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
+	
+void clockStepSrc(void);
+@svlreg INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
 {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+	clockStepSrc();
 }
 
 /**
@@ -410,13 +432,13 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   * @param  None
   * @retval None
   */
- 
- INTERRUPT_HANDLER(TIM3_UPD_OVF_BRK_IRQHandler, 15)
+ void clockStepSlider(void);
+@svlreg INTERRUPT_HANDLER(TIM3_UPD_OVF_BRK_IRQHandler, 15)
  {
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
-	
+	 clockStepSlider();
  }
 
 /**
@@ -615,6 +637,8 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
   * @param  None
   * @retval None
   */
+	void clockBlinkLed(void);
+	
  INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
  {
   /* In order to detect unexpected events during development,
@@ -624,7 +648,7 @@ INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
 	OS_Timer();
 	TIM4_ClearFlag(TIM4_FLAG_UPDATE);
 	#endif
-	
+	clockBlinkLed();
  }
 #endif /* (STM8S903) || (STM8AF622x)*/
 

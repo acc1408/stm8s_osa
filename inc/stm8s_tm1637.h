@@ -28,22 +28,29 @@
 #ifndef __STM8S_TM1637_H
 #define __STM8S_TM1637_H
 
+// Настройка скорости передачи 
+// определяем задержку между фронтами
+// Ниже 5 не работает протокол
+#define tm1637_timeDelay 10
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm8s.h"
 
 /* Exported types ------------------------------------------------------------*/
 // яркость светодиода
 typedef enum  {
-	DiplayOff = 0x80,
-	Brightness0=0x88,
-	Brightness1,
-	Brightness2,
-	Brightness3,
-	Brightness4,
-	Brightness5,
-	Brightness6,
-	Brightness7
-}brightness_t;
+	tm1637_diplayOff = 0x80,
+	tm1637_bright_0=0x88,
+	tm1637_bright_1,
+	tm1637_bright_2,
+	tm1637_bright_3,
+	tm1637_bright_4,
+	tm1637_bright_5,
+	tm1637_bright_6,
+	tm1637_bright_7
+}tm1637_bright_t;
+
+
 
 // 
 typedef struct
@@ -52,10 +59,18 @@ typedef struct
 	GPIO_Pin_TypeDef 	dioPin;
 	GPIO_TypeDef* 		clkPort; 
 	GPIO_Pin_TypeDef 	clkPin;
-	brightness_t 			brightness;
+	tm1637_bright_t 			brightness;
 	
 	//uint8_t 					cpu_MHz;
 }tm1637_t;
+
+typedef enum
+{
+	tm1637_OK=0,
+	tm1637_NoAsk
+}
+tm1637_status_t;
+
 /** @addtogroup TM1637_Exported_Types
   * @{
   */
@@ -64,12 +79,24 @@ void TM1637_Init( tm1637_t 					*tm1637,
 									GPIO_Pin_TypeDef 	dioPin,
 									GPIO_TypeDef* 		clkPort, 
 									GPIO_Pin_TypeDef 	clkPin,
-									brightness_t 			brightness
+									tm1637_bright_t 	brightness
 									);
-									
-void TM1637_TextOutput(tm1637_t *tm1637,char *st);
 
 
+
+tm1637_status_t TM1637_4digit_TextOutput(tm1637_t *tm1637, char *st);
+tm1637_status_t TM1637_6digit_TextOutput(tm1637_t *tm1637, char *st);
+tm1637_status_t TM1637_DisplayOn (tm1637_t *tm1637);
+tm1637_status_t TM1637_DisplayOff(tm1637_t *tm1637);
+tm1637_status_t TM1637_Brightness(tm1637_t *tm1637, 	
+																	tm1637_bright_t brightness);
+
+// Низко уровневая функция отправки команды и данных контроллеру TM1637
+tm1637_status_t TM1637_Send(tm1637_t *tm1637, uint8_t command, void* array, uint8_t len);
+//  Низко уровневая функция чтения данных из контроллера TM1637
+tm1637_status_t TM1637_RecieveData(tm1637_t *tm1637, void* array, uint8_t len);
+
+//void TM1637_Stop(tm1637_t *tm1637);
 
 #endif /* __STM8S_TM1637_H */
 

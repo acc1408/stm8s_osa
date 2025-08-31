@@ -34,6 +34,14 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
+#define tm1637_maskBright 0x8F
+#define tm1637_maskDisplayOn 0x88
+#define tm1637_maskDisplayOff 0x87
+#define tm1637_CMD_dataWrite	0x40
+#define tm1637_CMD_dataRead 	0x42
+#define tm1637_CMD_adrReg_C0H  0xC0
+
+
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -132,40 +140,199 @@ const 	uint8_t ASCIIMap[128] = {
 		0
 	};
 	
+	
+
+
+void delay_tm1637(void)
+{
+	volatile uint8_t delay_tm1637=tm1637_timeDelay;
+  
+	while(delay_tm1637--); 
+	
+}
+	
 void TM1637_Init( tm1637_t 					*tm1637, 
 									GPIO_TypeDef* 		dioPort, 
 									GPIO_Pin_TypeDef 	dioPin,
 									GPIO_TypeDef* 		clkPort, 
 									GPIO_Pin_TypeDef 	clkPin,
-									brightness_t 			brightness
-									//,uint8_t 					cpu_MHz
+									tm1637_bright_t 			brightness
+
 									)
 {
+	uint8_t delay_tm1637=10;
+	
 	tm1637->dioPort=dioPort;
 	tm1637->dioPin=dioPin;
 	tm1637->clkPort=clkPort;
 	tm1637->clkPin=clkPin;
-	tm1637->brightness=brightness;
+	tm1637->brightness=brightness&tm1637_maskBright;
 	GPIO_Init(dioPort, dioPin,  GPIO_MODE_OUT_PP_HIGH_FAST);
 	GPIO_Init(clkPort, clkPin, GPIO_MODE_OUT_PP_HIGH_FAST);
+}
+
+/*
+void TM1637_Stop(tm1637_t *tm1637)
+{
+	//volatile uint16_t t=10000;
+	//uint8_t delay_tm1637=10;
+	// старт бита
+	GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
+	delay_tm1637();
+	GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+	delay_tm1637();
+	delay_tm1637();
+	delay_tm1637();
+	//while(t--);
+	// стоп
+	GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+	delay_tm1637();
+	GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);
+	delay_tm1637();
+}
+ */
+
+tm1637_status_t TM1637_RecieveData(tm1637_t *tm1637, void* array, uint8_t len)
+{
+	uint8_t i=8,j;
+	uint8_t data;
+	//uint8_t delay_tm1637=10;
+	uint8_t *ar=(uint8_t*)array;
+	uint8_t state=0;
+	tm1637_status_t ret=tm1637_OK;
+	// старт бита
+	GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
+	delay_tm1637();
+	//delay_tm1637=10;
+	//while(delay_tm1637--);
+	GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+	delay_tm1637();
+	//delay_tm1637=5;
+	//while(delay_tm1637--);
+	//передача 8 бит
+	
+	data=tm1637_CMD_dataRead; // передаем команду для чтения
+	//--------------------------
+	i=8; // кол-во бит
+	delay_tm1637();
+	while(i--)
+	{
+		if (data&1 )
+		{
+			GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);
+		}
+		else
+		{
+			GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
+		}
+		data=data>>1;
+		delay_tm1637();
+		GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+		delay_tm1637();
+		GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+		delay_tm1637();
+	}
+	// чтение отклика
+	GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_IN_PU_NO_IT);
+	GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+
+	delay_tm1637();
+	if ( GPIO_ReadInputPin(tm1637->dioPort, tm1637->dioPin) )
+	{
+		ret=tm1637_NoAsk;
+	}
+	GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+	
+	delay_tm1637();
+	GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_OUT_PP_LOW_FAST);
+	
+	if (ret == tm1637_NoAsk)
+	{
+		goto lbl_tm1637_stop;
+	}
+	//delay_tm1637();
+	// прием данных
+	
+	while(ret == tm1637_OK && len>0)
+	{
+		len--;
+		
+		GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_IN_PU_NO_IT);
+		delay_tm1637();
+		i=8; // кол-во бит
+		while(i--)
+		{
+			data=data>>1;
+			GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+			delay_tm1637();
+			if (GPIO_ReadInputPin(tm1637->dioPort, tm1637->dioPin) )
+			{
+				data|=0x80;
+			}
+			GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+			delay_tm1637();
+		}
+		// проверка отклика
+		// чтение отклика
+		GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_IN_PU_NO_IT);
+		GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+	
+		delay_tm1637();
+		if ( GPIO_ReadInputPin(tm1637->dioPort, tm1637->dioPin) )
+		{
+			ret=tm1637_NoAsk;
+		}
+		GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+		
+		delay_tm1637();
+		GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_OUT_PP_LOW_FAST);
+		
+		if (ret == tm1637_NoAsk)
+		{
+			goto lbl_tm1637_stop;
+		}
+		else
+		{
+			*ar=data;
+			ar++;
+		}
+		
+	}
+	
+	// окончание пересылки
+	lbl_tm1637_stop:
+	delay_tm1637();
+	GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+	delay_tm1637();
+	GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);	
+	delay_tm1637();
+	return ret;
+	
 	
 }
 
 
-void TM1637_Send(tm1637_t *tm1637, uint8_t command, void* array, uint8_t len)
+tm1637_status_t TM1637_Send(tm1637_t *tm1637, uint8_t command, void* array, uint8_t len)
 {
 	uint8_t i=8,j;
 	uint8_t data;
-	uint8_t delay_tm1637=10;
+	//uint8_t delay_tm1637=10;
 	uint8_t *ar=(uint8_t*)array;
 	uint8_t state=0;
+	tm1637_status_t ret=tm1637_OK;
+	
 	// старт бита
 	GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
-	
+	delay_tm1637();
+	//delay_tm1637=10;
+	//while(delay_tm1637--);
 	GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+	delay_tm1637();
+	//delay_tm1637=5;
+	//while(delay_tm1637--);
 	//передача 8 бит
 	state=0;
-	while(1)
+	while(ret == tm1637_OK)
 	{
 		if (state==0)
 		{
@@ -184,52 +351,183 @@ void TM1637_Send(tm1637_t *tm1637, uint8_t command, void* array, uint8_t len)
 			}
 		}
 		
-		i=9; // кол-во бит
+		i=8; // кол-во бит
 		//delay_tm1637=2; // задержка
+		delay_tm1637();
 		while(i--)
 		{
-			
-			GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
-			if (data%2==0)
+			if (data&1 )
 			{
-				GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
+				GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);
 			}
 			else
 			{
-				GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);	
+				GPIO_WriteLow(tm1637->dioPort, tm1637->dioPin);
 			}
-			data=data/2;
-			
+			data=data>>1;
+			delay_tm1637();
 			GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+			delay_tm1637();
+			//delay_tm1637=5;
+			//while(delay_tm1637--);
+			GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+			delay_tm1637();
+			//delay_tm1637();
+		}
+		//GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+		//delay_tm1637=10;
+		//while(delay_tm1637--);
+		//-----------------------------
+		// чтение отклика
+		
+		GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_IN_PU_NO_IT);
+		GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+	
+		delay_tm1637();
+		if ( GPIO_ReadInputPin(tm1637->dioPort, tm1637->dioPin) )
+		{
+			ret=tm1637_NoAsk;
 		}
 		GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
-		//while(delay_tm1637--);
+		
+		delay_tm1637();
+		GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_OUT_PP_LOW_FAST);
+		//delay_tm1637();
 	}
 	
-	
 	// окончание пересылки
-	GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
-	GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_OUT_PP_LOW_FAST);
+	//stop_tm1637:
+	//GPIO_WriteLow(tm1637->clkPort, tm1637->clkPin);
+	//GPIO_Init(tm1637->dioPort, tm1637->dioPin,  GPIO_MODE_OUT_PP_LOW_FAST);
+	delay_tm1637();
 	GPIO_WriteHigh(tm1637->clkPort, tm1637->clkPin);
+	
+	//delay_tm1637();
+	delay_tm1637();
 	GPIO_WriteHigh(tm1637->dioPort, tm1637->dioPin);	
+	//delay_tm1637();
+	delay_tm1637();
+	return ret;
 	
 }
 
 //------------
-void TM1637_TextOutput(tm1637_t *tm1637,
-													char *st)
+tm1637_status_t TM1637_4digit_TextOutput(tm1637_t *tm1637, char *st)
 {
-	uint8_t seg[6]={0,0,0,0,0,0};
+	tm1637_status_t ret=tm1637_OK;
+	uint8_t seg[4];
 	uint8_t j=0;
+	while(*st!='\0' && j<4 )
+	{
+		seg[ j ]=ASCIIMap[ *st++ ];
+		if (*st != '\0')
+		{
+			switch(*st)
+			{
+				case '.' :
+				case ',':
+				case ':':
+					seg[ j ]|=0x80;
+					*st++ ;
+					break;
+			}
+		}
+		j++;
+	}
+	
+	// последние символы заменяем пробелами
+	while(j<4)
+	{
+		seg[ j++  ]= ASCIIMap[' '];
+	}
+	//TM1637_Stop(tm1637);
+	ret|=TM1637_Send(tm1637, tm1637_CMD_dataWrite, 0, 0); // тип записи
+	if (ret!=tm1637_OK)
+	{
+		return ret;
+	}
+	ret|=TM1637_Send(tm1637, tm1637_CMD_adrReg_C0H,seg, j);
+	if (ret!=tm1637_OK)
+	{
+		return ret;
+	}
+	ret|=TM1637_Send(tm1637, tm1637->brightness, 0, 0);
+	return ret;
+
+}
+
+// Перевод строки в нужном направлении
+const uint8_t TM1637_charToDigit[]={2,1,0,5,4,3};
+
+tm1637_status_t TM1637_6digit_TextOutput(tm1637_t *tm1637,char *st)
+{
+	uint8_t seg[6];
+	uint8_t j=0;
+	tm1637_status_t ret=tm1637_OK;
+	
 	while(*st!='\0' && j<6 )
 	{
-		seg[j++]=ASCIIMap[ *st++ ];
+		seg[ TM1637_charToDigit[j]  ]=ASCIIMap[ *st++ ];
+		if (*st != '\0')
+		{
+			switch(*st)
+			{
+				case '.' :
+				case ',':
+				case ':':
+					seg[ TM1637_charToDigit[j]  ]|=0x80;
+					*st++ ;
+					break;
+			}
+		}
+		j++;
 	}
-	TM1637_Send(tm1637, 0x40, 0, 0); // Normal
-	TM1637_Send(tm1637, 0xC0, seg, j); // En
-	//TM1637_Send(&disp, 0x87, 0, 0);
-	TM1637_Send(tm1637, tm1637->brightness, 0, 0);// En
+	// последние символы заменяем пробелами
+	while(j<6)
+	{
+		seg[ TM1637_charToDigit[j++]  ]= ASCIIMap[' '];
+	}
+	
+	//TM1637_Stop(tm1637);
+	ret|=TM1637_Send(tm1637, tm1637_CMD_dataWrite, 0, 0); // тип записи
+	if (ret!=tm1637_OK)
+	{
+		return ret;
+	}
+	ret|=TM1637_Send(tm1637, tm1637_CMD_adrReg_C0H,seg, j);
+	if (ret!=tm1637_OK)
+	{
+		return ret;
+	}
+	ret|=TM1637_Send(tm1637, tm1637->brightness, 0, 0);
+	return ret;
 }
+
+tm1637_status_t TM1637_DisplayOn(tm1637_t *tm1637)
+{
+	tm1637_status_t ret;
+	tm1637->brightness|=tm1637_maskDisplayOn;
+	ret=TM1637_Send(tm1637, tm1637->brightness, 0, 0);
+	return ret;
+}
+tm1637_status_t TM1637_DisplayOff(tm1637_t *tm1637)
+{
+	tm1637_status_t ret;
+	tm1637->brightness&=tm1637_maskDisplayOff;
+	ret=TM1637_Send(tm1637, tm1637->brightness, 0, 0);
+	return ret;
+}
+
+tm1637_status_t TM1637_Brightness(tm1637_t *tm1637, 	
+																	tm1637_bright_t brightness)
+{
+	tm1637_status_t ret;
+	tm1637->brightness=brightness&tm1637_maskBright;
+	ret=TM1637_Send(tm1637, tm1637->brightness, 0, 0);
+	return ret;
+}
+
+
 
 /**
   * @}

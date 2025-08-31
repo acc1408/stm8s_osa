@@ -35,20 +35,149 @@
 
 //#include <math.h>
 /* Private defines -----------------------------------------------------------*/
+
+// кол-во микрошагов на оборот
+#define microStep1 800
+#define maxDistCarSP 4000 // максимальное задание
+#define ConvStepIntoDist 400 // конвертация шагов в мм
+#define CalibLimitIn_mm 1000 // калибровочное расстояние
+
+#define SrcConvStepIntoDist 400 // конвертация шагов в мм для источника
+#define SrcDistDown				30		// расстояние опускания вниз для источника в верхней точке
+
+#define alarm_btn_time_off 5 // время удержания кнопки пуск таймер для отключения
+//=====================================
+// описание входов шаговых двигатлей
+// каретка
 #define enStep1  	GPIOF, GPIO_PIN_5
 #define clkStep1 	GPIOH, GPIO_PIN_2
 #define dirStep1 	GPIOF, GPIO_PIN_7
+//---------------------------------
+// сигнал ошибки по току
+#define AlmStep		GPIOA, GPIO_PIN_6
+// Датчика концевиков
+// концевика каретки
+#define CarFarLimit 	GPIOF, GPIO_PIN_6
+#define CarNearLimit 	GPIOH, GPIO_PIN_1
+// Зона заслонки 1 м от источника
+#define CarCalibLimit GPIOH, GPIO_PIN_3         
+// Светодиод зоны заслонки
+#define CarCalibLimitLed	GPIOE, GPIO_PIN_6
+
+// Светодиоды ограничений
+#define CarFarLimitLed 	GPIOE, GPIO_PIN_5
+#define CarNearLimitLed	GPIOE, GPIO_PIN_7
+
+//------------------------------------
+// Кнопки
+// ручной режим Дальше
+#define CarFarBtn 	  GPIOG, GPIO_PIN_5
+// ручной режим Ближе
+#define CarNearBtn 	  GPIOI, GPIO_PIN_5
+// авто старт
+#define CarAutoStartBtn GPIOI, GPIO_PIN_3
+// калибровка
+#define CarCalibBtn GPIOI, GPIO_PIN_4
+// Светодиоды кнопок
+#define CarFarBtnLed	GPIOC, GPIO_PIN_4
+#define CarNearBtnLed 	GPIOC, GPIO_PIN_3
+#define CarAutoStartBtnLed	GPIOC, GPIO_PIN_2
+#define CarCalibBtnLed	GPIOC, GPIO_PIN_1
+// Настройка дистанции
+#define CarAutoDistPlusBtn GPIOI, GPIO_PIN_1
+#define CarAutoDistMinusBtn GPIOI, GPIO_PIN_2
+
+
+//=========================================
+// заслонка
+#define enStep2  	GPIOH, GPIO_PIN_0
+#define clkStep2 	GPIOA, GPIO_PIN_3
+#define dirStep2 	GPIOA, GPIO_PIN_5
+#define calibNoGpio	0,0
+// Концевики для заслонки
+// заслонка открыта
+#define SliderOpenLimit GPIOA, GPIO_PIN_4
+// заслонка закрыта
+#define SliderCloseLimit 	GPIOA, GPIO_PIN_2
+
+
+// Индикаторы светодиодов Концевиков
+#define SliderOpenLimitLed 	GPIOH, GPIO_PIN_7
+#define SliderCloseLimitLed GPIOH, GPIO_PIN_6
+
+// Кнопки настройка Часов
+
+#define SliderHourPlusBtn  	GPIOE, GPIO_PIN_3
+#define SliderHourMinusBtn	GPIOE, GPIO_PIN_2
+
+#define SliderMinutePlusBtn GPIOE, GPIO_PIN_1
+#define SliderMinuteMinusBtn GPIOE, GPIO_PIN_0
+
+#define SliderTimeStartBtn	GPIOE, GPIO_PIN_4
+
+#define SliderOpenBtn				GPIOG, GPIO_PIN_7
+
+#define SliderCloseBtn			GPIOG, GPIO_PIN_6
+
+// Светодиоды
+// Встроенный светодиоды Кнопки
+#define SliderOpenBtnLed		GPIOC, GPIO_PIN_6
+#define SliderCloseBtnLed		GPIOC, GPIO_PIN_5
+#define SliderTimeStartBtnLed GPIOC, GPIO_PIN_7
+
+
+
+
+
+
+//============================================
+// Источник
+#define enStepSrc_3  	GPIOA, GPIO_PIN_1
+#define clkStepSrc_3 	GPIOD, GPIO_PIN_4
+#define dirStepSrc_3 	GPIOD, GPIO_PIN_6
+//----------------------------------------
+// Концевики для источника
+// источник поднят
+#define SrcUpLimit 	GPIOD, GPIO_PIN_7
+// источник опущен
+#define SrcDownLimit 	GPIOD, GPIO_PIN_5
+//----------------------------------------
+// Светодиоды концевиков +
+#define SrcUpLimitLed 	GPIOH, GPIO_PIN_5
+// источник опущен
+#define SrcDownLimitLed 	GPIOH, GPIO_PIN_4
+
+// кнопки
+// кнопка подъем источника+
+#define SrcUpBtn GPIOI, GPIO_PIN_7
+// опускание источника
+#define SrcDownBtn GPIOI, GPIO_PIN_6
+//--------------------------------------
+// светодиоды кнопок
+// кнопка источник поднят+
+#define SrcUpBtnLed GPIOG, GPIO_PIN_1
+// источник опущен
+#define SrcDownBtnLed GPIOG, GPIO_PIN_0
+
+
+
+//========================================
+//--------------------------------
+// пищалка двери+
 #define Buzz 	  	GPIOD, GPIO_PIN_2
-// 
-#define karetUp 	  GPIOG, GPIO_PIN_5
 
-#define karetDown 	  GPIOI, GPIO_PIN_5
+// Концевик двери+
+#define SwDoorLimit 	GPIOD, GPIO_PIN_3
+// Включение обмоток двери +
+#define SwDoorCoil   	GPIOG, GPIO_PIN_3
+// кнопка общей остановки
+//#define StopBtn 		GPIOD, GPIO_PIN_0
+#define ResetBtn		GPIOG, GPIO_PIN_4
+#define ResetBtnLed GPIOC, GPIO_PIN_0
+#define OnOffBtn		GPIOI, GPIO_PIN_0
 
-#define karetStart GPIOI, GPIO_PIN_3
-#define karetKalib GPIOI, GPIO_PIN_4
+#define StopBtn		GPIOD, GPIO_PIN_0
 
-
-#define tabSize 250
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -59,695 +188,55 @@
 #define tm1637_2	GPIOB, GPIO_PIN_2, GPIOB, GPIO_PIN_6
 #define tm1637_3	GPIOB, GPIO_PIN_1, GPIOB, GPIO_PIN_6
 #define tm1637_4	GPIOB, GPIO_PIN_0, GPIOB, GPIO_PIN_6
+//==================================================
+// Пины I2C
+
+#define GPIO_SDA	GPIOB, GPIO_PIN_5
+#define GPIO_SCL	GPIOB, GPIO_PIN_4
+#define maxRepeatWrite	50
+
+
+
 // Окончание пинов
 //uint8_t a[]={0x71,0x74,0x07,0x33,0x02};
 
-char st[50];
-//char simvol;		
+
+
+#define noHandler 0
+
+// Порог быстрой перемотки
+#define edgeFastHour 10
+#define edgeFastMinute 5
 
 
 
-tm1637_t disp1, disp2, disp3, disp4 ;
+//------------------------------------------------
+// Состояние оси подъем источника 
+typedef enum
+{
+	SrcMoveIdle=0,
+	SrcMoveUp,
+	SrcMoveDown
+} ControlSrc_t;
 
+typedef enum
+{
+	sliderTimerStop,
+	sliderTimerRun,
+	//sliderTimerReset,
+	sliderTimerHold,			//При достижении флага происходит сброс таймера
+	sliderTimerInit
+} sliderTimerState_t;
 
-// NACK - 1
-// ACK  - 0
-
-
-char st1[]=" FFF";
-uint16_t timer1,adc2;
-//int16_t a,b;
 // регулятор оборотов
-
-
 typedef enum
 {
-	stepUp,
-	stepDown
-}stepDir_t;
+	flagModeKalibOff=0,
+	flagModeKalibOn,
+	flagModeKalibDownRun,
+	flagModeKalibUpRun
+}flagModeKalib_t;
 
-typedef enum
-{
-	ClkNextRise=0, // Шаг тактирования
-	ClkNextFall=1 // шаг ожидания
-}stepTitTak_t;
-
-
-typedef struct
-{
-	FunctionalState EnableTimer; // включение/отключение таймера
-	uint16_t cnt;
-	TIM2_Prescaler_TypeDef prescaler;
-}PID_Tact_Timer2_t;
-
-
-
-typedef enum
-{
-	gen_idle=0,
-	gen_lastStep,
-	gen_auto,
-	gen_stop,
-	gen_man
-	
-}state_gen_t;
-
-// режим вращения вала
-typedef enum
-{
-	rot_stop=0,
-	rot_up,
-	rot_max,
-	rot_down
-}mode_rotation_t;
-// режим включения
-typedef enum
-{
-	power_off =0,
-	power_man,
-	power_auto
-}mode_power_t;
-
-
-typedef enum
-{
-	single_off,
-	single_on
-}single_stage_t;
-
-
-
-typedef enum
-{
-	v_up,
-	v_down
-}v_state_t;
-
-
-
-typedef struct
-{
-	// настройка скорости тактирования
-	uint16_t autoreload;			//  автозагрузка таймера
-	uint8_t divBin:4;   // Делитель таймера
-	v_state_t state:1; 	// тип взаимодействия // ускорение торможение
-	uint16_t step;			//  кол-во шагов
-	uint8_t v_up_offset;	// смещение при ускорении
-	uint8_t v_down_offset;	// смещение при торможении
-}v_comm_t;
-
-
-
-typedef enum
-{
-	noContact,	// контакт не замкнут
-	Contact	// контакт замкнут
-}endpointFlag_t;
-
-
-typedef struct
-{
-	// Настройка ПИД-регулятора
-	//int32_t stepPV; // текущее значение
-	//int32_t stepSP;	// задание
-	//-------------------------------
-	// Расчет частоты тактирования скорости
-	uint32_t f_tact; // частота тактирования таймера
-	uint16_t microStep; // кол-во микрошагов в обороте
-	
-	
-	GPIO_TypeDef* Port_Clk; // Пин 
-	GPIO_Pin_TypeDef Pin_Clk;
-	GPIO_TypeDef* Port_Dir;
-	GPIO_Pin_TypeDef Pin_Dir;
-	//------------------
-	// Таблица 
-	uint16_t t_accel; // время ускорения /торможения для максимальной скорости
-	uint16_t t_break; // время ускорения /торможения для максимальной скорости
-	uint16_t v_accel; // время ускорения /торможения для максимальной скорости
-	uint8_t dt; 			// период расчета таблицы в ms
-	
-	v_comm_t v_comm[tabSize]; // общая таблица ускорения/ торможения
-	uint16_t v_comm_size; // размер расчитанной таблицы
-	//------------------
-	state_gen_t state_gen; // состояние генерирования сигнала
- 
-	stepDir_t Dir; // Направление движения
-	
-	//------------
-	int32_t 				PV;
-	int32_t 				SP;
-	uint32_t 				dSP;
-	
-	
-	uint16_t 				max_V;			// Номер уровня для включения точного шага
-	uint32_t 				max_Step; 		// Кол-во тактов для включения точного шага
-
-	uint16_t				accel_V0;	// Номер первого уровня ускорения 
-	uint16_t				accel_V0_man;	// Номер первого уровня ускорения 
-	uint16_t 				cur_V;			// номер уровня в таблице
-	uint32_t				cur_Step;			// кол-во отработанных шагов 
-	stepTitTak_t		clk;				// Такт CLK
-	endpointFlag_t flagUp;			// концевик максимального перемещения
-	endpointFlag_t flagDown;	// концевик минимального перемещения
-	
-	//uint16_t				accel_V; 	// Номер максимального шага для ускорения
-	//uint16_t				break_V;	// Номер максимального шага для торможения
-	//---------------------------------
-}pidW_t;
-// структура 
-pidW_t pidW;
-
-#define no_V 0xFFFF
-
-
-void PID_stepGpio(pidW_t *pidW )
-{
-	
-	if (pidW ->clk == ClkNextRise)
-	{
-		/*
-			if (pidW->Dir == stepUp)
-			{
-				pidW->PV++;
-			}
-			*/
-				
-			if (pidW ->state_gen == gen_auto
-					|| pidW->state_gen  == gen_man
-			)
-			{
-				GPIO_WriteHigh(pidW->Port_Clk, pidW->Pin_Clk);
-				// Фиксация изменения координаты
-				if (pidW->Dir == stepUp)
-				{
-					pidW->PV++;
-				}
-				else
-				{
-					pidW->PV--;
-				}
-				
-				// переход из трека торможения на ускорение
-				if (pidW -> v_comm[pidW -> cur_V].state == v_down
-				&&  pidW->state_gen  == gen_man	)
-				{
-					pidW -> cur_Step=0;
-						pidW -> cur_V=pidW -> cur_V + pidW -> v_comm[pidW -> cur_V].v_up_offset;
-						TIM2_TimeBaseInit(pidW->v_comm[pidW -> cur_V].divBin, 
-																	pidW->v_comm[pidW -> cur_V].autoreload);
-				}
-				else
-				// проверка на максимальную скорость
-				if (pidW -> cur_V == pidW ->max_V)
-				{
-					if (pidW -> cur_Step  <pidW ->max_Step-1
-					|| pidW -> state_gen == gen_man		) //  ручной режим
-					
-					{
-						pidW -> cur_Step ++;
-					}
-					else
-					{
-						pidW -> cur_Step=0;
-						if (pidW -> v_comm[pidW -> cur_V].v_down_offset )
-						{
-							pidW -> cur_V=pidW -> cur_V - pidW -> v_comm[pidW -> cur_V].v_down_offset;
-							TIM2_TimeBaseInit(pidW->v_comm[pidW -> cur_V].divBin, 
-																		pidW->v_comm[pidW -> cur_V].autoreload);
-							 
-						}
-						else
-						{
-							pidW -> state_gen=gen_lastStep;
-						}
-					}
-				}
-				else
-				{
-					if (pidW -> v_comm[pidW -> cur_V].state == v_up)
-					{
-						// трек ускорения
-						if (pidW -> cur_Step  < pidW -> v_comm[pidW -> cur_V].step-1)
-						{
-							pidW -> cur_Step ++;
-						}
-						else
-						{
-							pidW -> cur_Step=0;
-							pidW -> cur_V=pidW -> cur_V + pidW -> v_comm[pidW -> cur_V].v_up_offset;
-							TIM2_TimeBaseInit(pidW->v_comm[pidW -> cur_V].divBin, 
-																		pidW->v_comm[pidW -> cur_V].autoreload);
-						}
-						
-					}
-					else
-					{
-						stop_break:
-						// трек торможения
-						if (pidW -> cur_Step  < pidW -> v_comm[pidW -> cur_V].step-1)
-						{
-							pidW -> cur_Step ++;
-						}
-						else
-						{
-							stop_accel:
-							pidW -> cur_Step=0;
-							if (pidW -> v_comm[pidW -> cur_V].v_down_offset)
-							{
-							pidW -> cur_V=pidW -> cur_V - pidW -> v_comm[pidW -> cur_V].v_down_offset;
-							TIM2_TimeBaseInit(pidW->v_comm[pidW -> cur_V].divBin, 
-																		pidW->v_comm[pidW -> cur_V].autoreload);
-							}
-							else
-							{
-								pidW -> state_gen=gen_lastStep;
-							}
-						}
-					}
-				}
-			}
-			else
-			if (pidW ->state_gen == gen_stop)
-			{
-				GPIO_WriteHigh(pidW->Port_Clk, pidW->Pin_Clk);
-				// Фиксация изменения координаты
-				if (pidW->Dir == stepUp)
-				{
-					pidW->PV++;
-				}
-				else
-				{
-					pidW->PV--;
-				}
-				
-				if (pidW -> v_comm[pidW -> cur_V].state == v_up)
-				{
-					goto stop_accel;
-				}
-				else
-				{
-					goto stop_break;
-				}
-			}
-			pidW ->clk = ClkNextFall;
-	}
-	else
-	{
-		
-		if (pidW -> state_gen == gen_lastStep)
-		{
-			TIM2_Cmd(DISABLE);
-			pidW -> state_gen =gen_idle;
-		}
-		GPIO_WriteLow(pidW->Port_Clk, pidW->Pin_Clk);
-		pidW ->clk = ClkNextRise;
-	}
-}
-
-void PID_stop(pidW_t *pidW)
-{
-	if (pidW->state_gen == gen_auto
-			|| pidW->state_gen  == gen_man	)
-	{
-		pidW->state_gen  = gen_stop;
-	}
-}
-
-void PID_man(pidW_t *pidW, stepDir_t dir)
-{
-	switch(pidW->state_gen)
-	{
-		case gen_idle:
-			pidW->state_gen  = gen_man;
-			if (dir ==stepUp )
-			{
-			pidW->Dir=stepUp;
-			GPIO_WriteHigh(pidW->Port_Dir, pidW->Pin_Dir);
-			}
-			else
-			{
-				pidW->Dir = stepDown;
-				GPIO_WriteLow(pidW->Port_Dir, pidW->Pin_Dir);
-			}
-			pidW->accel_V0=pidW->accel_V0_man;
-			pidW ->cur_V=pidW ->accel_V0;
-			pidW->	max_V=pidW->v_comm_size-1;
-			TIM2_Cmd(ENABLE);
-			break;
-			
-		case gen_auto:
-			pidW->state_gen  = gen_stop;
-			break;
-			
-		case gen_stop:
-		{
-			if (pidW->Dir ==dir)
-			{
-				//pidW->state_gen  = gen_stop;
-				pidW->state_gen  = gen_man;
-			}
-			else
-			{
-				pidW->state_gen  = gen_stop;
-			}
-			
-		}
-		case gen_man:
-			if (pidW->Dir !=dir)
-			{
-				pidW->state_gen  = gen_stop;
-				//pidW->state_gen  = gen_man;
-			}
-			break;
-	}
-}
-
-
-void PID_start(pidW_t *pidW)
-{
-	if (pidW->state_gen  !=gen_idle)
-	{
-		return;
-	}
-	if (pidW->SP != pidW->PV)
-	{
-		pidW ->state_gen = gen_auto;
-		pidW ->cur_V=pidW ->accel_V0;
-		TIM2_TimeBaseInit(pidW->v_comm[pidW->accel_V0].divBin, 
-																		pidW->v_comm[pidW->accel_V0].autoreload);
-		
-		TIM2_Cmd(ENABLE);
-	}
-}
-
-void PID_TabCalc2(pidW_t *pidW, 
-								int32_t SP ) // задание
-{
-	uint32_t dSP,S;
-	uint16_t i;
-	//uint16_t break_V0;
-	// защита от перерасчета во время работы
-	if (pidW->state_gen  !=gen_idle)
-	{
-		return;
-	}
-	if (SP == pidW->PV)
-	{
-		return;
-	}
-	
-	pidW->SP=SP;
-	
-	
-	if (SP > pidW->PV)
-	{
-		dSP=SP - pidW->PV;
-		pidW->Dir=stepUp;
-		GPIO_WriteHigh(pidW->Port_Dir, pidW->Pin_Dir);
-		
-	}
-	else
-	{
-		dSP = pidW->PV-SP;
-		pidW->Dir = stepDown;
-		GPIO_WriteLow(pidW->Port_Dir, pidW->Pin_Dir);
-	}
-
-	pidW->max_V=no_V;
-	pidW->accel_V0=no_V;
-	S=0;
-	for(i=0;i<pidW->v_comm_size;i++)
-	{
-		S+=pidW->v_comm[i].step;
-		if (S>=dSP || i==pidW->v_comm_size-1)
-		{
-			// оконачание подсчета
-			if (pidW->accel_V0 !=no_V)
-			{
-				// существует точка начала движения с трека ускорения
-				if (pidW->v_comm[i].state == v_down)
-				{
-						do
-						{
-							S-=pidW->v_comm[i].step;
-							i--;
-						}while(pidW->v_comm[i].state == v_down );	
-				}
-			}
-			else
-			{
-				// начинаем с последней точки 
-				pidW->accel_V0=i;
-			}
-			S-=pidW->v_comm[i].step;
-			pidW->max_Step=dSP-S;
-			pidW->max_V=i;
-			
-			break;
-		}
-		else
-		{
-			// еще идет подсчет шагов
-			// определяем начальную точку запуска
-			if (pidW->accel_V0 == no_V)
-			{
-				if (pidW->v_comm[i].state == v_up)
-				{
-					pidW->accel_V0 =i;
-					
-				}
-				
-			}
-		}
-		
-		
-	}
-	// запуск двигателя
-	pidW ->state_gen = gen_auto;
-	pidW ->cur_V=pidW ->accel_V0;
-	TIM2_TimeBaseInit(pidW->v_comm[pidW->accel_V0].divBin, 
-																	pidW->v_comm[pidW->accel_V0].autoreload);
-	
-	TIM2_Cmd(ENABLE);
-}
-
-//------------------------------------
-void PID_initTab(pidW_t *pidW,
-									int32_t PV, // текущее значение PV
-									uint32_t f_tact,
-									uint16_t microStep,
-									GPIO_TypeDef* Port_Clk, // Пин 
-									GPIO_Pin_TypeDef Pin_Clk,
-									GPIO_TypeDef* Port_Dir,
-									GPIO_Pin_TypeDef Pin_Dir,
-									uint8_t dt,
-									uint16_t t_accel,
-									uint16_t t_break,
-									uint16_t v_accel,
-									uint8_t Last_break_V,		// кол-во последних уровней для добавления шагов
-									uint8_t Last_break_Step	// кол-во дополнительных шагов 
-									)
-{
-	uint16_t i=0, // текущий номер в записи  
-						j,
-						k,
-						v,
-						v_accel_ind=0xFFFF, // индекс ускорения последнего
-						v_break_ind=0xFFFF // индекс торможения последнего
-							;
-	uint8_t divBin; // предделитель таймера бинарный
-	uint8_t FlagWork=1; // Выход из цикла
-	uint32_t stepV, v_last=0,v_cur=0,  
-	f_temp; // предделитель
-	uint32_t v_avg;
-	
-	
-	uint32_t  v_accel_num=0, 	v_break_num=0; // кол-во записей ускорения и торможения
-	uint32_t 	v_accel_cur=0, 	v_break_cur=0, // скорость текущей скорости
-						v_accel_last=0, v_break_last=0;// скорость предыдущая
-	pidW->dt=dt;
-	pidW->PV=PV;
-	pidW->t_accel=t_accel;
-	pidW->t_break=t_break;
-	pidW->v_accel=v_accel;
-	pidW->f_tact=f_tact;
-	pidW->microStep=microStep;
-	pidW->accel_V0=no_V;
-	pidW->Port_Clk=Port_Clk;
-	pidW->Pin_Clk=Pin_Clk;
-	pidW->Port_Dir=Port_Dir;
-	pidW->Pin_Dir=Pin_Dir;
-	pidW->clk=ClkNextRise;
-	GPIO_Init(Port_Clk, Pin_Clk, GPIO_MODE_OUT_PP_LOW_FAST);
-	GPIO_Init(Port_Dir, Pin_Dir, GPIO_MODE_OUT_PP_LOW_FAST);
-	
-	// расчет общей таблицы
-	i=0;
-	v_accel_cur= v_accel* dt*(v_accel_num+1)/t_accel;
-	v_break_cur= v_accel* dt*(v_break_num+1)/t_break;
-	
-	while(FlagWork)
-	{
-		if (v_accel_cur >= v_break_cur)
-		{
-			// расчет торможения
-			stepV=(v_break_cur+v_break_last)*dt*pidW->microStep/120000;
-			// минимум должен быть один шаг
-			if (stepV)
-			{
-				pidW->v_comm[i].step=stepV;
-			}
-			else
-			{
-				pidW->v_comm[i].step=1;
-			}
-			
-			pidW->v_comm[i].state=v_down;
-			v_avg=(v_break_cur+v_break_last)/2;
-			if (v_avg==0)
-			{
-				v_avg=1;
-			}
-			
-			
-			pidW->v_comm[i].v_up_offset=0;
-			pidW->v_comm[i].v_down_offset=0;
-			if (v_break_num)
-			{
-				pidW->v_comm[i].v_down_offset=i-v_break_ind;
-			}
-			
-			if (v_break_num<Last_break_V)
-			{
-				pidW->v_comm[i].step+=Last_break_Step;
-			}
-			
-			
-			
-			v_break_ind=i;
-			// расчет скорости следующей точки
-			v_break_num++;
-			v_break_last=v_break_cur;
-			v_break_cur= v_accel* dt*(v_break_num+1)/t_break;
-		}
-		else
-		{
-			
-			// расчет ускорения
-			stepV=(v_accel_cur+v_accel_last)*dt*pidW->microStep/120000;
-			if (stepV)
-			{
-				pidW->v_comm[i].step=stepV;
-			}
-			else
-			{
-				pidW->v_comm[i].step=1;
-			}
-			
-			pidW->v_comm[i].state=v_up;
-			v_avg=(v_accel_cur+v_accel_last)/2;
-			
-			// расчет относительного перехода
-			pidW->v_comm[i].v_up_offset=0;
-			if (v_accel_num)
-			{
-				pidW->v_comm[v_accel_ind].v_up_offset=i-v_accel_ind;
-			}
-			else
-			{
-				// первая точка для ручной подачи
-				pidW->accel_V0_man=i;
-			}
-			
-			
-			if (v_break_num)
-			{
-				pidW->v_comm[i].v_down_offset=i-v_break_ind;
-				// настройка ускорения с трека торможения
-				j=v_break_ind;
-				k=v_break_num;
-				while(k>0 && pidW->v_comm[j].v_up_offset==0)
-				{
-					pidW->v_comm[j].v_up_offset=i-j;
-					j--;
-					k--;
-				}
-				
-				
-			}
-			else
-			{
-				pidW->v_comm[i].v_down_offset=0;
-			}
-			
-			
-			
-			v_accel_num++;
-			// номер последнего ускорения
-			v_accel_ind=i;
-			
-			
-			if (v_accel_cur< v_accel)
-			{
-				v_accel_last=v_accel_cur;
-				v_accel_cur= v_accel* dt*(v_accel_num+1)/t_accel;
-			}
-			else
-			{
-				if (v_accel_last == v_accel_cur)
-				{
-					FlagWork=0;
-					//break;
-				}
-				else
-				{
-					v_accel_last=v_accel_cur;
-				}
-			}
-		}
-		// Защита от 0
-		if (v_avg==0)
-		{
-			v_avg=1;
-		}
-		// расчет предделителя
-		
-		divBin=0;
-		//f_temp= (pidW->f_tact*30)/(v_avg*pidW->microStep);
-		f_temp= (pidW->f_tact*30);
-		v_avg= v_avg*(uint32_t)pidW->microStep;
-		f_temp /=v_avg;
-		
-		while(f_temp>0xFFFF)
-		{
-			f_temp/=2;
-			divBin++;
-		}
-		pidW->v_comm[i].autoreload =f_temp;
-		pidW->v_comm[i].divBin=divBin;
-		i++;// увеличиваем кол-во записей
-	}
-	//i++; 
-	pidW->v_comm_size=i;
-}
-// последние данные таймера 
-Tim2_InitSet_t ret;
-
-
-void clockStep(void)
-{
-	//pidW.stepPV++;
-	PID_stepGpio(&pidW );
-	
-	TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
-}
-
-
-
-#ifdef  __OSA__
-int32_t k;
-PID_Tact_Timer2_t setTim2;
 
 typedef enum
 {
@@ -757,136 +246,997 @@ typedef enum
 	karet_stop=3
 	
 } butKaret_t;
-
-butKaret_t butKaret;
-
-void Task_2(void)
+// типы данных для работы с часами
+typedef union
 {
-	GPIO_Init(enStep1, GPIO_MODE_OUT_PP_HIGH_FAST); // Включен Step
-	GPIO_Init(clkStep1, GPIO_MODE_OUT_PP_LOW_FAST);
-	GPIO_Init(dirStep1, GPIO_MODE_OUT_PP_LOW_FAST);
+	uint8_t reg[4];
+	struct
+	{
+		uint8_t s1:4;
+		uint8_t s10:4;
+		
+		uint8_t m1:4;
+		uint8_t m10:4;
+		
+		uint8_t h1:4;
+		uint8_t h10:4;
+		
+		uint8_t day1_7;
+	};
+} ds3231_reg_t;
+
+//-----------------------------------
+// Типы данных для каретки
+
+//----------------------------------
+
+//=======================================
+//---------------------------------
+// Модуль работы экраны
+//---------------------------------
+// объекты экрана
+tm1637_t 	disp1, 
+					disp2, 
+					dispTimer, 
+					dispTimerAlarm ;
+//---------------------------------
+//массив для экранов
+char st[15];
+//==================================
+
+//----------------------------------
+// Структура для работы с шаговыми двигателями
+//---------------------------------------------
+// структура 
+pidW_t 	pidCar,			// Каретка 
+				pidSlider, 	// Заслонка
+				pidSrc ;		// Источник
+//----------------------------------
+//========================================
+// автовыход из зоны задвижки
+typedef enum
+{
+	CarAutoUpOff,
+	CarAutoUpOn
+}CarAutoUpMode_t;
+//----------------------------------------
+// Кнопки управления кареткой
+button_t 	Handler_CarFarBtn,
+					Handler_CarNearBtn,
+					Handler_CarAutoStartBtn,
+					Handler_CarCalibBtn,
+					Handler_CarAutoDistPlusBtn,
+					Handler_CarAutoDistMinusBtn
+					;
+// кнопки
+/*
+button_t 	Handler_SrcUpBtn, 
+					Handler_SrcDownBtn;
+*/
+//----------------------------------------
+//========================================
+// текущие расстояние каретки
+int16_t 	distCarSP=1000; 
+uint8_t		flagDistCarSP=0; 	// флаг кол-ва 
+int32_t 	PV_Cur; // текущая дистанция в шагах.
+// номер ускорения для дистанции
+int16_t		incDistCarSP=0,
+					decDistCarSP=0
+					;		
+int16_t		distCarPV;
+CarAutoUpMode_t CarAutoUpMode=CarAutoUpOff;
+//------------------------------------------
+// просто переменные
+uint8_t temp_8u;
+uint16_t 	temp_16u,
+					temp2_16u	;
+
+int32_t temp_32;
+
+typedef enum
+{
+	stateCarSliderIdle,
 	
-	GPIO_Init(karetUp, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(karetDown, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(karetStart, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(karetKalib, GPIO_MODE_IN_PU_NO_IT);
+	stateWaitIdle,
+	//------------------
+	// Одиночные задачи
+	//--------------------
+	stateCarManNear,
+	//---------------------
+	stateCarManFar,
+	//----------------------
+	stateCarCalib,
+	//------------------------
+	state_CarAutoStart,
+	//------------------------
+	state_SrcUp,
+	//-------------------------
+	state_SrcDown,
+	//------------------------
+	state_SrcDownDist, // отвод источник на определенное положение вниз
+	//-----------------------
+	// Многоцелевые задачи
+	//----------------------
+	state_SliderOpen,	// конец задачи
+	state_SliderOpen_OutZone,
+	state_SliderOpen_OutZone_SrcDownDist,
+	//----------------------------
+	state_SliderClose,
+	state_SliderClose_OutZone,
+	//-------------------
+	state_AlarmStart,
+	state_AlarmStart_SrcUp,
+	state_AlarmStart_SrcUp_CarAuto,
+	state_AlarmStart_SrcUp_CarAuto_SliderOpen,
+	state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone,
+	state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto, 
+
+	// отдельные задачи
+	// не имеют собственной реализации
+	state_OutZone	// отвод каретки из зоны заслонки
 	
+	
+}stateCarSlider_t;
+
+
+
+//=========================================
+// модуль работы с I2C
+I2Csw_gpio_t I2Csw_Gpio;
+#define maskTimeMin				0x3F	// маска минут
+#define maskTimeFlagAlm		0x40	// Маска флага запуска таймера
+#define AT24C32_devAdr		0x57
+#define DS3231_devAdr			0x68
+#define DS3231_stopTimer  0x9C
+#define DS3231_startTimer 0x1C
+#define DS3231_control    0x0E
+
+
+typedef enum
+{
+	alarmOff=0,
+	alarmOn
+}alarm_flag_t;
+
+typedef struct
+{
+	uint32_t s_alm;	// общее кол-во секунд
+	int8_t	min_alm;	// задание на таймер
+	int8_t	hour_alm;	// кол-во часов
+	alarm_flag_t flag_alm;	// наличие флага запуска
+	uint8_t cntBtnOff;				// счетчик кнопки запуска таймера
+	uint8_t cntBtnOffFlag;		// флаг кнопки запуска таймера
+}alarm_t;
+
+
+uint8_t DS3231_regCntr=DS3231_startTimer;	// регистр управления 
+uint8_t adrDS3231=0;
+uint8_t DS3231_reg[4];
+alarm_t alarm;
+uint16_t j;
+softTimer_t softTimerUpdate;
+
+uint8_t timerUpdateDisplay=0;
+// Состояние
+stateCarSlider_t stateCarSlider=stateCarSliderIdle;
+//---------------------------
+typedef enum
+{
+	PV_ok,
+	PV_error
+}PV_flag_t;
+
+typedef enum
+{
+	SP_ok,
+	SP_error
+}SP_flag_t;
+
+typedef enum
+{
+	time_ok,
+	time_error
+}time_flag_t;
+
+typedef struct
+{
+	uint16_t num:9; 			//	номер данных для чтения/записи
+	PV_flag_t flagPV:1; 	// флаг ошибки загрузки шагов каретки 
+	SP_flag_t flagSP:1;		// флаг ошибки загрузки  времени
+	time_flag_t flagTime:1;// флаг ошибки загрузки данных времени
+	uint8_t :4;						// резерв
+	alarm_flag_t flag_alm;	// флаг активного таймера
+	int32_t step;	// текущий сохраненный флаг
+	int16_t dist; // установка длины
+	int8_t hour;	//кол-во часов
+	int8_t min;	// кол-во
+	uint16_t v1;	// максимальная скорость каретки
+	uint16_t a1;	// время ускорения 
+	uint16_t v2;	// максимальная скорость задвижки
+	uint16_t v3;	// максимальное скорость источника
+}saveData_t;	
+saveData_t save;
+
+
+void handler_timerUpdateDisplay(void)
+{
+	switch(	timerUpdateDisplay)
+	{
+		case 1:
+		case 3:
+			timerUpdateDisplay++;
+			timerUpdateDisplay=timerUpdateDisplay%4;
+			break;
+	}
+}
+
+//========================================
+// Состояние таймера для сохранения и запуска
+// При работе каретки
+sliderTimerState_t sliderTimer;
+
+
+uint16_t timer1,adc2;
+//int16_t a,b;
+
+
+softTimer_t softTimer, 
+						softTimerLed, 
+						softTimerBtn,
+						softTimerDisp,
+						softTimerBlinkError,
+						softTimerSave;
+
+ControlSrc_t SrcMoveCntr;
+
+flagModeKalib_t flagKalib;
+
+
+
+
+uint16_t nmb=0,adc0;
+uint32_t clks;
+//-----
+
+
+
+FlagStatus adcStatus;
+
+//Tim2_InitSet_t tim2_Set;
+
+int32_t k;
+
+//butKaret_t butKaret;
+
+// флаг для опроса 
+uint8_t flagPollingTimeBtn=0;
+int8_t minute=0, 
+hour=0, 
+flagFastMinutePlus, // флаг быстрая перемотка минут
+flagFastMinuteMinus,
+flagFastHourPlus,		// флаг быстрая перемотка часов
+flagFastHourMinus
+;
+
+
+uint8_t flagLed=0; // флаг мигания
+//char st2[]="54:21";
+
+
+//ds3231_reg_t
+
+void DS3231_timeInNumber(	uint8_t *number, 
+													uint8_t *time)
+{
+	uint8_t i;
+	for(i=0;i<3;i++)
+	{
+		number[i]=(time[i]>>4)*10+time[i]&0x0F;
+	}
+}
+
+void DS3231_numberInTime(	uint8_t *time,
+													uint8_t *number 
+													)
+{
+	uint8_t i;
+	for(i=0;i<3;i++)
+	{
+		time[i]=(number[i]/10)<<4+number[i]%10;
+	}
+}
+
+uint32_t DS3231_getSecond(	uint8_t *time)
+{
+	uint32_t s=0;
+	uint8_t i;
+	const uint16_t k[]={1,60,3600};
+	for(i=0;i<3;i++)
+	{
+		s=s+ ( (time[i]>>4)*10+ time[i] &0x0F )*k[i];
+	}
+	if (time[3]==0)
+	{
+		time[3]=1;
+	}
+	s=s+(uint32_t)(time[3]-1)*86400;
+	return s;
+}
+
+uint32_t hourMinute_getSecond(	uint8_t hour, uint8_t minute )
+{
+	uint32_t s=0;
+	
+	return hour*3600+minute*60;
+}
+
+void TIM1_TimeBaseInit_Middle(TIM_Prescaler_TypeDef TIM_Prescaler, uint16_t TIM_Period)
+{
+	
+	const uint16_t TIM1_Prescaler_tab[]={0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535  }; 
+	TIM1_TimeBaseInit(TIM1_Prescaler_tab[TIM_Prescaler], 
+                       TIM1_COUNTERMODE_UP,
+                       TIM_Period, 
+											 0);
+}
+
+
+void clockStep(void)
+{
+	//pidW.stepPV++;
+	PID_stepGpio(&pidCar );
+	
+	TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
+}
+
+void clockStepSlider(void)
+{
+	//pidW.stepPV++;
+	PID_stepGpio(&pidSlider );
+	
+	TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
+}
+
+void clockStepSrc(void)
+{
+	//pidW.stepPV++;
+	PID_stepGpio(&pidSrc );
+	
+	TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
+}
+
+// обработчик программных таймеров
+void clockBlinkLed(void)
+{
+	SoftTimer_ClockISR(&softTimerBlinkError);
+	SoftTimer_ClockISR(&softTimerSave);
+	SoftTimer_ClockISR(&softTimerDisp);
+	SoftTimer_ClockISR(&softTimerUpdate);
+	SoftTimer_ClockISR(&softTimerLed);
+	SoftTimer_ClockISR(&softTimerBtn);
+	TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
+}
+
+/*
+void PID_initPV(pidW_t *pidW, int32_t PV)
+{
+	pidW->PV=PV;
+}
+*/
+/*
+void endKaretKalibPV(void)
+{
+	int32_t PV=1000;
+	//disableInterrupts();
+//	PID_initPV(&pidW, PV);
+//	PID_stop(&pidW);
+	//EXTI_SetExtIntSensitivity(  EXTI_PORT_GPIOA, EXTI_SENSITIVITY_FALL_ONLY);
+	//GPIO_Init(endKaretKalib, GPIO_MODE_IN_PU_NO_IT);
+	//GPIO_Init(endKaretKalib, GPIO_MODE_IN_PU_IT);
+	//enableInterrupts();
+	
+	
+}
+*/
+
+uint8_t updateDispaly=0;
+void Handler_display(void)
+{
+	updateDispaly=~updateDispaly;
+}
+
+
+
+void Handler_time_btn(void)
+{
+	nop();
+	flagPollingTimeBtn=1;
+	flagDistCarSP=1;
+	alarm.cntBtnOffFlag=1;
+}
+
+// 
+uint8_t flagSaveData=0;
+void Handler_SaveData(void)
+{
+	flagSaveData=0xFF;
+}
+
+uint8_t blinkError=0;
+void Handler_displayError(void)
+{
+	blinkError=~blinkError;
+}
+
+
+
+
+
+void blinkLed(void)
+{
+	flagLed=~flagLed;
+}
+
+void DS3231_timeInNamber()
+{
+	
+}
+
+void LedPolling(void)
+{
+	// индикация сигнала от каретки
+		// Концевик максимум 
+		if ( !GPIO_ReadInputPin( CarFarLimit))
+		{
+			GPIO_WriteHigh(CarFarLimitLed);
+			
+		}
+		else
+		{
+			GPIO_WriteLow(CarFarLimitLed);
+		}
+		
+		if ( !GPIO_ReadInputPin(CarNearLimit))
+		{
+			GPIO_WriteHigh(CarNearLimitLed);
+			
+		}
+		else
+		{
+			GPIO_WriteLow(CarNearLimitLed);
+		}
+		// Зона заслонки
+		if ( !GPIO_ReadInputPin(CarCalibLimit))
+		{
+			GPIO_WriteHigh(CarCalibLimitLed);
+		}
+		else
+		{
+			GPIO_WriteLow(CarCalibLimitLed);
+		}
+		// --------------------------------
+		
+		//====================================
+		// Опрос концевиков
+		if ( !GPIO_ReadInputPin( SliderOpenLimit))
+		{
+			GPIO_WriteHigh(SliderOpenLimitLed);
+		}
+		else
+		{
+			GPIO_WriteLow(SliderOpenLimitLed);
+		}
+		
+		if ( !GPIO_ReadInputPin(SliderCloseLimit))
+		{
+			GPIO_WriteHigh(SliderCloseLimitLed);
+		}
+		else
+		{
+			GPIO_WriteLow(SliderCloseLimitLed);
+		}
+		
+		//==============================
+		// Алгоритм работы Источника
+		//------------------------------
+		// индикация сигнала от светодиода
+		if ( !GPIO_ReadInputPin( SrcUpLimit))
+		{
+			GPIO_WriteHigh(SrcUpLimitLed);
+		}
+		else
+		{
+			GPIO_WriteLow(SrcUpLimitLed);
+		}
+		
+		if ( !GPIO_ReadInputPin(SrcDownLimit))
+		{
+			GPIO_WriteHigh(SrcDownLimitLed);
+		}
+		else
+		{
+			GPIO_WriteLow(SrcDownLimitLed);
+		}
+		
+		
+		//==================================
+		//  мигание светодиодами в зависимости 
+		// 	от того какая ось работает
+		//-----------------------------
+		// Мигание при работе оси каретки
+		if (PID_getStatePower(&pidCar) != power_off	)
+		{
+			if (PID_getStateDir(&pidCar) == stepUp	)
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(CarFarBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(CarFarBtnLed);
+				}
+			}
+			else
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(CarNearBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(CarNearBtnLed);
+				}
+			}
+		}
+		else
+		{
+			GPIO_WriteLow(CarFarBtnLed);
+			GPIO_WriteLow(CarNearBtnLed);
+		}
+		// Мигание при работе оси затвора	
+		if (PID_getStatePower(&pidSlider) != power_off)
+		{
+			if (PID_getStateDir(&pidSlider) == stepUp	)
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(SliderOpenBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(SliderOpenBtnLed);
+				}
+			}
+			else
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(SliderCloseBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(SliderCloseBtnLed);
+				}
+			}
+		}
+		else
+		{
+			GPIO_WriteLow(SliderOpenBtnLed);
+			GPIO_WriteLow(SliderCloseBtnLed);
+		}
+		//----------------------------
+		
+		
+		
+		//----------------------------
+		// Мигание при работе оси источника		
+		if (PID_getStatePower(&pidSrc) != power_off)
+		{
+			if (PID_getStateDir(&pidSrc) == stepUp	)
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(SrcUpBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(SrcUpBtnLed);
+				}
+			}
+			else
+			{
+				if ( flagLed )
+				{
+					GPIO_WriteHigh(SrcDownBtnLed);
+				}
+				else
+				{
+					GPIO_WriteLow(SrcDownBtnLed);
+				}
+			}
+		}
+		else
+		{
+			GPIO_WriteLow(SrcUpBtnLed);
+			GPIO_WriteLow(SrcDownBtnLed);
+		}
+		//--------------------------------
+		// Проверка различных режимов работы
+		if (	stateCarSlider==state_SliderOpen_OutZone
+				||stateCarSlider==state_SliderOpen_OutZone_SrcDownDist)
+		{
+			GPIO_WriteHigh(SliderOpenBtnLed);
+		}
+		//-------------------------
+		
+		if (	stateCarSlider==state_SliderClose_OutZone)
+		{
+			GPIO_WriteHigh(SliderCloseBtnLed);
+		}
+		//---------------------------------------
+		if (	stateCarSlider == stateCarCalib)
+		{
+			GPIO_WriteHigh(CarCalibBtnLed);
+		}
+		else
+		{
+			GPIO_WriteLow(CarCalibBtnLed);
+		}
+		//-----------------------------
+		// 
+		if (	stateCarSlider == state_CarAutoStart)
+		{
+			GPIO_WriteHigh(CarAutoStartBtnLed);
+		}
+		else
+		{
+			GPIO_WriteLow(CarAutoStartBtnLed);
+		}
+		
+		//--------------------------------------
+		// индикация включения режима таймера
+		if (	 state_AlarmStart <= stateCarSlider 
+				&& stateCarSlider<=state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto
+				|| alarm.flag_alm== alarmOn )
+		{
+			GPIO_WriteHigh(SliderTimeStartBtnLed);
+		}
+		else
+		{
+			GPIO_WriteLow(SliderTimeStartBtnLed);
+		}
+		
+}
+
+void StepMotorCar_Init(void)
+{
+	// настройка оси каретки
 	TIM2_ARRPreloadConfig(ENABLE);
 	TIM2_ITConfig(TIM2_IT_UPDATE, ENABLE);
 	
-	//GPIO_Init(dirStep1, GPIO_MODE_OUT_PP_HIGH_FAST);
-	PID_initTab(&pidW,
-									0, // текущее значение PV
-									16000000, // частота
-									800, // микрошагов
+	PID_Init_Gpio(	&pidCar,
+									TIM2_TimeBaseInit,
+									TIM2_Cmd,
+									
 									clkStep1,
 									dirStep1,
-									20, // Шаг дифференцирования ms 
-									2000, // время раскрутки
-									1500, // время торможения
-									1000, // скорость вращения
-									5, // кол-во последних уровней для добавления шагов
-									10 // кол-во шагов перед остановкой
-									);
-	/*
-	PID_TabCalc2(&pidW , 			
-								-800 // задание)
-								); 
-	PID_start(&pidW);
-	*/
+									enStep1,
+									//CarCalibLimit,
+									
+									
+									limitSW_Level_Low,
+									CarFarLimit,
+									
+									limitSW_Level_Low,
+									CarNearLimit	);
+	
+	PID_initTab(&pidCar,
+							save.step, // текущее значение PV
+							16000000, // частота
+							800, // микрошагов
+							20, // Шаг дифференцирования ms 
+							save.a1, // время раскрутки
+							200, // время торможения
+							save.v1, // скорость вращения
+							3, // кол-во последних уровней для добавления шагов
+							10 // кол-во шагов перед остановкой
+							);
+}
+
+void StepMotorSlider_Init(void)
+{
+	// Затвор
+	TIM3_ARRPreloadConfig(ENABLE);
+	TIM3_ITConfig(TIM3_IT_UPDATE, ENABLE);
+	
+	PID_Init_Gpio(	&pidSlider,
+									TIM3_TimeBaseInit,
+									TIM3_Cmd,
+									
+									clkStep2,
+									dirStep2,
+									enStep2,
+									
+									limitSW_Level_Low,
+									SliderOpenLimit,
+									
+									limitSW_Level_Low,
+									SliderCloseLimit	);
+	
+	PID_initTab(&pidSlider,
+							0, // текущее значение PV
+							16000000, // частота
+							800, // микрошагов
+							20, // Шаг дифференцирования ms 
+							1500, // время раскрутки
+							300, // время торможения
+							save.v2, // скорость вращения
+							3, // кол-во последних уровней для добавления шагов
+							10 // кол-во шагов перед остановкой
+							);
+}
+
+void StepMotorSrc_Init(void)
+{
+	
+	//----------------------------------------
+	
+	//----------------------------------------
+	TIM1_ARRPreloadConfig(ENABLE);
+	TIM1_ITConfig(TIM1_IT_UPDATE, ENABLE);
+	TIM1_TimeBaseInit(0, 
+                       TIM1_COUNTERMODE_UP,
+                       0xFFFF,
+											 0);
+											 
 	
 	
-	/*
-	PID_TabCalc(&pidW , 
-								0000, // текущее значение 
-								16000  // задание
-								);
-	*/
+	PID_Init_Gpio(	&pidSrc,
+									TIM1_TimeBaseInit_Middle,
+									TIM1_Cmd,
+									
+									clkStepSrc_3,
+									dirStepSrc_3,
+									enStepSrc_3,
+									
+									limitSW_Level_Low,
+									SrcUpLimit,
+									
+									limitSW_Level_Low,
+									SrcDownLimit	);
 	
-	//PID_StartAuto(&pidW);
-	//-------------
+	PID_initTab(&pidSrc,
+							0, // текущее значение PV
+							16000000, // частота
+							1000, // микрошагов
+							20, // Шаг дифференцирования ms 
+							1500, // время раскрутки
+							1000, // время торможения
+							save.v3, // скорость вращения
+							3, // кол-во последних уровней для добавления шагов
+							10 // кол-во шагов перед остановкой
+							);
+	// настройка зоны заслонки/ точки калибровки
+}
+
+
+void DownloadSetting( void)
+{
+	uint16_t i,j;
+		//  Поиск данных для загрузки из памяти
 	
-	/*
-	while(	pidW.state_gen  != gen_stop)
+	
+	for (i=0;i<512;i++)
 	{
-		if (pidW.PV==2000)
+		//save.num=i;
+		j=0;
+		while(
+		I2Csw_readFromMemoryByte2( &I2Csw_Gpio,
+																AT24C32_devAdr,
+																i*8,
+																(uint8_t*)&save.step,
+																8)!=I2Csw_success && j++ <maxRepeatWrite );
+																
+		if (save.step>=0)
 		{
+			// координата существует и найдена
+			if (save.dist<0)
+			{
+					save.dist=1000;
+			}
 			
-			pidW.state_gen  = gen_stop;
+			if (save.hour<0 || save.min<0)
+			{
+				save.hour=1;
+				save.min=0; // будильник отключен
+			}
+			goto next_record;
+			break;
 		}
 	}
-	*/
-	while(	1)
+	//если все блок просмотрен
+	// но истинной координаты не найдено, 
+	save.step=100000;
+	save.dist=1000;
+	save.hour=1;
+	save.min=0; // будильник отключен
+	// то включаем мигание ошибки
+	SoftTimer_CMD(&softTimerBlinkError,ENABLE);
+	//save.dist=1000;
+	next_record:
+	// запись данных в новую ячейку памяти
+	save.num++;
+	j=0;
+	while(I2Csw_sendToMemoryByte2( &I2Csw_Gpio,
+																	AT24C32_devAdr,
+																	save.num*8,
+																	(uint8_t*)&save.step,
+																	8)!=I2Csw_success && j++ <maxRepeatWrite );
+																	
+	// очистка данных
+	
+	// стираем прошлые данные
+	temp_16u=0xFFFF;
+	//temp_32u=0xFFFFFFFFF;
+	for (i=0;i<4;i++)
 	{
-		
-		if ( !GPIO_ReadInputPin(karetStart) )
-		{
-			PID_TabCalc2(&pidW, 
-								pidW.PV+800 ); // задание
-			//PID_stop(&pidW);
-		}
-		// ручное перемещение
-		butKaret=karet_idle;		
-		if ( GPIO_ReadInputPin(karetUp) )
-		{
-			nop();
-			//PID_stop(&pidW);
-		}
-		else
-		{
-			nop();
-			butKaret|=karet_up;
-			//PID_man(&pidW, stepUp);
-		}
-		if ( GPIO_ReadInputPin(karetDown) )
-		{
-			nop();
-			//PID_stop(&pidW);
-		}
-		else
-		{
-			nop();
-			butKaret|=karet_down;
-			//PID_man(&pidW, stepDown);
-		}
-		
-		if (pidW.state_gen == gen_idle
-		|| pidW.state_gen == gen_man 	)
-		{
-			switch(butKaret)
-			{
-				case karet_idle:	
-				case karet_stop:
-					PID_stop(&pidW);
-					break;
-				
-					break;
-				case karet_up:
-					PID_man(&pidW, stepUp);
-					break;
-				case karet_down:
-					PID_man(&pidW, stepDown);
-					break;
-					
-				
-			}
-		}
-		else
-		if (pidW.state_gen == gen_auto)
-		{
-			switch(butKaret)
-			{
-				case karet_idle:
-						break;
-				case karet_stop:
-				case karet_up:
-				case karet_down:
-					PID_stop(&pidW);
-					break;
-			}
-		}
+		j=0;
+		while(
+		I2Csw_sendToMemoryByte2(&I2Csw_Gpio,
+															AT24C32_devAdr,
+															(save.num-1)*8+i*2,
+															(uint8_t*)&temp_16u,
+															2) !=I2Csw_success && j++ <maxRepeatWrite );
 	}
-	//TIM2_TimeBaseInit(setTim2.prescaler, s);
+	
+	// извлекаем из минут сигнал будильника
+	// 6 бит является сингналом будильника
+	// 5-0 биты - значение минут
+	if (save.min&maskTimeFlagAlm)
+	{
+		save.flag_alm=alarmOn;
+		save.min&=maskTimeMin;
+	}
+	else
+	{
+		save.flag_alm=alarmOff;
+	}
+	//------------------
+	//	
+	// конец блока чтения данных из EEPROM
+}
+
+void GPIO_All_Init(void)
+{
+	GPIO_Init(CarCalibLimit, GPIO_MODE_IN_PU_IT);
+	// Ошибка по превышению тока
+	GPIO_Init(AlmStep, GPIO_MODE_IN_PU_NO_IT);
+	// кнопки управления кареткой
+	GPIO_Init(CarFarBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(CarNearBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(CarAutoStartBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(CarCalibBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(CarAutoDistPlusBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(CarAutoDistMinusBtn, GPIO_MODE_IN_PU_NO_IT);
+	// светодиоды кнопок управления кареткой 
+	// GPIO_MODE_OUT_PP_LOW_FAST
+	GPIO_Init(CarFarBtnLed, 			GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(CarNearBtnLed, 			GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(CarAutoStartBtnLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(CarCalibBtnLed, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	// Светодиоды индикаторов каретки
+	GPIO_Init(CarFarLimitLed, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(CarNearLimitLed, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(CarCalibLimitLed, 	GPIO_MODE_OUT_PP_LOW_FAST);
+	//-------------------------------------------
+	// кнопки управления затвором
+	GPIO_Init(SliderHourPlusBtn, 		GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderHourMinusBtn, 	GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderMinutePlusBtn, 	GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderMinuteMinusBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderTimeStartBtn, 	GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderOpenBtn, 				GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SliderCloseBtn, 			GPIO_MODE_IN_PU_NO_IT);
+	// светодиоды кнопок управления затвором
+	// Светодиоды
+// Встроенный светодиоды Кнопки
+	GPIO_Init(SliderOpenBtnLed, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(SliderCloseBtnLed, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(SliderTimeStartBtnLed,GPIO_MODE_OUT_PP_LOW_FAST);
+	// светодиоды индикации управления затвором
+	
+	GPIO_Init(SliderOpenLimitLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(SliderCloseLimitLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	
+	//------------------------------------------------
+	//====================================================
+	
+	
+	// кнопки управления источником
+	GPIO_Init(SrcUpBtn, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SrcDownBtn, GPIO_MODE_IN_PU_NO_IT);
+	// светодиоды кнопок управления источником
+	GPIO_Init(SrcUpBtnLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(SrcDownBtnLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	// светодиоды индикации управления источником
+	GPIO_Init(SrcUpLimitLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(SrcDownLimitLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	//======================================
+	// кнопка сброс
+	GPIO_Init(ResetBtn, GPIO_MODE_IN_PU_NO_IT);
+	// светодиод кнопки сброс
+	GPIO_Init(ResetBtnLed, GPIO_MODE_OUT_PP_LOW_FAST);
+	//----------------
+	// Кнопка Вкл/выкл
+	GPIO_Init(OnOffBtn, GPIO_MODE_IN_PU_NO_IT);
+	
+	// Кнопка стоп
+	GPIO_Init(StopBtn, GPIO_MODE_IN_PU_NO_IT);
+	//--------------
+	// концевик двери
+	GPIO_Init(SwDoorLimit, GPIO_MODE_IN_PU_NO_IT);
+	GPIO_Init(SwDoorCoil, GPIO_MODE_OUT_PP_LOW_FAST);
+	
+}
+
+
+void SoftTimerAll_Init(void)
+{
+	//-----------------------------------------
+	// инициализация таймера светодиода
+	//---------------------------
+	SoftTimer_Init(&softTimer,// указатель на работу таймера
+							1,			// значение автообновления
+							0		// обработчик переполнения	
+							);
+	SoftTimer_CMD(&softTimer,ENABLE);
+	
+	
+	//-----------------------------------
+	
+	SoftTimer_Init(&softTimerLed,// указатель на работу таймера
+							125,			// значение автообновления
+							blinkLed		// обработчик переполнения
+							);
+	SoftTimer_CMD(&softTimerLed,ENABLE);
+	
+	//-------------------------
+	
+	SoftTimer_Init(&softTimerBtn,// указатель на работу таймера
+							250,			// значение автообновления
+							Handler_time_btn		// обработчик переполнения
+							);
+	SoftTimer_CMD(&softTimerBtn,ENABLE);
+	
+	//-------------------------
+	// таймер обновления экранчиков
+	SoftTimer_Init(&softTimerDisp,// указатель на работу таймера
+							20,			// значение автообновления
+							Handler_display		// обработчик переполнения
+							);
+	SoftTimer_CMD(&softTimerDisp,ENABLE);
+	
+	// таймер для мигания ошибки каретки
+	SoftTimer_Init(&softTimerBlinkError,// указатель на работу таймера
+							500,			// значение автообновления
+							Handler_displayError		// обработчик переполнения
+							);
+	//SoftTimer_CMD(&softTimerBlinkError,ENABLE);
+	
+	SoftTimer_Init(&softTimerSave,// указатель на работу таймера
+							3000,			// значение автообновления
+							Handler_SaveData		// обработчик переполнения
+							);
+	SoftTimer_CMD(&softTimerSave,ENABLE);
+	
+	
+}
+
+#ifdef  __OSA__
+void Task_2(void)
+{
+
 	while(1)
 	{
 		
@@ -900,44 +1250,7 @@ void Task_2(void)
 void Task(void)
 {
 	uint8_t i,temp;
-	
 	/*
-	// настройка прототипа
-	StepReg_Init(&stepreg, 
-									1000, 	// максимальные обороты 
-									2000, 	// время разгона
-									1500, 	// время торможения
-									800, 		// шагов на оборот
-									16000000, // частота тактирования таймера
-									20 			// дискретное время расчета 10-20 мс
-								);
-	StepReg_Calc(&stepreg, 
-							 1000// настройка данных
-									);
-	*/
-	// настройка тактирования
-	//tim2_Set=CalcSetTim(16000000, 13333);
-	
-	//TIM2_TimeBaseInit(TIM2_Prescaler_TypeDef TIM2_Prescaler, uint16_t TIM2_Period);
-	
-	//GPIO_Init(GPIOB, GPIO_PIN_0, GPIO_MODE_OUT_PP_LOW_FAST);
-	// Настройка пинов
-//	OS_Task_Create(7, Task_2); // создаем задачу
-	Init_Delay();
-	GPIO_Init(enStep1, GPIO_MODE_OUT_PP_HIGH_FAST); // Включен Step
-	GPIO_Init(clkStep1, GPIO_MODE_OUT_PP_LOW_FAST);
-	GPIO_Init(dirStep1, GPIO_MODE_OUT_PP_LOW_FAST);
-	
-	//GPIO_WriteHigh(enStep1);
-	//GPIO_WriteLow(enStep1);
-	for(i=0;i<10;i++)
-	{
-		GPIO_WriteHigh(clkStep1); // делает шаг
-		delay_ms(10);
-	  GPIO_WriteLow(clkStep1);
-	}
-	
-	
 	GPIO_Init(Buzz, GPIO_MODE_OUT_PP_LOW_FAST);
 	GPIO_WriteHigh(Buzz);
 	GPIO_WriteLow(Buzz);
@@ -952,10 +1265,12 @@ void Task(void)
 	ADC2_SingleOne_Init(	ADC2_PRESSEL_FCPU_D10, 
 													ADC2_Handler_NoIT);
 	timer1=0;	
+	*/
 	while(1)
 	{
 		//GPIO_WriteReverse(GPIOB, GPIO_PIN_1);
 		//ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
+		/*
 		sprintf(st,"%4d",timer1++);
 		
 		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
@@ -972,11 +1287,12 @@ void Task(void)
 		adc2= ADC2_SingleOne_GetConversion();
 		sprintf(st,"%4d",adc2);
 		TM1637_TextOutput(&disp3,st);
+		
 		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_7);
 		adc2= ADC2_SingleOne_GetConversion();
 		sprintf(st,"%4d",adc2);
 		TM1637_TextOutput(&disp4,st);
-		
+		*/
 		
 		
 		OS_Delay(500);
@@ -984,17 +1300,12 @@ void Task(void)
 }
 #endif
 
+uint16_t k2,i;
 
-uint16_t nmb=0,adc0;
-uint32_t clks;
-//-----
-
-i2cStatus_t res;
-
-FlagStatus adcStatus;
-
-//Tim2_InitSet_t tim2_Set;
-
+uint8_t f;
+//int32_t PV; // данные для считывания
+I2Csw_result_t rt_i2c;
+volatile uint16_t delay16, d16;
 
 void main(void)
 {
@@ -1010,37 +1321,1313 @@ void main(void)
 #else
 	/* Infinite loop */
 //	cf_u=&cf;
-	uint8_t i;
-	Init_Delay();
-	
-	//GPIO_Init(GPIOD, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_MODE_IN_FL_NO_IT);
-	StepReg_Init(&stepreg, 
-									1000, 			// максимальные обороты 
-									2000, 	// время разгона
-									1500, 	// время торможения
-									800, 		// шагов на оборот
-									20 					// дискретное время расчета 10-20 мс
-								);
-	StepReg_Calc(&stepreg, 
-							 1000// настройка данных
-									);
-	
-	//GPIO_Init(GPIOE, GPIO_PIN_5, GPIO_MODE_OUT_OD_LOW_FAST);
-	//GPIO_Init(enStep, GPIO_MODE_OUT_PP_HIGH_FAST);
-	//GPIO_Init(clkStep, GPIO_MODE_OUT_PP_HIGH_FAST);
-	//GPIO_Init(dirStep, GPIO_MODE_OUT_PP_HIGH_FAST);
+	// Первоначальная инициализация драйверов
+	GPIO_Init(enStepSrc_3,GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(enStep1, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	GPIO_Init(enStep2, 		GPIO_MODE_OUT_PP_LOW_FAST);
+	 
+	 
+	//Init_Delay();
+	temp_32=0x4FFF;
+	while(temp_32--);
+	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
+	//-----------------------
+	// Инициализация АЦП
+	ADC2_SingleOne_Init(	ADC2_PRESSEL_FCPU_D10, 
+													ADC2_Handler_NoIT);
 	
 	
+		// чтение данных скорости каретки
+	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
+	save.v1= (ADC2_SingleOne_GetConversion()>>3)*8+1;
 	
-	//TIM2_Cmd(ENABLE);
-	enableInterrupts()
+	// время ускорения каретки
+	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_11);
+	save.a1= (ADC2_SingleOne_GetConversion()>>3)*24+1;
+	
+	// максимальная скорость задвижки
+	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_10);
+	save.v2= (ADC2_SingleOne_GetConversion()>>3)*8+1;
+	
+	// максимальная скорость источника
+	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_7);
+	save.v3= (ADC2_SingleOne_GetConversion()>>3)*8+1;
+													
+	
+	/// Настройка I2C
+	//I2C_Init_7bit(100000);
+	f=I2Csoft_INIT(&I2Csw_Gpio,
+											GPIO_SDA,
+											GPIO_SCL,
+											16,	// 16 МГц
+											100, // 80 кГц
+											100	// таймоут 100 мс
+											);
+	// Запуск таймер на всякий случай
+	I2Csw_sendToMemoryByte1( &I2Csw_Gpio,
+													DS3231_devAdr, // адрес часов
+													DS3231_control, //адрес 
+													&DS3231_regCntr, //значение регистра
+													1);
+	//--------------------
+	// установка флагов ошибок
+	//save.flagPV=PV_error;
+	//save.flagSP=SP_error;
+	//save.flagTime=time_error;
+	//------------------------------
+	// Загрузка данных из EEPROM 
+	DownloadSetting();
+	
+
+	//------------------------------------------
+	//-----------------------------------------
+	// ----------------------------------------
+	// инициализация экрана
+	TM1637_Init(&disp1, 	tm1637_1,tm1637_bright_3);
+	TM1637_Init(&disp2, 	tm1637_2,tm1637_bright_3);
+	TM1637_Init(&dispTimer,tm1637_3,tm1637_bright_3);
+	TM1637_Init(&dispTimerAlarm, 	tm1637_4,tm1637_bright_3);
+	//-----------------------------------
+	// Инициализация всех программых таймеров
+	SoftTimerAll_Init();
+	
+	
+	
+	//----------------
+	// настройка таймера
+	// 1 мс
+	TIM4_TimeBaseInit(TIM4_PRESCALER_128, 124);
+	TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
+	TIM4_Cmd(ENABLE);
+	//----------------------------------
+	// Инициализация и расчет двигателей
+	StepMotorCar_Init();
+	StepMotorSlider_Init();
+	StepMotorSrc_Init();
+	// инициализация всех пинов
+	GPIO_All_Init();
+	
+	
+	
+	
+	
+	// Инциализация источника
+	SrcMoveCntr=SrcMoveIdle;
+	//	ButtonInit(&Handler_SrcUpBtn,100, SrcUpBtn);
+	
+	//ButtonInit(&Handler_SrcDownBtn,100, SrcDownBtn);
+	
+	//-------------------------------------------------
+	//=====================================================
+	// Кнопки модуля каретки
+	// кнопки 
+	//==================================================
+	//ButtonInit(&Handler_CarAutoDistPlusBtn,100, CarAutoDistPlusBtn);
+	//ButtonInit(&Handler_CarAutoDistMinusBtn,100, CarAutoDistMinusBtn);
+	//============================================
+	// настройка состояния таймера для 
+	sliderTimer=sliderTimerInit;
+	// загрузка данных настройки таймера из памяти
+	/*
+	if(save.min&maskTimeFlagAlm)
+	{
+		alarm.flag_alm=alarmOn;
+	}
+	else
+	{
+		alarm.flag_alm=alarmOff;
+	}
+	*/
+	alarm.min_alm= save.min&maskTimeMin;
+	alarm.hour_alm=save.hour;
+	alarm.flag_alm=save.flag_alm;
+	alarm.s_alm= (uint32_t)alarm.hour_alm*3600+(uint32_t)alarm.min_alm*60;
+	
+	// загрузка данных в счетчик расстояния
+	distCarSP=save.dist;
+	
+	SoftTimer_Init(&softTimerUpdate,// указатель на работу таймера
+							500,			// значение автообновления
+							handler_timerUpdateDisplay	// обработчик переполнения
+							);
+	SoftTimer_CMD(&softTimerUpdate,
+									ENABLE);
+	
+	enableInterrupts();
+	
+	
+	
 	while (1)
   {
+		//===========================================
+		// Оповещение режимов работы
+		//---------------------------------------
+		LedPolling();
+		//-----------------
+		// режим закрытия
 		
-	nmb++;
+		
+		//------------------------------
+		// индикация будильника
+		//====================================
+		// модуль управления экранами
+		// каретки
+		if (updateDispaly)
+		{
+			updateDispaly=0;
+			
+			sprintf(st,"%4d", distCarSP);
+			TM1637_6digit_TextOutput(&disp1,st);
+			if (blinkError)
+			{
+				// если ошибка есть
+				sprintf(st,"ErrL" );	
+			}
+			else
+			{
+				distCarPV=PID_getPV(&pidCar)/ (int16_t)ConvStepIntoDist;
+				sprintf(st,"%4d", distCarPV);
+			}
+			TM1637_4digit_TextOutput(&disp2,st);
+		}
+		//------------------------------------
+		// Проверку на необходимость сохранять данные
+		// происходит каждые 3 секунды
+		if (flagSaveData)
+		{
+			flagSaveData=0;
+			// Проверка на необходимость сохранения данных
+			// часов
+			if (alarm.hour_alm != save.hour || 
+					alarm.min_alm != save.min ||  
+					alarm.flag_alm != save.flag_alm  )
+			{
+				save.hour=alarm.hour_alm;
+				//save.min=alarm.flag_alm|alarm.min_alm;
+				if (alarm.flag_alm)
+				{
+					save.min=alarm.min_alm|maskTimeFlagAlm;
+					save.flag_alm=alarmOn;
+				}
+				else
+				{
+					save.min=alarm.min_alm;
+					save.flag_alm=alarmOff;
+				}
+				j=0;
+				while(
+				I2Csw_sendToMemoryByte2(&I2Csw_Gpio,
+																	AT24C32_devAdr,
+																	save.num*8+6,
+																	(uint8_t*)&save.hour,
+																	2) !=I2Csw_success && j++ <maxRepeatWrite );
+				save.min=alarm.min_alm;
+			}
+			//--------------
+			// Проверка на необходимость сохранения данных дистанации
+			if (distCarSP !=save.dist)
+			{
+				save.dist=distCarSP;
+				j=0;
+				while(
+				I2Csw_sendToMemoryByte2(&I2Csw_Gpio,
+																	AT24C32_devAdr,
+																	save.num*8+4,
+																	(uint8_t*)&save.dist,
+																	2) !=I2Csw_success && j++ <maxRepeatWrite );
+			}
+			//--------------------
+			// Проверка на необходимость перерасчета скорости
+			if (stateCarSlider == stateCarSliderIdle) 
+			{
+				//----------------------------------
+				// Проверка настройки для первой оси
+				//максимальная скорость каретки
+				ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
+				temp_16u= (ADC2_SingleOne_GetConversion()>>3)*8+1;
+				
+				// время ускорения каретки
+				ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_11);
+				temp2_16u= (ADC2_SingleOne_GetConversion()>>3)*24+1;
+				
+				
+				if (save.v1 !=temp_16u  || save.a1!= temp2_16u)
+				{
+					save.v1 =temp_16u ;
+					save.a1= temp2_16u;
+						StepMotorCar_Init();
+				}
+				//---------------------------------
+				//Проверка настройки для 2 оси
+				// максимальная скорость задвижки
+				ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_10);
+				temp_16u = (ADC2_SingleOne_GetConversion()>>3)*8+1;
+				if (save.v2 !=temp_16u  )
+				{
+					save.v2 =temp_16u ;
+					StepMotorSlider_Init();
+				}
+				//----------------------------------
+				// Проверка настройки для 3 оси
+				// максимальная скорость источника
+				ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_7);
+				temp_16u = (ADC2_SingleOne_GetConversion()>>3)*8+1;
+				// Все оси не вращаются
+				if (save.v3 !=temp_16u )
+				{
+					save.v3 =temp_16u ;
+					StepMotorSrc_Init();
+				}
+			}
+			
+		}
+		
+		//------------------------------------
+		// Модуль управления кареткой 
+		
+		// если затвор закрыт и достигли зоны затвора, то останавливаемся
+		//if ( GPIO_ReadInputPin(SliderOpenLimit) && !GPIO_ReadInputPin(CarCalibLimit))
+		//{
+		//	PID_stop_auto(&pidCar);
+			//PID_stop_man_dir(&pidCar, stepDown);
+		//}
+		//--------------------------------
+		// модуль управления кареткой и затвором
+		
+		switch(stateCarSlider)
+		{
+			case stateCarSliderIdle:
+				// обработчик кнопок
+				if ( GPIO_ReadInputPin( OnOffBtn))
+				{
+						// ручное перемещение каретки назад
+						if (!GPIO_ReadInputPin(CarNearBtn))
+						{
+							stateCarSlider=stateCarManNear;	
+							goto lbl_stateCarManNear;					
+						}
+						
+						// ручное перемещение каретки вперед
+						if (!GPIO_ReadInputPin(CarFarBtn))
+						{
+							stateCarSlider=stateCarManFar;	
+							goto lbl_stateCarManFar;					
+						}
+						
+						// калибровка
+						if (!GPIO_ReadInputPin(CarCalibBtn ))
+						{
+							if ( GPIO_ReadInputPin( CarCalibLimit) )
+							{
+								PID_calibInit( &pidCar,
+																CarCalibLimit,
+																limitSW_Level_Low,		
+																(int32_t)CalibLimitIn_mm* (int32_t)ConvStepIntoDist
+																);
+								PID_start_man(&pidCar, stepDown);
+								
+							}
+							else
+							{
+								PID_calibInit( &pidCar,
+																CarCalibLimit,
+																limitSW_Level_High,		
+																(int32_t)CalibLimitIn_mm* (int32_t)ConvStepIntoDist
+																);
+								PID_start_man(&pidCar, stepUp);	
+							}
+							// Отключаем таймер
+							SoftTimer_CMD(&softTimerBlinkError,DISABLE);
+							blinkError=0; // отключаем мигание
+							stateCarSlider=stateCarCalib;	
+							goto lbl_stateCarCalib;	
+						}
+						//----------------------------------
+						// Кнопка запуск задания
+						if (!GPIO_ReadInputPin(CarAutoStartBtn ))
+						{
+							stateCarSlider=state_CarAutoStart;
+							goto lbl_state_CarAutoStart;
+						}
+						//-----------------
+						// открыть створку
+						if ( !GPIO_ReadInputPin(SliderOpenBtn) && 
+									GPIO_ReadInputPin(SliderOpenLimit))
+						{
+							stateCarSlider=state_SliderOpen_OutZone_SrcDownDist;
+							goto lbl_state_SliderOpen_OutZone_SrcDownDist;
+						
+						}
+						//----------------------------------------------------
+						// закрыть створку
+						if ( !GPIO_ReadInputPin(SliderCloseBtn) && 
+									GPIO_ReadInputPin(SliderCloseLimit) )
+						{
+							stateCarSlider=state_SliderClose_OutZone;
+							goto lbl_state_SliderClose_OutZone;
+						}
+						
+						// поднять источник
+						if ( !GPIO_ReadInputPin(SrcUpBtn) && 
+									GPIO_ReadInputPin(SrcUpLimit))
+						{
+							stateCarSlider=state_SrcUp;
+							goto lbl_state_SrcUp;
+						}
+						//----------------------------------------------------
+						// опустить источник
+						if ( !GPIO_ReadInputPin(SrcDownBtn) 
+								&& GPIO_ReadInputPin(SrcDownLimit) 	)
+						{
+							if (!GPIO_ReadInputPin(SrcUpLimit) )
+							{
+								stateCarSlider=state_SrcDownDist;
+								goto lbl_state_SrcDownDist;
+							}
+							else
+							{
+								stateCarSlider=state_SrcDown;
+								goto lbl_state_SrcDown;
+							}
+							
+						}
+						//-------------------------------------------
+						// запуск будильника
+						if ( !GPIO_ReadInputPin(SliderTimeStartBtn) 
+								&& alarm.cntBtnOff>=alarm_btn_time_off )
+						{
+							alarm.cntBtnOff=0;
+							if (	alarm.flag_alm == alarmOff)
+							{
+								
+								// алгоритм включения будильника
+								if ( GPIO_ReadInputPin(SliderOpenLimit))
+								{
+									// если створка закрыта
+									stateCarSlider =state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto;
+									goto        lbl_state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto;
+								}
+								else
+								{
+									stateCarSlider =state_AlarmStart_SrcUp_CarAuto;
+									goto        lbl_state_AlarmStart_SrcUp_CarAuto;
+								}
+							}
+							else
+							{
+								// алгоритм выключения будильника
+								alarm.flag_alm = alarmOff;
+							}
+						}
+						else
+						{
+							// сброс счетчика нажатий
+							if (alarm.cntBtnOffFlag)
+								{
+									alarm.cntBtnOffFlag=0;
+									if (alarm.cntBtnOff<=alarm_btn_time_off)
+									{
+										alarm.cntBtnOff++;
+									}
+								}
+						}
+						//-------------------
+						// отключаем замок двери
+						GPIO_WriteLow(SwDoorCoil);
+				}
+				else
+				{
+					// контакты замкнуты
+					// идет блокировка кнопок
+					GPIO_WriteHigh(SwDoorCoil);
+				}
+				//-----------------------------------
+				if (alarm.flag_alm == alarmOn)
+				{
+					if (alarm.s_alm<=DS3231_getSecond(	DS3231_reg) ) 
+					{
+						alarm.flag_alm = alarmOff;
+						stateCarSlider =state_SliderClose_OutZone;
+						goto        lbl_state_SliderClose_OutZone;
+					}
+				}
+				//-----------------------
+				// Открытие двери
+				// Приводит к уборке источника
+//				SwDoorLimit
+				if ( !GPIO_ReadInputPin(SwDoorLimit) && 
+							!GPIO_ReadInputPin(SrcUpLimit) )
+				{
+					stateCarSlider=state_SrcDownDist;
+					goto lbl_state_SrcDownDist;
+				}
+				
+				break;
+			//------------------------
+			// обработчик команд
+			case stateCarManNear:
+				//lbl_stateCarManNear:
+				if (!GPIO_ReadInputPin(CarNearBtn))
+				{
+					lbl_stateCarManNear:
+					if ( GPIO_ReadInputPin(CarCalibLimit))
+					{
+						PID_start_man(&pidCar, stepDown);
+					}
+					else
+					if ( !GPIO_ReadInputPin(SliderOpenLimit))
+					{
+						PID_start_man(&pidCar, stepDown);
+					}
+					else
+					{
+						PID_stop(&pidCar);
+						goto lbl_testIdle;
+					}
+				}
+				else
+				{
+					PID_stop(&pidCar);
+					goto lbl_testIdle;
+				}
+				break;
+				//--------------------------------
+			case stateCarManFar:
+				lbl_stateCarManFar:
+				if (!GPIO_ReadInputPin(CarFarBtn))
+				{
+					//lbl_stateCarManFar:
+					PID_start_man(&pidCar, stepUp);								
+				}
+				else
+				{
+					PID_stop_man_dir(&pidCar, stepUp);
+					goto lbl_testIdle;
+				}
+				break;
+				//-----------------
+			case stateCarCalib:
+				lbl_stateCarCalib:
+				if (	!GPIO_ReadInputPin(CarNearBtn)
+						|| !GPIO_ReadInputPin(CarFarBtn)	)
+				{
+					PID_stop(&pidCar);
+					stateCarSlider=stateWaitIdle;
+				}
+				goto lbl_testIdle;
+				break;
+			//-------------------------
+			case state_CarAutoStart:
+				lbl_state_CarAutoStart:
+				//stateCarSliderIdle
+				
+		
+				if (PID_getStatePower(&pidCar) == power_off	
+						&& PID_getStateRot(&pidCar)==rot_stop)
+				{
+					if( PID_getPV(&pidCar)  == (int32_t)ConvStepIntoDist * (int32_t)distCarSP)
+					{
+						if(stateCarSlider == state_CarAutoStart)
+						{
+							stateCarSlider=stateWaitIdle;
+							goto lbl_testIdle;
+						}
+						else
+						{
+							// переход в следующее состояние
+							stateCarSlider--;
+						}
+						
+					}
+					else
+					if ( !GPIO_ReadInputPin(SliderOpenLimit) || GPIO_ReadInputPin(CarCalibLimit))
+					{
+						PID_start_auto(&pidCar, 
+									(int32_t)ConvStepIntoDist * (int32_t)distCarSP);
+						
+						if ( 		!GPIO_ReadInputPin(CarFarLimit)&& PID_getStateDir(&pidCar)==stepUp
+								|| !GPIO_ReadInputPin(CarNearLimit)&& PID_getStateDir(&pidCar)==stepDown
+						)
+						{
+							PID_stop(&pidCar);
+							stateCarSlider=stateWaitIdle;
+							goto lbl_testIdle;
+						}
+									
+					}
+					else
+					{
+						if ( PID_getPV(&pidCar) <(int32_t)ConvStepIntoDist * (int32_t)distCarSP)
+						{
+							PID_start_auto(&pidCar, 
+									(int32_t)ConvStepIntoDist * (int32_t)distCarSP);
+							if ( 		!GPIO_ReadInputPin(CarFarLimit)&& PID_getStateDir(&pidCar)==stepUp
+								|| !GPIO_ReadInputPin(CarNearLimit)&& PID_getStateDir(&pidCar)==stepDown
+							)
+							{
+								PID_stop(&pidCar);
+								stateCarSlider=stateWaitIdle;
+								goto lbl_testIdle;
+							}
+						}
+						else
+						{
+							if (stateCarSlider==state_CarAutoStart )
+							{
+								stateCarSlider=stateWaitIdle;
+								goto lbl_testIdle;
+							}
+							else
+							{
+								stateCarSlider--;
+							}
+						}
+					}
+				}
+				else
+				if (	!GPIO_ReadInputPin(CarFarBtn)
+						||!GPIO_ReadInputPin(CarNearBtn))
+				{
+					PID_stop(&pidCar);
+					stateCarSlider=stateWaitIdle;
+					goto lbl_testIdle;
+					//PID_start_man(&pidCar, stepUp);								
+				}
+				else
+				if ( 		GPIO_ReadInputPin(SliderOpenLimit) 
+						&& !GPIO_ReadInputPin(CarCalibLimit)
+						&& PID_getStateDir(&pidCar)== stepDown )
+				{
+					PID_stop(&pidCar);
+					
+					if(stateCarSlider == state_CarAutoStart)
+					{
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+					else
+					{
+						// переход в следующее состояние
+						stateCarSlider--;
+					}
+				}
+				
+				break;
+			//----------------------------------------
+			
+			//------------------------
 	
+			case state_SliderOpen:
+				lbl_state_SliderOpen:
+				if (GPIO_ReadInputPin(CarCalibLimit)	)
+				{
+					// каретка вне зоны заслонки
+					if (!GPIO_ReadInputPin(SliderCloseBtn))
+					{
+						// нажали в другую сторону
+						PID_stop(&pidSlider);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+						//PID_start_man(&pidCar, stepUp);								
+					}
+					else
+					{
+						PID_start_man(&pidSlider, stepUp);
+						if ( !GPIO_ReadInputPin(SliderOpenLimit))
+						{
+							// достигли зоны концевика
+							PID_stop(&pidSlider);
+							if (stateCarSlider==state_SliderOpen)
+							{
+								PID_stop(&pidSlider);
+								stateCarSlider=stateWaitIdle;
+								goto lbl_testIdle;
+							}
+							else
+							{
+								stateCarSlider--;
+							}
+						}
+					}
+				}
+				else
+				{
+					// Каретка в зоне заслонки
+					PID_stop(&pidSlider);
+					stateCarSlider++;
+				}
+				
+				break;
+			
+			//----------------------------------	
+			
+			//------------------------
+			case state_SliderClose:
+				lbl_state_SliderClose:
+				if (GPIO_ReadInputPin(CarCalibLimit)	)
+				{
+					// каретка вне зоны заслонки
+					if (!GPIO_ReadInputPin(SliderOpenBtn))
+					{
+						// нажали в другую сторону
+						PID_stop(&pidSlider);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+						//PID_start_man(&pidCar, stepUp);								
+					}
+					else
+					{
+						PID_start_man(&pidSlider, stepDown);
+						if ( !GPIO_ReadInputPin(SliderCloseLimit))
+						{
+							// достигли зоны концевика
+							PID_stop(&pidSlider);
+							if (stateCarSlider==state_SliderClose)
+							{
+								stateCarSlider=stateWaitIdle;
+								goto lbl_testIdle;
+							}
+							else
+							{
+								stateCarSlider--;
+							}
+						}
+					}
+				}
+				else
+				{
+					// Каретка в зоне заслонки
+					PID_stop(&pidSlider);
+					stateCarSlider++;
+				}
+				
+				break;
+			
+			
+			case state_OutZone:
+				lbl_state_OutZone:
+				if (!GPIO_ReadInputPin(CarCalibLimit))
+				{
+					// запуск каретки для вывода из зоны заслонки
+					PID_start_man(&pidCar, stepUp);
+					
+					if (	!GPIO_ReadInputPin(CarNearBtn))
+					{
+						PID_stop(&pidCar);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+						//PID_start_man(&pidCar, stepUp);								
+					}
+				}
+				else
+				{
+					PID_stop_man(&pidCar);
+					// переход на следующую стадию автомата
+					if (stateCarSlider == state_OutZone)
+					{
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+					else
+					{
+						stateCarSlider--; 
+					}
+					
+				}
+				break;
+			//--------------------
+			case state_SliderClose_OutZone:
+				lbl_state_SliderClose_OutZone:
+				goto lbl_state_OutZone;
+				break;
+			//-------------------------------------------------
+			case state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto:
+				lbl_state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone_CarAuto:
+				
+			case state_AlarmStart_SrcUp_CarAuto:
+				lbl_state_AlarmStart_SrcUp_CarAuto:
+				goto lbl_state_CarAutoStart;
+				
+				break;
+				
+			case state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone:
+				lbl_state_AlarmStart_SrcUp_CarAuto_SliderOpen_OutZone:
+				
+				goto lbl_state_OutZone;
+				
+				break;
+			case state_AlarmStart_SrcUp_CarAuto_SliderOpen:
+				lbl_state_AlarmStart_SrcUp_CarAuto_SliderOpen:
+				
+				goto lbl_state_SliderOpen;
+				
+				break;
+			
+			
+			case state_AlarmStart:
+				alarm.flag_alm=alarmOn;
+				stateCarSlider=stateWaitIdle;
+				goto lbl_testIdle;
+				break;
+				
+			case state_AlarmStart_SrcUp:
+				lbl_state_AlarmStart_SrcUp:
+				
+			case state_SrcUp:	
+				lbl_state_SrcUp:	
+				
+				if (GPIO_ReadInputPin(SrcUpLimit))
+				{
+					PID_start_man(&pidSrc, stepUp);	
+					if (!GPIO_ReadInputPin(SrcDownBtn))
+					{
+						PID_stop(&pidSrc);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+				}
+				else
+				{
+					PID_stop(&pidSrc);
+					if (stateCarSlider == state_SrcUp)
+					{
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+					else
+					{
+						stateCarSlider--;
+					}
+				}
+				
+				break;
+			
+			
+			case state_SrcDownDist:	
+				lbl_state_SrcDownDist:	
+				
+				if (  !GPIO_ReadInputPin(SrcUpLimit) &&
+							PID_getStatePower(&pidSrc) == power_off && 
+							PID_getStateRot(&pidSrc)==rot_stop 
+						)
+				{
+					PID_setPV(&pidSrc,
+									0);
+									
+					PID_start_auto(&pidSrc, 
+							PID_getPV(&pidSrc)- (int32_t)SrcConvStepIntoDist*(int32_t)SrcDistDown);
+					
+					if (!GPIO_ReadInputPin(SrcUpBtn))
+					{
+						PID_stop(&pidSlider);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+				}
+				else
+				if (PID_getStatePower(&pidSrc) == power_off
+					&& PID_getStateRot(&pidSrc)==rot_stop) 
+				{
+					
+					if ( stateCarSlider == state_SrcDownDist)
+					{
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+					else
+					{
+						stateCarSlider--;
+					}
+				}
+				else
+				if (!GPIO_ReadInputPin(SrcUpBtn))
+				{
+					PID_stop(&pidSlider);
+					stateCarSlider=stateWaitIdle;
+					goto lbl_testIdle;
+				}
+				
+				break;
+			
+			case state_SliderOpen_OutZone_SrcDownDist:
+				lbl_state_SliderOpen_OutZone_SrcDownDist:
+				
+			
+				goto lbl_state_SrcDownDist;
+				break;
+			
+			case state_SliderOpen_OutZone:
+				lbl_state_SliderOpen_OutZone:
+				
+				goto lbl_state_OutZone;
+				break;
+
+
+
+			case state_SrcDown:	
+				lbl_state_SrcDown:	
+				
+				if (GPIO_ReadInputPin(SrcDownLimit))
+				{
+					PID_start_man(&pidSrc, stepDown);	
+					if (!GPIO_ReadInputPin(SrcUpBtn))
+					{
+						PID_stop(&pidSrc);
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+				}
+				else
+				{
+					PID_stop(&pidSrc);
+					if (stateCarSlider == state_SrcDown)
+					{
+						stateCarSlider=stateWaitIdle;
+						goto lbl_testIdle;
+					}
+					else
+					{
+					stateCarSlider--;
+					}
+				}
+				
+				break;
+			
+			
+			
+			//--------------------------
+			case stateWaitIdle:
+				// остановка осей
+			default:
+				PID_stop(&pidCar);
+				PID_stop(&pidSlider);
+				PID_stop(&pidSrc);
+				lbl_testIdle:
+				if (PID_getStatePower(&pidCar) == power_off	
+						&& PID_getStateRot(&pidCar)==rot_stop)	
+				{
+					// проверка сохраненных данных
+					// Чтение данных из 
+					I2Csw_readFromMemoryByte2( &I2Csw_Gpio,
+																AT24C32_devAdr,
+																save.num*8,
+																(uint8_t*)&temp_32,
+																4);
+					PV_Cur=PID_getPV(&pidCar);
+					if (temp_32!=PV_Cur)
+					{
+						// запись данных
+						j=0;
+						while(
+						I2Csw_sendToMemoryByte2(&I2Csw_Gpio,
+																			AT24C32_devAdr,
+																			save.num*8,
+																			(uint8_t*)&PV_Cur,
+																			4) !=I2Csw_success && j++ <maxRepeatWrite );
+					}
+					// дальнейшая проверка на остановку
+					if( PID_getStatePower(&pidSlider) == power_off	
+							&& PID_getStateRot(&pidSlider)==rot_stop	
+							&& PID_getStatePower(&pidSrc) == power_off	
+							&& PID_getStateRot(&pidSrc)==rot_stop	
+							)
+					{
+						stateCarSlider=stateCarSliderIdle;
+					}
+				}
+		}
+		
+		
+		
+		
+		
+		
+		//--------------------------------------
+		//--------------------
+		// кнопки увеличения дистанции
+		if ( !GPIO_ReadInputPin(CarAutoDistPlusBtn)  )
+		{
+			if (flagDistCarSP)
+			{
+				if (incDistCarSP ==0 )
+				{
+					nop();
+					incDistCarSP++;
+				}
+				else
+				if (incDistCarSP <=10)
+				{
+					incDistCarSP++;
+					distCarSP++;
+				}
+				else
+				if (incDistCarSP <=100)
+				{
+					incDistCarSP+=10;
+					distCarSP+=10;
+				}
+				else
+				if (incDistCarSP <=1000)
+				{
+					incDistCarSP+=100;
+					distCarSP+=100;
+				}
+				else
+				{
+					//incDistCarSP+=100;
+					distCarSP+=500;
+				}
+				
+				if (distCarSP>maxDistCarSP)
+					{
+						distCarSP=maxDistCarSP;
+					}
+					flagDistCarSP=0;
+			}
+		}
+		else
+		{
+			incDistCarSP=0;
+		}
+		
+		if ( !GPIO_ReadInputPin(CarAutoDistMinusBtn)  )
+		{
+			if (flagDistCarSP)
+			{
+				if (decDistCarSP ==0 )
+				{
+					decDistCarSP++;
+				}
+				else
+				if (decDistCarSP <=10)
+				{
+					decDistCarSP++;
+					distCarSP--;
+				}
+				else
+				if (decDistCarSP <=100)
+				{
+					decDistCarSP+=10;
+					distCarSP-=10;
+				}
+				else
+				if (decDistCarSP <=1000)
+				{
+					decDistCarSP+=100;
+					distCarSP-=100;
+				}
+				else
+				{
+					//incDistCarSP+=100;
+					distCarSP-=500;
+				}
+				
+				if (distCarSP<0)
+					{
+						distCarSP=0;
+					}
+				flagDistCarSP=0;
+			}
+		}
+		else
+		{
+			decDistCarSP=0;
+		}
+		
+		
+		
+		
+		//-----------------------------------
+		//===================================
+		// Затвор
+		
+		//--------------------
+		// опрос кнопок таймера
+		if (flagPollingTimeBtn)
+		{
+			if ( !GPIO_ReadInputPin(SliderHourPlusBtn))
+			{
+				if ( flagFastHourPlus<edgeFastHour)
+				{
+				alarm.hour_alm++;
+				flagFastHourPlus++;
+				}
+				else
+				{
+					alarm.hour_alm+=edgeFastHour;
+				}
+				
+				if (hour>99)
+				{
+					alarm.hour_alm=alarm.hour_alm%100;
+				}
+				
+				
+			}
+			else
+			{
+				flagFastHourPlus=0;
+			}
+			
+			
+			if ( !GPIO_ReadInputPin(SliderHourMinusBtn))
+			{
+				
+				if ( flagFastHourMinus < edgeFastHour)
+				{
+					alarm.hour_alm--;
+					flagFastHourMinus++;
+				}
+				else
+				{
+					alarm.hour_alm-=edgeFastHour;
+				}
+				
+				
+				if (hour<0)
+				{
+					alarm.hour_alm=100+alarm.hour_alm;
+				}
+			}
+			else
+			{
+				flagFastHourMinus=0;
+			}
+			
+			
+			if ( !GPIO_ReadInputPin(SliderMinutePlusBtn))
+			{
+				
+				
+				
+				if ( flagFastMinutePlus<edgeFastMinute)
+				{
+				alarm.min_alm++;
+				flagFastMinutePlus++;
+				}
+				else
+				{
+					alarm.min_alm+=edgeFastMinute;
+				}
+				
+				if (minute>59)
+				{
+					alarm.min_alm=alarm.min_alm%60;
+				}
+				
+			}
+			else
+			{
+				flagFastMinutePlus=0;
+			}
+			
+			if ( !GPIO_ReadInputPin(SliderMinuteMinusBtn))
+			{
+				if ( flagFastMinuteMinus<edgeFastMinute)
+				{
+				alarm.min_alm--;
+				flagFastMinuteMinus++;
+				}
+				else
+				{
+					alarm.min_alm-=edgeFastMinute;
+				}
+				
+				if (alarm.min_alm<0)
+				{
+					alarm.min_alm=60+alarm.min_alm;
+				}
+			}
+			else
+			{
+				flagFastMinuteMinus=0;
+			}
+			//---------
+			// вывод данных на экран
+			alarm.s_alm= (uint32_t)alarm.hour_alm*3600+(uint32_t)alarm.min_alm*60;
+			sprintf(st,"%02d:%02d", (uint16_t)alarm.hour_alm, (uint16_t)alarm.min_alm);
+			TM1637_4digit_TextOutput(&dispTimerAlarm,st);
+			flagPollingTimeBtn=0;
+		}
+		// конец блока настройки будильника
+		//--------------------------------------
+		//  Считывание данных из DS3231
+		//  и обновление экрана для мигания
+		//--------------------------------------
+		switch(timerUpdateDisplay)
+		{
+			case 0:
+				sprintf(st,"%d%d:%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
+				goto lbl_printTimer;
+				break;
+			case 2:
+				sprintf(st,"%d%d%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
+				lbl_printTimer:
+				TM1637_4digit_TextOutput(&dispTimer,st);
+				timerUpdateDisplay++;
+				break;
+		}
+		
+		
+		
+		if ( !GPIO_ReadInputPin(SliderTimeStartBtn))
+		{
+			nop();
+		}
+		//-----------------------
+		// Запуск таймера и обновление экрана
+		if ( !GPIO_ReadInputPin(SliderOpenLimit) )
+		{
+			switch(sliderTimer)
+			{
+				case sliderTimerStop:
+					I2Csw_sendToMemoryByte1(&I2Csw_Gpio,
+																		DS3231_devAdr,
+																		0,
+																		DS3231_reg,
+																		4);
+				case sliderTimerRun:
+					lbl_timerRun:
+					// обновление часов
+					if ( !GPIO_ReadInputPin( SrcUpLimit))
+					{
+						I2Csw_readFromMemoryByte1(&I2Csw_Gpio,
+																			DS3231_devAdr,
+																			0,
+																			DS3231_reg,
+																			4);
+						SoftTimer_CMD(&softTimerUpdate,
+											ENABLE);
+					}
+					else
+					{
+						I2Csw_sendToMemoryByte1(&I2Csw_Gpio,
+																		DS3231_devAdr,
+																		0,
+																		DS3231_reg,
+																		4);
+						//Отключаем обновление экрана
+						SoftTimer_CMD(&softTimerUpdate,
+										DISABLE);
+						// Останавливаем монитор с символом :
+						timerUpdateDisplay=0;				
+					}
+				
+					sliderTimer=sliderTimerRun;
+					break;
+				case sliderTimerHold:
+						lbl_timerHold:
+						DS3231_reg[0]=0; // секунды
+						DS3231_reg[1]=0; // минуты 
+						DS3231_reg[2]=0; // часы
+						DS3231_reg[3]=1; // дни 
+						I2Csw_sendToMemoryByte1(&I2Csw_Gpio,
+																		DS3231_devAdr,
+																		0,
+																		DS3231_reg,
+																		4);
+					
+						sliderTimer=sliderTimerRun;
+						break;
+				case sliderTimerInit:
+					// добавить переход для проверки состояния источника
+					if ( !GPIO_ReadInputPin( SrcUpLimit))
+					{
+						goto lbl_timerRun;
+					}
+					else
+					{
+						goto lbl_timerHold;
+					}					
+					break;		
+			}
+		}
+		else
+		if ( !GPIO_ReadInputPin(SliderCloseLimit) )
+		{
+			switch(sliderTimer)
+			{
+				case sliderTimerHold:
+					break;
+				case sliderTimerStop:		
+				case sliderTimerInit:
+				case sliderTimerRun:
+					sliderTimer=sliderTimerHold;
+					SoftTimer_CMD(&softTimerUpdate,
+										DISABLE);
+					timerUpdateDisplay=0;	
+					break;	
+			}
+		}
+		else
+		{
+			switch(sliderTimer)
+			{
+				case sliderTimerStop:
+					//break;	
+				
+				case sliderTimerHold:	
+					break;
+					
+				case sliderTimerRun:
+					sliderTimer=sliderTimerStop;
+					SoftTimer_CMD(&softTimerUpdate,
+										DISABLE);
+					timerUpdateDisplay=0;	
+					break;
+				
+				case sliderTimerInit:
+					
+					if ( !GPIO_ReadInputPin( SrcUpLimit))
+					{
+						sliderTimer=sliderTimerStop;
+					}
+					else
+					{
+						sliderTimer=sliderTimerHold;
+					}
+					SoftTimer_CMD(&softTimerUpdate,
+										DISABLE);
+					timerUpdateDisplay=0;	
+					break;
+			}
+			
+		}
+		// Конец обновления таймера
+		//-------------------------------
+		//================================
+		//	
+
+		if ( !GPIO_ReadInputPin( StopBtn))
+		{
+			nop();
+			
+			GPIO_WriteLow(enStep1);
+			GPIO_WriteLow(enStep2);
+			GPIO_WriteLow(enStepSrc_3);
+			while(1);
+		}
 	
-	
+		
+		if ( !GPIO_ReadInputPin( AlmStep))
+		{
+			// состояние ошибки
+			nop();
+			// отключение двигателя
+			GPIO_WriteLow(enStep1);
+			SoftTimer_CMD(&softTimerBlinkError,ENABLE);
+			// переключаемся в режим сброса координат
+			
+		}
+		else
+		{
+			nop();
+			// включение двигателя
+			GPIO_WriteHigh(enStep1);
+			//GPIO_WriteHigh(enStepSrc_3);
+		}
+		
+		// Конец автомата управления источником
 	}
 #endif
 }

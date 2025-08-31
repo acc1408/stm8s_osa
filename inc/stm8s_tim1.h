@@ -579,7 +579,7 @@ void TIM1_Cmd(FunctionalState NewState);
 void TIM1_CtrlPWMOutputs(FunctionalState NewState);
 #endif
 
-//#define TIM1_ITConfig_DEF
+#define TIM1_ITConfig_DEF
 #ifdef  TIM1_ITConfig_DEF
 void TIM1_ITConfig(TIM1_IT_TypeDef TIM1_IT, FunctionalState NewState);
 #endif
@@ -694,7 +694,7 @@ void TIM1_ForcedOC3Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 void TIM1_ForcedOC4Config(TIM1_ForcedAction_TypeDef TIM1_ForcedAction);
 #endif
 
-//#define TIM1_ARRPreloadConfig_DEF
+#define TIM1_ARRPreloadConfig_DEF
 #ifdef  TIM1_ARRPreloadConfig_DEF
 void TIM1_ARRPreloadConfig(FunctionalState NewState);
 #endif
@@ -891,12 +891,12 @@ uint16_t TIM1_GetPrescaler(void);
 FlagStatus TIM1_GetFlagStatus(TIM1_FLAG_TypeDef TIM1_FLAG);
 #endif
 
-//#define TIM1_ClearFlag_DEF
+#define TIM1_ClearFlag_DEF
 #ifdef  TIM1_ClearFlag_DEF
 void TIM1_ClearFlag(TIM1_FLAG_TypeDef TIM1_FLAG);
 #endif
 
-//#define TIM1_GetITStatus_DEF
+#define TIM1_GetITStatus_DEF
 #ifdef  TIM1_GetITStatus_DEF
 ITStatus TIM1_GetITStatus(TIM1_IT_TypeDef TIM1_IT);
 #endif

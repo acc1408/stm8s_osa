@@ -34,27 +34,33 @@
 #include "stm8s.h"
 
 /* Uncomment the line below to enable peripheral header file inclusion */
- #include "osa.h"
+ //#include "osa.h"
  #include "inc/stm8s_delay.h" // программная задержка
 // #include "inc/stm8s_encoder.h" // Драйвер для энкодера
-// #include "inc/stm8s_button.h"  // Драйвер для кнопки
+ #include "inc/stm8s_button.h"  // Драйвер для кнопки
  #include "inc/stm8s_buffer.h"
  #include "inc/stm8s_cmdline.h"
  #include "inc/stm8s_stdioinit.h"
  
  #include "inc/stm8s_clk.h" // драйвер тактирования
-// #include "inc/stm8s_exti.h" // драйвер внешних прерываний
+ //#include "inc/stm8s_exti.h" // драйвер внешних прерываний
 // #include "inc/stm8s_flash.h" // драйвер записи во флеш
  #include "inc/stm8s_gpio.h" // драйвер для GPIO
- #include "inc/stm8s_i2c.h" // драйвер для шины I2C
+// #include "inc/stm8s_i2c.h" // драйвер для шины I2C
 // #include "inc/stm8s_itc.h"  //
 // #include "inc/stm8s_iwdg.h"
 // #include "inc/stm8s_rst.h"
 // #include "inc/stm8s_spi.h"  
-// #include "inc/stm8s_tim1.h"
+ #include "inc/stm8s_tim1.h"
 // #include "inc/stm8s_i2clcd1602.h"
 //	#include "inc/stm8s_bme280.h"
  #include "inc/stm8s_tm1637.h"
+ #include "inc/stm8s_stepmotor.h"
+ 
+ #include "inc/stm8s_softtimer.h"
+
+#include "inc/stm8s_i2c_sw.h"
+
 
 #if defined(STM8S105) || defined(STM8S005) || defined(STM8S103) || defined(STM8S003) ||\
     defined(STM8S001) || defined(STM8S903) || defined (STM8AF626x)
@@ -75,7 +81,7 @@
 #endif /* STM8S903 */
 #if defined(STM8S208) || defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) ||\
     defined(STM8S005) ||  defined (STM8AF52Ax) || defined (STM8AF62Ax) || defined (STM8AF626x)
-// #include "inc/stm8s_tim3.h"
+ #include "inc/stm8s_tim3.h"
 #endif /* (STM8S208) ||defined(STM8S207) || defined(STM8S007) ||defined(STM8S105) */ 
 #ifndef STM8S903
  #include "inc/stm8s_tim4.h"
