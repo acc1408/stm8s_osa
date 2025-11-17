@@ -37,16 +37,27 @@
 /* Private defines -----------------------------------------------------------*/
 
 // кол-во микрошагов на оборот
-#define microStep1 800
-#define maxDistCarSP 4000 // максимальное задание
-#define ConvStepIntoDist 400 // конвертация шагов в мм
-#define CalibLimitIn_mm 1000 // калибровочное расстояние
+#define microStep1 1000			//кол-во шагов на оборот
+#define maxDistCarSP 3100 // максимальное задание
+#define minDistCarSP 500 // максимальное задание
+#define ConvStepIntoDist 1000 // конвертация шагов в мм
+#define CarMinV1 400  // Минимальная скорость для каретки
+#define CalibLimitIn_mm 720 // калибровочное расстояние
 
-#define SrcConvStepIntoDist 400 // конвертация шагов в мм для источника
-#define SrcDistDown				30		// расстояние опускания вниз для источника в верхней точке
 
 #define alarm_btn_time_off 5 // время удержания кнопки пуск таймер для отключения
 //=====================================
+// Параметры двигателя заслонки
+#define SliderMicroStep 800 	// Микрошагов на оборот
+#define  SliderTimeAccel 1500 // Время ускорения мс
+#define  SliderTimeBreak 300  // Время торможения мс
+// =================================
+#define  SrcMicroStep  400 // Микрошагов на оборот
+#define SrcConvStepIntoDist 200 // конвертация шагов в мм для источника
+#define SrcDistDown				100		// расстояние опускания вниз для источника в верхней точке
+
+
+
 // описание входов шаговых двигатлей
 // каретка
 #define enStep1  	GPIOF, GPIO_PIN_5
@@ -177,6 +188,8 @@
 #define OnOffBtn		GPIOI, GPIO_PIN_0
 
 #define StopBtn		GPIOD, GPIO_PIN_0
+#define StopL		  GPIOG, GPIO_PIN_2
+
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -205,7 +218,7 @@
 #define noHandler 0
 
 // Порог быстрой перемотки
-#define edgeFastHour 10
+#define edgeFastHour 5
 #define edgeFastMinute 5
 
 
@@ -275,8 +288,8 @@ typedef union
 // Модуль работы экраны
 //---------------------------------
 // объекты экрана
-tm1637_t 	disp1, 
-					disp2, 
+tm1637_t 	disp1, // distantice SP
+					disp2, // distantice PV
 					dispTimer, 
 					dispTimerAlarm ;
 //---------------------------------
@@ -316,12 +329,13 @@ button_t 	Handler_SrcUpBtn,
 //----------------------------------------
 //========================================
 // текущие расстояние каретки
-int16_t 	distCarSP=1000; 
+int16_t 	distCarSP=718; 
 uint8_t		flagDistCarSP=0; 	// флаг кол-ва 
 int32_t 	PV_Cur; // текущая дистанция в шагах.
 // номер ускорения для дистанции
 int16_t		incDistCarSP=0,
-					decDistCarSP=0
+					decDistCarSP=0,
+					dirDistCarSP=0 // направление
 					;		
 int16_t		distCarPV;
 CarAutoUpMode_t CarAutoUpMode=CarAutoUpOff;
@@ -353,13 +367,13 @@ typedef enum
 	//-------------------------
 	state_SrcDown,
 	//------------------------
-	state_SrcDownDist, // отвод источник на определенное положение вниз
+	//state_SrcDownDist, // отвод источник на определенное положение вниз
 	//-----------------------
 	// Многоцелевые задачи
 	//----------------------
 	state_SliderOpen,	// конец задачи
 	state_SliderOpen_OutZone,
-	state_SliderOpen_OutZone_SrcDownDist,
+	//state_SliderOpen_OutZone_SrcDownDist,
 	//----------------------------
 	state_SliderClose,
 	state_SliderClose_OutZone,
@@ -458,8 +472,11 @@ typedef struct
 saveData_t save;
 
 
+// обработчик сигнала мигания
 void handler_timerUpdateDisplay(void)
 {
+	timerUpdateDisplay=~timerUpdateDisplay;
+	/*
 	switch(	timerUpdateDisplay)
 	{
 		case 1:
@@ -468,6 +485,7 @@ void handler_timerUpdateDisplay(void)
 			timerUpdateDisplay=timerUpdateDisplay%4;
 			break;
 	}
+	*/
 }
 
 //========================================
@@ -485,7 +503,9 @@ softTimer_t softTimer,
 						softTimerBtn,
 						softTimerDisp,
 						softTimerBlinkError,
-						softTimerSave;
+						softTimerSave,
+						softTimerBlinkSP // мигание символом на экране
+						;
 
 ControlSrc_t SrcMoveCntr;
 
@@ -614,6 +634,8 @@ void clockBlinkLed(void)
 	SoftTimer_ClockISR(&softTimerUpdate);
 	SoftTimer_ClockISR(&softTimerLed);
 	SoftTimer_ClockISR(&softTimerBtn);
+	SoftTimer_ClockISR(&softTimerBlinkSP);
+	
 	TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
 }
 
@@ -668,7 +690,11 @@ void Handler_displayError(void)
 	blinkError=~blinkError;
 }
 
-
+uint8_t blinkSeg=0; // флаг мигания
+void handler_timerBlinkSeg(void)
+{
+	blinkSeg=~blinkSeg;
+}
 
 
 
@@ -864,7 +890,8 @@ void LedPolling(void)
 		//--------------------------------
 		// Проверка различных режимов работы
 		if (	stateCarSlider==state_SliderOpen_OutZone
-				||stateCarSlider==state_SliderOpen_OutZone_SrcDownDist)
+				//||stateCarSlider==state_SliderOpen_OutZone_SrcDownDist
+				)
 		{
 			GPIO_WriteHigh(SliderOpenBtnLed);
 		}
@@ -909,7 +936,7 @@ void LedPolling(void)
 		
 }
 
-void StepMotorCar_Init(void)
+void StepMotorCar_Init(int32_t PV)
 {
 	// настройка оси каретки
 	TIM2_ARRPreloadConfig(ENABLE);
@@ -930,11 +957,11 @@ void StepMotorCar_Init(void)
 									
 									limitSW_Level_Low,
 									CarNearLimit	);
-	
+	//save.step
 	PID_initTab(&pidCar,
-							save.step, // текущее значение PV
+							PV, // текущее значение PV
 							16000000, // частота
-							800, // микрошагов
+							microStep1, // микрошагов
 							20, // Шаг дифференцирования ms 
 							save.a1, // время раскрутки
 							200, // время торможения
@@ -943,6 +970,9 @@ void StepMotorCar_Init(void)
 							10 // кол-во шагов перед остановкой
 							);
 }
+
+
+
 
 void StepMotorSlider_Init(void)
 {
@@ -967,10 +997,10 @@ void StepMotorSlider_Init(void)
 	PID_initTab(&pidSlider,
 							0, // текущее значение PV
 							16000000, // частота
-							800, // микрошагов
+							SliderMicroStep, // микрошагов
 							20, // Шаг дифференцирования ms 
-							1500, // время раскрутки
-							300, // время торможения
+							SliderTimeAccel, // время раскрутки
+							SliderTimeBreak, // время торможения
 							save.v2, // скорость вращения
 							3, // кол-во последних уровней для добавления шагов
 							10 // кол-во шагов перед остановкой
@@ -1009,10 +1039,10 @@ void StepMotorSrc_Init(void)
 	PID_initTab(&pidSrc,
 							0, // текущее значение PV
 							16000000, // частота
-							1000, // микрошагов
+							SrcMicroStep, // микрошагов
 							20, // Шаг дифференцирования ms 
 							1500, // время раскрутки
-							1000, // время торможения
+							300, // время торможения
 							save.v3, // скорость вращения
 							3, // кол-во последних уровней для добавления шагов
 							10 // кол-во шагов перед остановкой
@@ -1173,6 +1203,9 @@ void GPIO_All_Init(void)
 	
 	// Кнопка стоп
 	GPIO_Init(StopBtn, GPIO_MODE_IN_PU_NO_IT);
+	
+	GPIO_Init(StopL, GPIO_MODE_OUT_PP_LOW_FAST);
+	
 	//--------------
 	// концевик двери
 	GPIO_Init(SwDoorLimit, GPIO_MODE_IN_PU_NO_IT);
@@ -1230,6 +1263,22 @@ void SoftTimerAll_Init(void)
 							);
 	SoftTimer_CMD(&softTimerSave,ENABLE);
 	
+	// таймер для мигания двоеточием у часов
+	SoftTimer_Init(&softTimerUpdate,// указатель на работу таймера
+							500,			// значение автообновления
+							handler_timerUpdateDisplay	// обработчик переполнения
+							);
+	/*
+	SoftTimer_CMD(&softTimerUpdate,
+									ENABLE);
+	*/						
+	// таймер для мигания символом для SP
+	SoftTimer_Init(&softTimerBlinkSP,// указатель на работу таймера
+							250,			// значение автообновления
+							handler_timerBlinkSeg	// обработчик переполнения
+							);						
+	SoftTimer_CMD(&softTimerBlinkSP,
+									ENABLE);
 	
 }
 
@@ -1250,50 +1299,10 @@ void Task_2(void)
 void Task(void)
 {
 	uint8_t i,temp;
-	/*
-	GPIO_Init(Buzz, GPIO_MODE_OUT_PP_LOW_FAST);
-	GPIO_WriteHigh(Buzz);
-	GPIO_WriteLow(Buzz);
-	
-	GPIO_Init(Buzz, GPIO_MODE_OUT_PP_LOW_FAST);
 	
 	
-	TM1637_Init(&disp1, tm1637_1,Brightness0);
-	TM1637_Init(&disp2, tm1637_2,Brightness2);
-	TM1637_Init(&disp3, tm1637_3,Brightness4);
-	TM1637_Init(&disp4, tm1637_4,Brightness6);
-	ADC2_SingleOne_Init(	ADC2_PRESSEL_FCPU_D10, 
-													ADC2_Handler_NoIT);
-	timer1=0;	
-	*/
 	while(1)
 	{
-		//GPIO_WriteReverse(GPIOB, GPIO_PIN_1);
-		//ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
-		/*
-		sprintf(st,"%4d",timer1++);
-		
-		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
-		adc2= ADC2_SingleOne_GetConversion();
-		sprintf(st,"%4d",adc2);
-		TM1637_TextOutput(&disp1,st);
-		
-		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_11);
-		adc2= ADC2_SingleOne_GetConversion();
-		sprintf(st,"%4d",adc2);
-		TM1637_TextOutput(&disp2,st);
-		
-		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_10);
-		adc2= ADC2_SingleOne_GetConversion();
-		sprintf(st,"%4d",adc2);
-		TM1637_TextOutput(&disp3,st);
-		
-		ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_7);
-		adc2= ADC2_SingleOne_GetConversion();
-		sprintf(st,"%4d",adc2);
-		TM1637_TextOutput(&disp4,st);
-		*/
-		
 		
 		OS_Delay(500);
 	}
@@ -1339,7 +1348,7 @@ void main(void)
 	
 		// чтение данных скорости каретки
 	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_12);
-	save.v1= (ADC2_SingleOne_GetConversion()>>3)*8+1;
+	save.v1= (ADC2_SingleOne_GetConversion()>>3)*8+CarMinV1;
 	
 	// время ускорения каретки
 	ADC2_SingleAny_Start(ADC2_SOFT,ADC2_CHANNEL_11);
@@ -1383,9 +1392,9 @@ void main(void)
 	//-----------------------------------------
 	// ----------------------------------------
 	// инициализация экрана
-	TM1637_Init(&disp1, 	tm1637_1,tm1637_bright_3);
-	TM1637_Init(&disp2, 	tm1637_2,tm1637_bright_3);
-	TM1637_Init(&dispTimer,tm1637_3,tm1637_bright_3);
+	TM1637_Init(&disp1, 	tm1637_1,tm1637_bright_3); // SP
+	TM1637_Init(&disp2, 	tm1637_2,tm1637_bright_2); // PV
+	TM1637_Init(&dispTimer,tm1637_3,tm1637_bright_2);
 	TM1637_Init(&dispTimerAlarm, 	tm1637_4,tm1637_bright_3);
 	//-----------------------------------
 	// Инициализация всех программых таймеров
@@ -1401,7 +1410,7 @@ void main(void)
 	TIM4_Cmd(ENABLE);
 	//----------------------------------
 	// Инициализация и расчет двигателей
-	StepMotorCar_Init();
+	StepMotorCar_Init(save.step);
 	StepMotorSlider_Init();
 	StepMotorSrc_Init();
 	// инициализация всех пинов
@@ -1446,13 +1455,6 @@ void main(void)
 	// загрузка данных в счетчик расстояния
 	distCarSP=save.dist;
 	
-	SoftTimer_Init(&softTimerUpdate,// указатель на работу таймера
-							500,			// значение автообновления
-							handler_timerUpdateDisplay	// обработчик переполнения
-							);
-	SoftTimer_CMD(&softTimerUpdate,
-									ENABLE);
-	
 	enableInterrupts();
 	
 	
@@ -1472,12 +1474,34 @@ void main(void)
 		//====================================
 		// модуль управления экранами
 		// каретки
+		// модуль дисплея обновляется 50Гц
 		if (updateDispaly)
 		{
 			updateDispaly=0;
 			
+			//blinkSeg 
+			//incDistCarSP
+		
+			
 			sprintf(st,"%4d", distCarSP);
-			TM1637_6digit_TextOutput(&disp1,st);
+				if (incDistCarSP>100)
+			{
+				if (blinkSeg)
+				{
+					st[1]=' ';
+				}
+			}
+			else
+			if (incDistCarSP>10)
+			{
+				if (blinkSeg)
+				{
+					st[2]=' ';
+				}
+			}
+			TM1637_4digit_TextOutput(&disp1,st);
+			
+			
 			if (blinkError)
 			{
 				// если ошибка есть
@@ -1489,7 +1513,51 @@ void main(void)
 				sprintf(st,"%4d", distCarPV);
 			}
 			TM1637_4digit_TextOutput(&disp2,st);
+			// если таймер работает значит необходимо мигать
+			if( SoftTimer_getState (&softTimerUpdate) )
+			{
+				if(timerUpdateDisplay)
+				{
+					sprintf(st,"%d%d:%d%d",DS3231_reg[2]>>4,DS3231_reg[2]&0x0F,DS3231_reg[1]>>4,DS3231_reg[1]&0x0F);
+				}
+				else
+				{
+					sprintf(st,"%d%d%d%d",DS3231_reg[2]>>4,DS3231_reg[2]&0x0F,DS3231_reg[1]>>4,DS3231_reg[1]&0x0F);
+				}
+			}
+			else
+			{
+				sprintf(st,"%d%d:%d%d",DS3231_reg[2]>>4,DS3231_reg[2]&0x0F,DS3231_reg[1]>>4,DS3231_reg[1]&0x0F);
+			}
+			TM1637_4digit_TextOutput(&dispTimer,st);
+		
 		}
+		
+		
+		
+		//--------------------------------------
+		//  Считывание данных из DS3231
+		//  и обновление экрана для мигания
+		//--------------------------------------
+		/*
+		switch(timerUpdateDisplay)
+		{
+			case 0:
+				sprintf(st,"%d%d:%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
+				goto lbl_printTimer;
+				break;
+			case 2:
+				sprintf(st,"%d%d%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
+				lbl_printTimer:
+				TM1637_4digit_TextOutput(&dispTimer,st);
+				timerUpdateDisplay++;
+				break;
+		}
+		*/
+		
+		
+		
+		
 		//------------------------------------
 		// Проверку на необходимость сохранять данные
 		// происходит каждые 3 секунды
@@ -1555,7 +1623,7 @@ void main(void)
 				{
 					save.v1 =temp_16u ;
 					save.a1= temp2_16u;
-						StepMotorCar_Init();
+						StepMotorCar_Init(  PID_getPV(&pidCar)    );
 				}
 				//---------------------------------
 				//Проверка настройки для 2 оси
@@ -1652,10 +1720,13 @@ void main(void)
 						//-----------------
 						// открыть створку
 						if ( !GPIO_ReadInputPin(SliderOpenBtn) && 
-									GPIO_ReadInputPin(SliderOpenLimit))
+									GPIO_ReadInputPin(SliderOpenLimit) &&
+									GPIO_ReadInputPin(SwDoorLimit) 
+									)
 						{
-							stateCarSlider=state_SliderOpen_OutZone_SrcDownDist;
-							goto lbl_state_SliderOpen_OutZone_SrcDownDist;
+							//stateCarSlider=state_SliderOpen_OutZone_SrcDownDist;
+							stateCarSlider=state_SliderOpen_OutZone;
+							goto lbl_state_SliderOpen_OutZone;
 						
 						}
 						//----------------------------------------------------
@@ -1679,17 +1750,8 @@ void main(void)
 						if ( !GPIO_ReadInputPin(SrcDownBtn) 
 								&& GPIO_ReadInputPin(SrcDownLimit) 	)
 						{
-							if (!GPIO_ReadInputPin(SrcUpLimit) )
-							{
-								stateCarSlider=state_SrcDownDist;
-								goto lbl_state_SrcDownDist;
-							}
-							else
-							{
-								stateCarSlider=state_SrcDown;
-								goto lbl_state_SrcDown;
-							}
-							
+							stateCarSlider=state_SrcDown;
+							goto lbl_state_SrcDown;
 						}
 						//-------------------------------------------
 						// запуск будильника
@@ -1756,12 +1818,20 @@ void main(void)
 				// Приводит к уборке источника
 //				SwDoorLimit
 				if ( !GPIO_ReadInputPin(SwDoorLimit) && 
+							GPIO_ReadInputPin(SliderCloseLimit)  )
+				{
+					stateCarSlider=state_SliderClose_OutZone;
+					goto lbl_state_SliderClose_OutZone;
+				}
+				
+				/*
+				if ( !GPIO_ReadInputPin(SwDoorLimit) && 
 							!GPIO_ReadInputPin(SrcUpLimit) )
 				{
 					stateCarSlider=state_SrcDownDist;
 					goto lbl_state_SrcDownDist;
 				}
-				
+				*/
 				break;
 			//------------------------
 			// обработчик команд
@@ -2102,7 +2172,7 @@ void main(void)
 				
 				break;
 			
-			
+			/*
 			case state_SrcDownDist:	
 				lbl_state_SrcDownDist:	
 				
@@ -2148,14 +2218,15 @@ void main(void)
 				}
 				
 				break;
-			
+			*/
+			/*
 			case state_SliderOpen_OutZone_SrcDownDist:
 				lbl_state_SliderOpen_OutZone_SrcDownDist:
 				
 			
 				goto lbl_state_SrcDownDist;
 				break;
-			
+			*/
 			case state_SliderOpen_OutZone:
 				lbl_state_SliderOpen_OutZone:
 				
@@ -2245,6 +2316,118 @@ void main(void)
 		//--------------------------------------
 		//--------------------
 		// кнопки увеличения дистанции
+		if ( !GPIO_ReadInputPin(CarAutoDistMinusBtn)  )
+		{
+			dirDistCarSP=-1;
+			goto lbl_setDistSP;
+		}
+		else	
+		if ( !GPIO_ReadInputPin(CarAutoDistPlusBtn)  )
+		{
+			dirDistCarSP=1;
+			lbl_setDistSP: // переход при вычистании
+			if (flagDistCarSP)
+			{
+				if (flagDistCarSP)
+				{
+					if (incDistCarSP <10)
+					{
+						incDistCarSP++;
+					}
+					else
+					if (incDistCarSP <100)
+					{
+						incDistCarSP+=10;
+					}
+					else
+					if (incDistCarSP <1000)
+					{
+						incDistCarSP+=100;
+					}
+					/*
+					else
+					if (incDistCarSP<10000)
+					{
+						incDistCarSP+=1000;
+						//distCarSP+=500;
+					}
+					*/
+					
+					// Добавление значений
+					
+					/*
+					if (incDistCarSP >1000)
+					{
+						distCarSP  =distCarSP + 200*dirDistCarSP;
+					}
+					else
+					*/
+					if (incDistCarSP >100)
+					{
+						distCarSP  =distCarSP + 100*dirDistCarSP;
+					}
+					else
+					if (incDistCarSP >10)
+					{
+						distCarSP  =distCarSP + 10*dirDistCarSP;
+					}
+					else
+					{
+						distCarSP  =distCarSP + dirDistCarSP;
+					}
+					
+					// Проверка на диапазон
+					if (distCarSP>maxDistCarSP)
+					{
+						distCarSP=maxDistCarSP;
+					}
+					else
+					if (distCarSP<minDistCarSP)
+					{
+						distCarSP=minDistCarSP;
+					}
+					
+					flagDistCarSP=0;
+				}
+			}
+		}
+		else
+		{
+			if (flagDistCarSP)
+			{
+				// уменьшение счетчика
+				/*
+				if (incDistCarSP >1000)
+				{
+					incDistCarSP  =incDistCarSP - 1000;
+				}
+				else
+				*/
+				if (incDistCarSP >100)
+				{
+					incDistCarSP  = incDistCarSP -100;
+				}
+				else
+				if (incDistCarSP >10)
+				{
+					incDistCarSP  = incDistCarSP -10;
+				}
+				else
+				if (incDistCarSP >0)
+				{
+					incDistCarSP  =incDistCarSP - 1;
+				} 
+				else
+				{
+					incDistCarSP  = 0;
+				}
+				flagDistCarSP=0;
+			}
+		}
+		
+		
+		
+		/*
 		if ( !GPIO_ReadInputPin(CarAutoDistPlusBtn)  )
 		{
 			if (flagDistCarSP)
@@ -2282,7 +2465,7 @@ void main(void)
 					{
 						distCarSP=maxDistCarSP;
 					}
-					flagDistCarSP=0;
+				flagDistCarSP=0;
 			}
 		}
 		else
@@ -2334,7 +2517,7 @@ void main(void)
 			decDistCarSP=0;
 		}
 		
-		
+		*/
 		
 		
 		//-----------------------------------
@@ -2357,9 +2540,10 @@ void main(void)
 					alarm.hour_alm+=edgeFastHour;
 				}
 				
-				if (hour>99)
+				if (alarm.hour_alm>24)
 				{
-					alarm.hour_alm=alarm.hour_alm%100;
+					//alarm.hour_alm=alarm.hour_alm%24;
+					alarm.hour_alm=24;
 				}
 				
 				
@@ -2384,9 +2568,10 @@ void main(void)
 				}
 				
 				
-				if (hour<0)
+				if (alarm.hour_alm<0)
 				{
-					alarm.hour_alm=100+alarm.hour_alm;
+					//alarm.hour_alm=24+alarm.hour_alm;
+					alarm.hour_alm=0;
 				}
 			}
 			else
@@ -2410,9 +2595,10 @@ void main(void)
 					alarm.min_alm+=edgeFastMinute;
 				}
 				
-				if (minute>59)
+				if (alarm.min_alm>59)
 				{
-					alarm.min_alm=alarm.min_alm%60;
+					//alarm.min_alm=alarm.min_alm%60;
+					alarm.min_alm=59;
 				}
 				
 			}
@@ -2435,7 +2621,8 @@ void main(void)
 				
 				if (alarm.min_alm<0)
 				{
-					alarm.min_alm=60+alarm.min_alm;
+					//alarm.min_alm=60+alarm.min_alm;
+					alarm.min_alm=0;
 				}
 			}
 			else
@@ -2445,28 +2632,12 @@ void main(void)
 			//---------
 			// вывод данных на экран
 			alarm.s_alm= (uint32_t)alarm.hour_alm*3600+(uint32_t)alarm.min_alm*60;
-			sprintf(st,"%02d:%02d", (uint16_t)alarm.hour_alm, (uint16_t)alarm.min_alm);
+			sprintf(st,"%02d:%02d", (int16_t)alarm.hour_alm, (int16_t)alarm.min_alm);
 			TM1637_4digit_TextOutput(&dispTimerAlarm,st);
 			flagPollingTimeBtn=0;
 		}
 		// конец блока настройки будильника
-		//--------------------------------------
-		//  Считывание данных из DS3231
-		//  и обновление экрана для мигания
-		//--------------------------------------
-		switch(timerUpdateDisplay)
-		{
-			case 0:
-				sprintf(st,"%d%d:%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
-				goto lbl_printTimer;
-				break;
-			case 2:
-				sprintf(st,"%d%d%d%d",DS3231_reg[1]>>4,DS3231_reg[1]&0x0F,DS3231_reg[0]>>4,DS3231_reg[0]&0x0F);
-				lbl_printTimer:
-				TM1637_4digit_TextOutput(&dispTimer,st);
-				timerUpdateDisplay++;
-				break;
-		}
+		
 		
 		
 		
@@ -2478,6 +2649,7 @@ void main(void)
 		// Запуск таймера и обновление экрана
 		if ( !GPIO_ReadInputPin(SliderOpenLimit) )
 		{
+			
 			switch(sliderTimer)
 			{
 				case sliderTimerStop:
@@ -2510,7 +2682,7 @@ void main(void)
 						SoftTimer_CMD(&softTimerUpdate,
 										DISABLE);
 						// Останавливаем монитор с символом :
-						timerUpdateDisplay=0;				
+						//timerUpdateDisplay=0;				
 					}
 				
 					sliderTimer=sliderTimerRun;
@@ -2555,7 +2727,7 @@ void main(void)
 					sliderTimer=sliderTimerHold;
 					SoftTimer_CMD(&softTimerUpdate,
 										DISABLE);
-					timerUpdateDisplay=0;	
+					//timerUpdateDisplay=0;	
 					break;	
 			}
 		}
@@ -2573,7 +2745,7 @@ void main(void)
 					sliderTimer=sliderTimerStop;
 					SoftTimer_CMD(&softTimerUpdate,
 										DISABLE);
-					timerUpdateDisplay=0;	
+					//timerUpdateDisplay=0;	
 					break;
 				
 				case sliderTimerInit:
@@ -2588,7 +2760,7 @@ void main(void)
 					}
 					SoftTimer_CMD(&softTimerUpdate,
 										DISABLE);
-					timerUpdateDisplay=0;	
+					//timerUpdateDisplay=0;	
 					break;
 			}
 			
@@ -2601,7 +2773,7 @@ void main(void)
 		if ( !GPIO_ReadInputPin( StopBtn))
 		{
 			nop();
-			
+			GPIO_WriteHigh(StopL);
 			GPIO_WriteLow(enStep1);
 			GPIO_WriteLow(enStep2);
 			GPIO_WriteLow(enStepSrc_3);
